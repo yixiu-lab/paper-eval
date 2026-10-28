@@ -4,7 +4,7 @@
 
 This note describes the repository's current CLI-oriented code snapshot. It is not the same artifact revision as the historical V16 full-corpus run summarized in [`submission/04-reproducibility/original-149-v16-audit.md`](submission/04-reproducibility/original-149-v16-audit.md).
 
-The rule profile currently checked into `评价规则库/rules_v1.yaml` is **V17, draft**. The 149-PDF audit used the historical V16 profile, `MGMT-LIT-EVAL-V1:V16`, 34 rules, DeepSeek Flash, temperature 0, and thinking disabled. The exact V16 profile/runtime package is not included in this repository snapshot. Do not attribute the V16 scores to the current V17 profile.
+The rule profile currently checked into `评价规则库/rules_v1.yaml` is **V16, draft**, with 34 rules. Its SHA-256 is `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`. This is the exact V16 rule snapshot used in the 149-PDF audit. That run used `MGMT-LIT-EVAL-V1:V16`, DeepSeek Flash, temperature 0, and thinking disabled. The run-specific source revision and full runtime configuration are not included, so the present code snapshot should not be represented as an exact rerun environment.
 
 ## Current code and entry points
 
@@ -22,13 +22,13 @@ The six dimensions cover research question positioning, theoretical contribution
 
 ## Scoring profile
 
-The current V17 draft uses a baseline pool and a bonus pool, nominally 60 and 40 points. Baseline rules aim to represent adequacy; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and must be reported with completeness. This is a design under study, not a validated general-purpose scale. Rule explanations and most runtime-facing rule labels remain Chinese.
+The current V16 draft uses a baseline pool and a bonus pool, nominally 60 and 40 points. Baseline rules aim to represent adequacy; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and must be reported with completeness. This is a design under study, not a validated general-purpose scale. Rule explanations and most runtime-facing rule labels remain Chinese.
 
 ## Evidence and limits
 
 The V16 historical audit covers 149 source PDFs, 146 unique papers after exact SHA-256 deduplication, 144 complete reports, and two papers blocked before scoring by PDF parsing. Full details and title-free outcomes are linked in the audit note. The experiment does not include expert-labeled validity evidence; the selected sample consists of published AI/HRM empirical papers and cannot establish performance on rejected or off-topic manuscripts.
 
-The source corpus and full paper-level traces are not included. A third party cannot independently reproduce the V16 run from the current repository alone. The exact historical V16 rule/configuration snapshot must be recovered and rights for sharing the paper data must be reviewed before claiming independent reproducibility.
+The source corpus and full paper-level traces are not included. A third party cannot independently reproduce the V16 run from the current repository alone. The exact code revision and runtime configuration must still be matched to the historical run, and rights for sharing paper data must be reviewed before claiming independent reproducibility.
 
 ## Security and runtime requirements
 

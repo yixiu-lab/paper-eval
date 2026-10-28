@@ -3,7 +3,7 @@
 **Audit date:** October 26, 2026  
 **Source record:** the final audit note and reconciled manifest in the authors' local experiment workspace. This page contains only aggregate results; the paper-level manifest, PDFs, and full reports are not included in this repository.
 
-The repository currently contains a V17 draft scoring profile. This audit used V16; its exact rule profile and complete runtime configuration are not included in the repository. Do not interpret these historical scores as outputs of the checked-in V17 rules.
+The repository includes the exact V16 scoring-rule snapshot used for this audit at `评价规则库/rules_v1.yaml` (SHA-256: `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`). The run-specific source revision and full runtime configuration are not included. The rules match; the current code checkout is not claimed to be an exact replay of the historical run.
 
 The accompanying [`original-149-v16-results.csv`](original-149-v16-results.csv) provides one row per unique paper with V16 scores where available. It uses a stable ID derived from the source PDF's SHA-256 checksum and omits titles, journal names, paths, and paper text.
 

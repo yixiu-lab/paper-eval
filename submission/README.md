@@ -10,7 +10,7 @@ PaperEval is a prototype for evidence-grounded AI assessment of management resea
 
 The current V16 audit covers 149 source PDFs: 146 unique papers after exact deduplication, 144 with complete V16 reports, and two blocked during PDF parsing before scoring. These records demonstrate a working prototype at meaningful scale, but not validity against expert judgments. See the [audit](04-reproducibility/original-149-v16-audit.md) and [title-free per-paper outcomes](04-reproducibility/original-149-v16-results.csv).
 
-**Version boundary:** the repository currently contains a V17 draft scoring profile; the V16 corpus results are historical and were not generated with that checked-in profile. The exact V16 rule/configuration snapshot is not included here.
+**Version boundary:** the checked-in scoring profile is the exact V16 rule snapshot used for the 149-PDF audit. The run-specific code revision and full runtime configuration are not included, so matching rules alone does not establish that the current code snapshot reproduces the historical results.
 
 ## Fit with the call
 

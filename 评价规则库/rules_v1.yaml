@@ -1,6 +1,6 @@
 rule_profile_id: MGMT-LIT-EVAL-V1
 rule_profile_name: 管理学文献质量评价首版规则
-version: V17
+version: V16
 status: draft
 scoring_scale: 100
 # 两池标尺：基准池是「达到发表水准」的基准分，加分池是超过合格才拿得到的分数。两者相加 = scoring_scale。
@@ -16,7 +16,7 @@ scoring_pools:
 # V15 补充：上面这条只挡住了「条数」变化。V15 改的是**选哪 10 条**（关键词表去污染 + C/D 专属召回 +
 # 每规则 retrieval_terms + 可选检索层），条数不变但分数会变——预算治理必须同时盯「条数」与「选择逻辑」。
 evidence_budget:
-  max_evidence_per_rule: 20
+  max_evidence_per_rule: 10
 judgement_policy: Agent 只输出档位与证据；权重、分值映射和全部算术由 Harness 按规则库声明确定性执行。 总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分。 权重分三层且逐层精确求和：Σ维度权重 = Σ构念权重 = Σ规则份额；加不平由 validate_rule_profile 拒绝。 维度满分由两池摊分得出（基准池 60 × 该维基准规则权重 / Σ基准规则权重 + 加分池 40 × 该维加分规则权重 / Σ加分规则权重），因此每个维度必须满足 基准:加分 = 6:4，此时维度满分才等于声明的维度权重。 每条规则的 role 决定它是基准项还是加分项（一个构念不跨角色）：基准项衡量「够不够发表水准」，**合格即满分**——mostly 与 partial 同记 1.0，只有 weak 0.5 / not_satisfied 0.0 扣分，且不设 satisfied；加分项衡量「有没有超出合格」，只有 satisfied 记 1.0（mostly 0.5 / partial 0.25 / weak·not_satisfied 0.0），只加分不扣分。 每条规则另有 retrieval_terms（英文检索词），供证据选择使用：规则锚点是中文、被评论文是英文，拿中文搜英文正文恒不命中。 score_mapping 是唯一的档位分值真源。 标尺版本 MGMT-SCALE-V5；无法判断不进分子也不进分母（宽松口径）。
 dimensions:
 - dimension_id: A
@@ -197,18 +197,18 @@ constructs:
 - construct_id: F-EXTERNAL
   construct_name: 外部效度与适用范围
   dimension_id: F
-  weight: 0.75
+  weight: 1.0
   note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-PRACTICAL
   construct_name: 实践启示
   dimension_id: F
-  weight: 0.75
+  weight: 1.0
   note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-SOCIAL
-  construct_name: 社会与全球问题相关性
+  construct_name: 长期与社会影响
   dimension_id: F
-  weight: 0.5
-  note: 加分项：由社会问题 grounding 输入层将论文主题与发表年份附近的公共议题、国际治理议题或人类问题进行匹配，随后交由 F 维度 Reviewer 判断，待专家标注校准
+  weight: 0.0
+  note: 不计分观察项：测的是选题是否自带社会议题，与写作质量无关，实测无区分度
 rules:
 - rule_id: A-TOPIC-SIGNIFICANCE-V1
   version: V1
@@ -477,8 +477,8 @@ rules:
   dimension_id: B
   dimension_name: 理论贡献与创新性
   indicator_name: 跨理论或跨学科整合
-  definition: 判断论文是否通过跨理论整合、同一理论内不同机制的连接、跨层次解释，或者过程阶段与情境要素的组合，形成统一解释。任一路径均可成立；评价整合后解释了什么及各部分如何联系。
-  required_evidence: 需要定位各理论视角、机制、层次或阶段的来源与解释分工，以及它们连接后新增的解释；并结合外部文献辨认相对已有框架的增量。
+  definition: 判断论文是否把两个以上理论视角接到同一现象上。实证类论文通常以单一框架立论，本规则对其不适用。
+  required_evidence: 需要引用理论来源、假设差异、整合方式、兼容性或理论交汇点的说明。
   evidence_location:
   - Theory
   - Literature Review
@@ -489,12 +489,12 @@ rules:
   - 是否处理认识论/层级/人性假设兼容
   - 是否不是简单拼接理论
   judgement_values:
-    satisfied: 跨理论、同一理论内多机制、跨层次或者过程阶段整合中的任一路径得到完整展开：各部分分工与连接关系明确，正文论证或结果支撑组合后的新增解释，外部比较能辨认其增量
-    mostly: 任一整合路径已形成清晰解释，连接关系及新增含义大体有证据支撑，但一处关键连接的展开或比较仍不充分
-    partial: 已识别多个视角、机制、层次或阶段并尝试连接，但连接如何产生新增解释仍只得到局部说明
+    satisfied: 整合的分工写到可核对的程度：读者能直接指出两个视角各自承担哪一部分解释，以及整合后新增的解释是什么，无需自行拼接
+    mostly: 把不同理论视角接到同一现象上，说明各自负责解释哪一部分，读者能看出整合后得到单一视角给不出的解释
+    partial: 分别使用多个理论视角，各自解释不同片段，读者能看出它们被放进同一篇论文，却看不出交汇发生在哪一处，多出什么说不清
     weak: 多个视角只作为背景或变量来源被先后引用，彼此不构成解释关系，理论部分更像多视角综述，贡献主张缺少整合支撑
-    not_satisfied: 证据显示只重复已有组合，或并列罗列视角、机制与阶段而没有解释它们的连接及新增含义
-    uncertain: 解析缺失或候选证据未覆盖整合所需内容，无法辨认解释分工与连接关系
+    not_satisfied: 该要素缺失：只用单一理论视角，或多个视角只被先后引用，彼此之间没有形成任何解释关系
+    uncertain: 解析缺失、候选证据过窄，或论文以单一视角立论而不涉及整合，使这一项缺少可依据的文本
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -504,7 +504,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 4.444444
-  applicable_type: 通用
+  applicable_type: 理论/综述/混合
   source_reference:
   - Shaw et al. 2018
   - Sparrowe & Mayer 2011
@@ -523,16 +523,16 @@ rules:
   - combines
   - theoretical lens
   - interdisciplinary
-  rationale: 整合价值来自解释部分之间的连接与新增解释。单一命名理论也可连接多个机制或阶段；多理论数量本身不决定档位。
-  threshold: 任一整合路径的解释分工、连接关系和相对既有框架的新增含义均有可定位证据。
-  mostly_threshold: 任一整合路径的解释分工与连接关系明确，新增含义大体得到支撑。
+  rationale: 合格线是两个视角在同一现象上有可辨认的解释分工，不要求处理认识论兼容。各自使用无交汇落 partial，仅作背景引用落 weak；单视角落缺失。跨学科深度整合由 top_journal_gate 承担。
+  threshold: 理论部分出现两个或以上视角，至少有一句说明它们在同一现象上如何分工，读者能指认交汇点。
+  mostly_threshold: 理论部分出现两个视角，读者能说出它们各自解释该现象的哪一部分。
 - rule_id: B-CONCEPT-MECHANISM-NOVELTY-V1
   version: V1
   dimension_id: B
   dimension_name: 理论贡献与创新性
-  indicator_name: 概念、机制与情境化理论推进
-  definition: 判断论文是否通过新概念、新机制、新命题、新测量路径，或者把既有理论情境化并揭示新的机制表现、适用边界、作用顺序或构念含义推进知识。任一路径均可成立；新行业、新时期或新技术环境中的研究需说明该情境带来的具体认识增量。
-  required_evidence: 需要定位贡献主张、相对既有解释的差异以及支撑该差异的理论论证或研究结果。情境化路径需展示情境特征如何改变、细化或扩展既有理解。
+  indicator_name: 新概念、新机制或理论命题
+  definition: 判断论文是否提出新的概念结构、机制解释、理论命题或因果结构，而不是仅报告经验关系。
+  required_evidence: 需要定位到新概念、机制、模型、命题或理论结构的原文证据。
   evidence_location:
   - Theory
   - Findings
@@ -543,8 +543,8 @@ rules:
   - 是否构建新的因果或过程结构
   - 是否避免停留于描述性发现
   judgement_values:
-    mostly: 新概念、机制、命题、测量，或者情境化产生的机制细化、适用边界、作用顺序或构念含义中至少一项增量清楚可辨，正文论证或结果与外部比较支持它与既有解释的差异
-    partial: 可辨认一项概念、机制、测量或情境化贡献，但情境为何重要、改变了何种理解或相对文献的差异仅得到局部说明
+    mostly: 提出一个可指认的新机制、新构念或新测量路径，给出能把这项新内容与既有解释区分开的证据或论证
+    partial: 有新提法或新测量，区分于既有解释的说明只到更细致、更贴合情境这类程度，改动的实质仍不清
     weak: 新提法基本是既有构念换了名称，读者按原有解释即可读懂所得结果，新增内容无法被指认，创新主张因此站不住
     not_satisfied: 该要素缺失：论文沿用既有构念与既有机制，或新提法只是换了名称，没有带来可辨认的解释差异
     uncertain: 解析缺失、候选证据过窄，或论文属复制检验一类不以新机制为目标的体裁，使这一项缺少可依据的文本
@@ -575,15 +575,15 @@ rules:
   - theory building
   - extends theory
   - proposition
-  rationale: 情境能够暴露既有理论未说明的机制、边界或构念含义，因此可形成理论贡献。判档依据是增量的清晰度与证据支持程度；仅更换样本或地点且未产生认识增量时不满足。
-  threshold: 至少一条贡献路径有可定位的新增认识，并能说明相对既有解释的差异。
-  mostly_threshold: 任一贡献路径的增量明确，内部论证或结果和外部文献比较支持该增量。
+  rationale: 校准后这条认测量路径与机制细化，不要求完整理论体系，覆盖方法型与 AI 应用型论文的常见贡献形态。区分说不清落 partial，换名落 weak；沿用既有落缺失。
+  threshold: 理论或讨论部分给出一个新机制、新构念或新测量路径，至少有一处说明它与既有解释的差别。
+  mostly_threshold: 理论或讨论部分提出一个新机制、新构念或新测量路径，读者能说出它与既有解释的不同。
 - rule_id: B-INTERESTINGNESS-V1
   version: V1
   dimension_id: B
   dimension_name: 理论贡献与创新性
   indicator_name: 有趣性与反直觉洞见
-  definition: 判断论文是否通过反直觉结果、揭示被忽略的机制、解释文献分歧、区分以往混同的过程，或者揭示情境依赖关系，形成有证据支撑的新洞见。任一路径均可成立。
+  definition: 判断论文是否提供反直觉、重新看待现象或揭示隐藏关系的洞见，并避免为了有趣牺牲可靠性。
   required_evidence: 需要引用论文如何否定、反转、重释或揭示既有认知的原文证据。
   evidence_location:
   - Introduction
@@ -595,11 +595,11 @@ rules:
   - 是否与重要问题相连
   - 是否避免 HARKing 或脆弱复杂模型
   judgement_values:
-    satisfied: 任一路径形成清晰洞见：明确既有预期或未解问题，说明本文发现增加了什么理解，并有对应结果或论证支撑其解释；情境内成立且边界清楚的洞见也可满足
-    mostly: 反直觉、隐藏机制、分歧解释、过程区分或情境依赖中的一项洞见清楚且有证据，但其产生原因或相对已有认识的比较尚有局部缺口
-    partial: 存在值得注意的发现或解释，但它增加了什么理解、为何成立或与既有认识有何差异，仅得到局部说明
-    weak: 声称反直觉、隐藏机制或情境洞见，但只给标签或零散发现，未说明比较基点与新增认识
-    not_satisfied: 未呈现上述任一路径的认识增量，或所声称的洞见与正文证据相矛盾
+    satisfied: 张力来源与原有解释失效的原因写得具体：读者能直接指出是哪一个被忽略的机制在起作用，以及原有解释在哪一步不成立
+    mostly: 呈现一处与直觉或既有结论方向不同的发现，说明张力来自什么，读者能看出原有解释为何不成立
+    partial: 结果有新意，方向仍落在既有预期范围内，读者能看出本文想给出意外感，张力来源与原有解释是否被推翻都还说不清
+    weak: 结果与既有预期方向一致，讨论却以反直觉为卖点，读者看不到支撑该说法的证据，有趣性主张反而削弱结论可信度
+    not_satisfied: 该要素缺失：结果与既有预期方向一致，或论文以反直觉为卖点却拿不出与预期相左的证据支撑
     uncertain: 解析缺失、候选证据过窄，或论文属复制或方法检验一类不以意外发现为目标的体裁，使这一项缺少可依据的文本
   score_mapping:
     satisfied: 1.0
@@ -629,17 +629,17 @@ rules:
   - interesting
   - intriguing
   - reverses
-  rationale: 洞见的价值在于增加理解；结果方向与既有预期一致时，仍可通过揭示机制、解释分歧或明确情境边界形成洞见。
-  threshold: 至少一项洞见有明确比较基点、新增认识和对应结果或论证。
-  mostly_threshold: 任一路径的洞见与证据对应，新增认识清楚，解释或比较尚有局部缺口。
+  rationale: 合格线是一处有证据支撑、与既有预期方向不同的发现，不要求颠覆认知。有新意但顺预期落 partial，与预期一致仍喊反直觉落 weak；无意外发现落缺失。颠覆性洞见由 top_journal_gate 承担。
+  threshold: 结果或讨论中有一处发现偏离既有预期，该发现配有对应的系数、模式或案例证据。
+  mostly_threshold: 结果或讨论中有一处发现与既有预期方向不同，或作者明确指出该发现为何不显然，读者能说出它偏离了什么。
   mostly_note: 不要求颠覆性结论；论文自己说清了'为何这个发现值得注意'即可。
 - rule_id: B-DIALOGUE-ADVANCE-V1
   version: V1
   dimension_id: B
   dimension_name: 理论贡献与创新性
   indicator_name: 对既有认知的质疑、整合与推进
-  definition: 判断论文是否通过质疑前提、整合文献分歧、补充关键经验检验、细化机制，或者在重要新情境中明确理论边界与适用含义，说清相对既有理解的增量。任一路径均可成立。
-  required_evidence: 需要定位既有研究的认识或不足、本文回应及其理论论证或结果，并与检索到的相关先行文献比较。
+  definition: 判断论文是否通过质疑一处前提、整合文献分歧或指出相对既有理解的增量，说清本文推进了什么。三条路径任一走通即成立。
+  required_evidence: 需要定位到论文关于 change、challenge、advance、new direction 或 research agenda 的说明。
   evidence_location:
   - Introduction
   - Theory
@@ -1322,7 +1322,7 @@ rules:
   dimension_id: D
   dimension_name: 研究设计与方法质量
   indicator_name: 质性研究体裁适配
-  definition: 针对质性论文，判断其体裁、认识论、数据、分析和写作结构是否相互匹配；非质性论文不适用本规则。
+  definition: 针对质性论文，判断其体裁、认识论、数据、分析和写作结构是否相互匹配。
   required_evidence: 需要定位到质性体裁、认识论立场、数据类型、分析过程或研究者反思说明。
   evidence_location:
   - Methods
@@ -1875,7 +1875,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 0.75
+  weight: 1.0
   applicable_type: 通用
   source_reference:
   - 章凯等 2023
@@ -1929,7 +1929,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 0.75
+  weight: 1.0
   applicable_type: 通用
   source_reference:
   - Tihanyi 2020
@@ -1956,24 +1956,24 @@ rules:
   version: V1
   dimension_id: F
   dimension_name: 透明度、边界与实践意义
-  indicator_name: 社会与全球问题相关性
-  definition: 判断论文是否把研究问题与发表年份附近真实存在的社会、国际或人类问题相连接，并说明本文发现如何回应这些问题。
-  required_evidence: 需要同时引用论文中的问题/贡献/讨论证据，以及社会问题 grounding 输入层生成的 SIV-* 年度社会议题证据。
+  indicator_name: 社会或长期影响
+  definition: 判断论文是否关注组织内外个体、群体、社会福利或长期负责任管理实践的影响。
+  required_evidence: 需要引用论文关于社会问题、长期影响、责任管理或社会福利的说明。
   evidence_location:
   - Introduction
   - Discussion
   - Conclusion
   observation_points:
-  - 是否回应真实社会、国际或人类问题
-  - 是否说明受影响主体，例如员工、求职者、组织、平台劳动者或社会公众
-  - 是否把研究发现与公平、福祉、隐私、劳动安全、技能转型或负责任 AI 等议题相连
-  - 是否避免只把社会问题当作引言修辞
+  - 是否回应重大社会问题
+  - 是否考虑长期社会福利
+  - 是否关注组织外部影响
+  - 是否避免只强调短期绩效
   judgement_values:
-    satisfied: 论文明确回应一个可由 SIV-* 证据定位的社会、国际或人类问题，并说明本文结果如何为该问题提供机制、边界、治理或实践启示，受影响主体和行动含义都可辨认
-    mostly: 论文的问题或讨论与 SIV-* 社会议题高度相关，也说明了受影响主体或实践含义，但本文结果如何具体推进该问题仍略显笼统
-    partial: 论文提到社会、政策或公共价值问题，且能与 SIV-* 证据对应，但这种连接主要停留在引言动机或结尾表述，与本文结果连接较弱
-    weak: 论文只使用公平、福祉、社会影响、负责任 AI 等关键词，未说明具体社会问题、受影响主体或本文证据如何回应该问题
-    not_satisfied: 全文未涉及研究现象在社会、国际或人类问题层面的意义，或无法与任何 SIV-* grounding 证据形成可解释连接
+    satisfied: 讨论到研究对象在长期或社会层面的后果，点明受影响的是哪类主体与何种时间尺度，该讨论接在本文证据上
+    mostly: 正文写出了长期或社会层面的后果，该后果以本文结果为依据，但受影响的主体与时间尺度读着笼统
+    partial: 只在引言或结尾顺带提及社会或长期影响，与本文证据没有连接，属修辞性表述
+    weak: 点到影响方向却未说明涉及哪类主体与何种时间尺度，读者无法据此形成对后果的实质判断
+    not_satisfied: 全文未涉及研究现象在长期或社会层面的后果，读者找不到可据以判断影响范围的内容
     uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
   score_mapping:
     satisfied: 1.0
@@ -1983,35 +1983,25 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 0.5
+  weight: 0.0
   applicable_type: 通用
   source_reference:
   - Tihanyi 2020
   - Colquitt & George 2011
-  status: draft
+  status: observation_only
   cluster: F-SOCIAL
   retrieval_terms:
   - societal
   - social impact
-  - global challenge
-  - public problem
-  - human problem
   - long-term
   - stakeholders
   - employees
   - well-being
-  - mental health
   - inequality
-  - fairness
-  - bias
-  - discrimination
-  - privacy
-  - algorithmic management
-  - responsible AI
   - responsible
   - sustainability
   - externalities
   - public interest
-  rationale: 该规则把“选题是否回应真实公共问题”从普通实践启示中拆出，只作为加分项。社会问题 grounding 输入层先用发表年份附近的公共议题生成 SIV-* 证据，F 维度 Reviewer 再判断论文自身证据是否真正回应这些议题；只提关键词不加高分。
-  threshold: 至少一条论文内部证据与一条 SIV-* 社会议题证据共同支持该论文回应了明确社会、国际或人类问题，并说明了受影响主体或实践含义。
-  mostly_threshold: 论文内部证据与 SIV-* 证据能形成明确主题连接，且正文说明了受影响主体或公共价值。
+  rationale: 该规则当前权重为0，不计分，仅为观察项。五档照写以便将来启用：按后果讨论与本文证据的连接程度递降，由对象与尺度俱全降至全无涉及。
+  threshold: 能定位到一处对长期或社会后果的具体说明，该说明引用了本文结果或情境证据。
+  mostly_threshold: 正文有一处关于长期或社会后果的说明与本文结果相连，而非仅顺带提及。

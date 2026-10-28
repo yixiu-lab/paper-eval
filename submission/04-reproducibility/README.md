@@ -16,13 +16,13 @@ The call expects work to be reproducible. It notes that non-shareable data is un
 
 The authors' local workspace contains a curated evidence package assembled on October 8, 2026. Its index reports 17 papers, 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments in its trace database, and catalogs seven experiment groups. This is a traceable experimental subset, not the entire corpus evaluation. A separate final audit dated October 26, 2026 reconciles the original 149-PDF corpus to 146 unique papers, with 144 complete V16 reports and two parse-blocked papers; see [`original-149-v16-audit.md`](original-149-v16-audit.md). These are real historical experimental records; the repository includes aggregate and title-free outcomes, while the raw traces remain local pending a sharing-rights review.
 
-The per-paper table omits titles, journal names, local paths, and paper text. Its full SHA-256 values are stable fingerprints and could be matched by someone who already has a source PDF. The raw bundle is not copied into this repository because run traces may contain paper excerpts and paper-level data whose sharing rights have not been established. Before sharing raw reports, review copyright, confidentiality, and data licenses. The current GitHub repository also lacks a checked, complete mapping between the historical run bundle, its source-code revisions, and the uploaded repository commit.
+The per-paper table omits titles, journal names, local paths, and paper text. Its full SHA-256 values are stable fingerprints and could be matched by someone who already has a source PDF. The exact V16 rule profile used in the full-corpus audit is now included at `../../评价规则库/rules_v1.yaml`. The run-to-code-revision and full runtime-configuration mapping is still incomplete. The raw bundle is not copied into this repository because run traces may contain paper excerpts and paper-level data whose sharing rights have not been established. Before sharing raw reports, review copyright, confidentiality, and data licenses.
 
 ## Remaining gaps before an independent reproduction claim
 
 - A legally shareable benchmark corpus or a documented synthetic substitute.
 - Dataset/source manifest with license, access route, version, and checksums.
-- A verified mapping from each reported historical run to the exact code revision and rule profile used.
+- A verified mapping from each reported historical run to the exact code revision and full runtime configuration used.
 - Exact tested Python/runtime and dependency lock with versions.
 - A complete configuration with secrets removed, model/provider/version, and access alternatives.
 - A publication-ready run manifest for each reported result, with paper identities redacted where needed.

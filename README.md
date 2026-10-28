@@ -26,7 +26,7 @@ The primary code is in [`paper_eval/`](paper_eval/). The local Web/API prototype
 
 The V16 audit covers **149 source PDFs**. Exact SHA-256 deduplication leaves **146 unique papers**; **144** have complete, traceable V16 reports and **2** were blocked before scoring by PDF parsing. No scores were imputed for the blocked papers. The title-free per-paper outcomes and audit details are in [`submission/04-reproducibility/`](submission/04-reproducibility/).
 
-**Version boundary:** the current checked-in scoring profile is **V17, draft**. The 149-PDF results were produced under historical **V16** rules and configuration, which are not fully included here. The V16 scores must not be read as results from the current V17 profile.
+**Rule version:** the checked-in scoring profile is **V16, draft**, matching the V16 profile used in the 149-PDF audit. The exact historical runtime configuration and run-specific code revision are not fully included, so the current repository is not yet a complete independent reproduction package.
 
 The broader local experiment archive also records repeated-run, scoring-mechanism, evidence-budget, calibration, and reweighting studies. Its 17-paper trace database is a separate subset and should not be confused with the 149-PDF V16 audit. See the [experiment evidence summary](submission/04-reproducibility/experiment-evidence.md).
 
