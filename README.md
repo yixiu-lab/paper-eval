@@ -23,11 +23,11 @@ The primary implementation is in [`paper_eval/`](paper_eval/). The local Web/API
 
 ## Current empirical record
 
-The V16 audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**. The workflow produced **144 complete reports**; two papers were blocked before scoring by PDF parsing and remain without imputed scores. The audit reports a mean total score of 76.46 (SD 7.64), median 76.19, and range 49.63–95.78 across the 144 completed reports.
+The V16 audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**. The workflow produced **144 complete reports**; two papers were blocked before scoring by PDF parsing and remain without imputed scores. The audit reports a mean total score of 76.46 (SD 7.64), median 76.19, and range 49.63–95.78 across the 144 completed reports. This is one corpus audit, not the total number of papers evaluated across all project experiments.
 
 The checked-in profile is **V16**, a draft 34-rule profile, and its SHA-256 matches the profile used in the audit. The historical run used `MGMT-LIT-EVAL-V1:V16`, DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The next reproducibility milestone is to link the historical run to its exact source revision and full runtime manifest, then perform a clean rerun.
 
-The local experiment archive also records repeated-run, scoring-mechanism, evidence-budget, calibration, and reweighting studies. Its 17-paper trace database is a separate subset from the 149-PDF audit. The [experiment summary](submission/04-reproducibility/experiment-evidence.md) separates each observation from its next validation step.
+The local archive also contains repeated-run and uncertainty analyses, scoring-mechanism and evidence-budget studies, a two-model comparison, prompt-injection and harness fault-injection tests, module ablations, and claim-driven retrieval experiments. The 17-paper trace database is a separate subset from the 149-PDF audit, and study samples overlap. The [experiment catalog](submission/04-reproducibility/experiment-catalog.md) maps the evidence by study family; individual summaries cover [cross-model results](submission/04-reproducibility/cross-model-v16.md), [robustness and uncertainty](submission/04-reproducibility/robustness-experiments.md), [module ablations](submission/04-reproducibility/module-ablation.md), and [retrieval evaluation](submission/04-reproducibility/retrieval-evaluation.md).
 
 ## Research milestones
 
@@ -43,6 +43,7 @@ The local experiment archive also records repeated-run, scoring-mechanism, evide
 - [Research artifact](submission/03-research-artifact/README.md): implementation and reviewer walkthrough.
 - [149-PDF audit](submission/04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](submission/04-reproducibility/original-149-v16-results.csv).
 - [Historical experiment evidence](submission/04-reproducibility/experiment-evidence.md).
+- [Full experiment catalog](submission/04-reproducibility/experiment-catalog.md), including model, robustness, uncertainty, ablation, and retrieval studies.
 - [Reproduction plan](submission/04-reproducibility/README.md).
 - [Ethics, data, and access plan](submission/05-ethics-and-access/README.md).
 - [System baseline](system-baseline.md): entry points and version boundaries.

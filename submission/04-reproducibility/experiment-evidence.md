@@ -2,6 +2,8 @@
 
 **Source:** the authors' curated “60/40 Two-Pool Scale” evidence package, indexed October 8, 2026. The package index reports 17 papers, 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments. This summary organizes those records into current observations and follow-up studies.
 
+This is the earlier scoring-mechanism evidence stream. The project also has later cross-model, uncertainty, prompt-injection, harness fault-injection, module-ablation, and external-retrieval records. See the [full experiment catalog](experiment-catalog.md) and its linked summaries.
+
 The 17-paper trace database is a focused subset. The separate V16 full-corpus audit covers 149 source PDFs, 146 unique papers, 144 complete reports, and two parse-blocked papers. See the [audit](original-149-v16-audit.md) and [title-free outcome table](original-149-v16-results.csv).
 
 ## Experiments and follow-up milestones

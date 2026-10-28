@@ -6,6 +6,11 @@
 - Python dependency list and example configurations.
 - Validation scripts for local logic, mocked services, and live integrations.
 - [Historical mechanism experiment summary](experiment-evidence.md).
+- [Experiment catalog](experiment-catalog.md), covering the 149-PDF audit and additional model, reliability, robustness, ablation, and retrieval studies.
+- [Cross-model V16 comparison](cross-model-v16.md).
+- [Robustness, fault-injection, and uncertainty experiments](robustness-experiments.md).
+- [Module ablations](module-ablation.md).
+- [External-literature retrieval evaluation](retrieval-evaluation.md).
 - [149-PDF V16 audit](original-149-v16-audit.md).
 - [Title-free, per-paper outcome table](original-149-v16-results.csv), one row per unique source PDF.
 
