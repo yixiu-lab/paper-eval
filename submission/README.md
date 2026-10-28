@@ -2,37 +2,35 @@
 
 **Call:** *AI-Enabled Frontiers in Organizational Science*
 
-**Stage 1 deadline:** November 1, 2026
+**Stage 1 deadline in the call:** November 1, 2026
 
 ## Project in one minute
 
-PaperEval is a prototype for evidence-grounded AI assessment of management research. It links rule-level judgments to selected paper evidence, applies structured evidence checks, preserves uncertainty for human review, and aggregates scores deterministically. The project is framed as reusable research infrastructure and an AI-measurement experiment. It is not presented as an automated replacement for peer review.
+PaperEval is an evidence-grounded workflow for studying AI-assisted assessment of management research. It links rule-level judgments to selected paper evidence, records uncertainty for human review, and aggregates judgments with a versioned profile. The project treats assessment as a research measurement process that can be inspected and compared with expert judgments.
 
-The current V16 audit covers 149 source PDFs: 146 unique papers after exact deduplication, 144 with complete V16 reports, and two blocked during PDF parsing before scoring. These records demonstrate a working prototype at meaningful scale, but not validity against expert judgments. See the [audit](04-reproducibility/original-149-v16-audit.md) and [title-free per-paper outcomes](04-reproducibility/original-149-v16-results.csv).
-
-**Version boundary:** the checked-in scoring profile is the exact V16 rule snapshot used for the 149-PDF audit. The run-specific code revision and full runtime configuration are not included, so matching rules alone does not establish that the current code snapshot reproduces the historical results.
+The V16 audit covers 149 source PDFs: 146 unique papers after exact deduplication, 144 complete reports, and two papers blocked during PDF parsing. Review the [audit](04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](04-reproducibility/original-149-v16-results.csv).
 
 ## Fit with the call
 
-The project most closely aligns with **reusable research infrastructure**, **new forms of measurement**, and **critical/diagnostic boundary-setting**. Its potential contribution is to make AI-assisted research assessment more inspectable and empirically testable. The proposal must still specify the scientific question, expert-validation design, and how the resulting evidence would change organizational research.
+PaperEval advances reusable research infrastructure and new forms of measurement. Its next study will connect evidence-grounded judgments to expert assessments, measure stability and calibration, and map performance across paper types. The proposal will explain how this capability can change the way organizational researchers study and evaluate evidence.
 
-## Stage 1 package checklist
+## Stage 1 materials and milestones
 
-| Required item | Status | Location |
+| Required item | Current asset | Next milestone |
 |---|---|---|
-| Short proposal (3–5 pages / 1,500–2,000 words plus references) | **MISSING — author draft required** | [`01-proposal/`](01-proposal/) |
-| Technical appendix or supplement | Draft present; requires author and technical review | [`02-technical-appendix/`](02-technical-appendix/) |
-| Prototype and repository | Included; local Web/API interface intentionally excluded | [`03-research-artifact/`](03-research-artifact/) and repository root |
-| Reproducibility evidence | Historical runs documented; raw traces and corpus withheld pending rights review; independent reproduction package incomplete | [`04-reproducibility/`](04-reproducibility/) |
-| Ethics, data rights, and model access | **MISSING — author statements required** | [`05-ethics-and-access/`](05-ethics-and-access/) |
+| Short proposal (3–5 pages / 1,500–2,000 words plus references) | Research framing and evidence are documented in the repository overview. | Draft the call-aligned proposal with author-confirmed research question, contribution, validation design, and references. |
+| Technical appendix or supplement | A draft describes the workflow, V16 scoring design, and run records. | Add the expert-comparison design and version-linked reproduction details. |
+| Prototype and repository | PaperEval CLI, scoring profile V16, retrieval components, prompts, and offline self-checks are included. | Add a concise reviewer walkthrough and versioned release record. |
+| Reproducibility evidence | Historical experiments and the 149-PDF audit are summarized; title-free outcomes are included. | Link runs to exact code/runtime manifests and prepare a shareable benchmark or synthetic substitute. |
+| Ethics, data rights, and model access | An action plan is documented in [Ethics, Data, and Access](05-ethics-and-access/README.md). | Complete source-level access inventory, institutional review steps for expert raters, provider terms, retention, and editor access plan. |
 
 ## Reader path
 
-1. Start with the repository [overview](../README.md) for the research question, workflow, evidence, and limits.
-2. Read the [technical appendix](02-technical-appendix/README.md) to inspect the prototype design.
-3. Review the [149-PDF V16 audit](04-reproducibility/original-149-v16-audit.md) and [mechanism experiment summary](04-reproducibility/experiment-evidence.md).
-4. Check the [reproducibility gaps](04-reproducibility/README.md) and [ethics/access checklist](05-ethics-and-access/README.md).
+1. Begin with the [project overview](../README.md).
+2. Inspect the [technical appendix](02-technical-appendix/README.md) and [research artifact](03-research-artifact/README.md).
+3. Review the [149-PDF V16 audit](04-reproducibility/original-149-v16-audit.md) and [historical experiment evidence](04-reproducibility/experiment-evidence.md).
+4. Follow the [reproduction plan](04-reproducibility/README.md) and [ethics/access plan](05-ethics-and-access/README.md).
 
-## Evidence boundary
+## Evidence-to-study path
 
-The reported runs are exploratory and span historical versions. No expert-labeled benchmark, independent validity study, or proof that the 60/40 pool ratio is optimal is included. Two unique papers could not be scored because PDF parsing was blocked; no scores were imputed. Full-text reports and source PDFs are not distributed here.
+The current evidence establishes a working workflow and a reconciled corpus-scale record. The next study will connect those records to expert-labeled judgments, preregister comparisons of scoring profiles, and evaluate performance across broader paper types. The two parse-blocked cases remain visible in the coverage record and will inform parser improvement.

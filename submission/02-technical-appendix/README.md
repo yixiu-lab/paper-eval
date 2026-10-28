@@ -2,38 +2,42 @@
 
 ## System purpose
 
-PaperEval is a prototype for structured evaluation of management research papers. Its intended research value is the inspectability of an evidence-grounded, rule-based workflow and the ability to study where AI-generated judgments are reliable or fail. The repository does not yet demonstrate validity against expert judgments.
+PaperEval turns assessment of management research into an inspectable workflow. Rule-level judgments link to selected evidence; uncertainty is recorded for researcher review; a versioned profile aggregates the judgments. The research program evaluates agreement with experts, score stability, evidence support, and performance across paper types.
 
-## Current workflow
+## Workflow architecture
 
-The documented pipeline parses a paper PDF, builds a paper profile, extracts contribution claims, retrieves related literature, prepares evidence packs for six reviewer dimensions, requests rule-level judgments, retrieves additional evidence for uncertain cases, applies deterministic scoring, and produces a report with reliability diagnostics.
+The current pipeline parses a paper PDF, builds a structured profile, extracts contribution claims, retrieves related literature, assembles evidence packs for six dimensions, produces rule-level judgments, checks evidence and citation conditions, aggregates scores, and generates a traceable report with reliability diagnostics.
 
-The six reviewer dimensions are: research question positioning; theoretical contribution; theoretical rigor; research design; results and evidence; and discussion and boundary conditions. An auxiliary novelty comparison is separate from the six scoring reviewers and does not directly produce the total score.
+The six dimensions are research-question positioning, theoretical contribution, theoretical rigor, research design, results/evidence, and discussion/boundary conditions. An auxiliary novelty comparison is separate from the six scoring dimensions and does not directly contribute to the total.
 
-## Scoring design
+## V16 scoring profile
 
-The current V16 draft scoring profile separates a baseline pool (60 points) from a bonus pool (40 points). Baseline rules aim to represent adequacy thresholds; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and should be reported with completeness. This design is an implementation choice under study, not a validated universal scale. The active profile is in `../../评价规则库/rules_v1.yaml`; its detailed design notes are currently Chinese. This is the same V16 rule snapshot used for the historical 149-PDF corpus audit; run-specific code and runtime settings are not yet fully matched.
+The current draft profile uses a 60-point baseline pool and a 40-point bonus pool. Baseline rules represent adequacy; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and reported with completeness. The profile contains 34 rules and is available at [`../../评价规则库/rules_v1.yaml`](../../评价规则库/rules_v1.yaml).
 
-## Evidence and retrieval
+V16 is the rule snapshot used in the 149-PDF audit. The next calibration study will compare pre-specified pool ratios (50/50, 60/40, and 70/30) on a fixed sample and evaluate their relationship to expert judgments.
 
-The code uses deterministic heuristics to assemble evidence packs and has an optional retrieval/reranking path. The baseline notes report a same-paper cached evidence-pack comparison, but these internal observations do not establish evaluator validity, inter-rater reliability, or general performance. External retrieval uses Semantic Scholar with Crossref/OpenAlex fallback paths in the implementation. Service availability and access conditions must be recorded for each reproduction.
+## Evidence assembly and retrieval
+
+Evidence packs are assembled through deterministic selection and optional retrieval/reranking components. The workflow can send selected paper evidence blocks to the configured language-model endpoint. External literature retrieval can use Crossref, OpenAlex, and Semantic Scholar; requests can contain paper titles and claim-derived terms. Run manifests will capture provider/model, access date, retrieval settings, cache state, and data-handling terms.
 
 ## Runtime and entry points
 
-- Single-paper CLI: `python -m paper_eval.cli evaluate` (provide the required paper, rule-profile, and output arguments).
+- Single-paper CLI: `python -m paper_eval.cli evaluate` with paper, rule-profile, and output arguments.
 - Runtime dependencies: [`../../requirements.txt`](../../requirements.txt).
-- Example configurations: `../../configs/`.
+- Example configurations: [`../../configs/`](../../configs/).
+- System overview: [`../../system-baseline.md`](../../system-baseline.md).
 
-The full 149-PDF corpus run is summarized in [`../04-reproducibility/original-149-v16-audit.md`](../04-reproducibility/original-149-v16-audit.md), with title-free per-paper scores in [`../04-reproducibility/original-149-v16-results.csv`](../04-reproducibility/original-149-v16-results.csv): 146 unique papers after exact deduplication, 144 complete V16 reports, and two papers blocked before scoring by PDF parsing. The per-paper reports, source corpus, and original runtime configuration are not included here, so the result is documented but not independently reproducible from this repository snapshot yet.
+## V16 audit and reproduction pathway
 
-The local web/API prototype is intentionally excluded from this repository submission. The research artifact is the evaluation workflow and command-line components described above.
+The audit covers 149 source PDFs, 146 unique papers after exact deduplication, 144 complete V16 reports, and two papers blocked before scoring by PDF parsing. The [audit](../04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](../04-reproducibility/original-149-v16-results.csv) document the reconciled record.
 
-## Known limitations and open questions
+The next reproduction release will link results to source revision, runtime and dependency versions, model/provider, prompt set, rule fingerprint, retrieval settings, and cache state. It will include a rerun guide and a shareable benchmark or synthetic substitute selected through the source-level access inventory.
 
-- No expert-labeled benchmark or independent validity study is included.
-- No shareable paper corpus or data license inventory is included.
-- The 149-PDF V16 result is summarized here and its rule profile is included, but full per-run traces and the original runtime configuration are not.
-- The scoring scale and default retrieval parameters are not established as generally valid.
-- Uncertain-item denominator handling can affect comparability and must be reported.
-- The prototype, rules, prompts, and much of the source documentation remain Chinese; English translation and terminology review are outstanding.
-- The current artifact evaluates research papers; the proposal must explain why this creates a consequential new capability for organizational/social science research rather than simply automating peer review.
+## Evaluation workplan
+
+1. **Expert agreement:** compare rule-level judgments and aggregate scores with expert ratings under an institutionally reviewed protocol.
+2. **Repeatability:** repeat evaluations with fixed data and configurations; quantify score and rule-level variation.
+3. **Evidence sensitivity:** compare pre-specified evidence budgets and report changes in judgments and score completeness.
+4. **Scoring calibration:** compare V16 60/40 with alternative pool ratios against expert judgments.
+5. **Scope:** extend the sample across paper types and report where the workflow performs consistently or requires human review.
+6. **Reproduction:** conduct a clean rerun from a versioned manifest and independent researcher instructions.

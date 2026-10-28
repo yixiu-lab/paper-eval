@@ -1,40 +1,40 @@
 # Original 149-PDF Corpus: V16 Scoring Audit
 
 **Audit date:** October 26, 2026  
-**Source record:** the final audit note and reconciled manifest in the authors' local experiment workspace. This page contains only aggregate results; the paper-level manifest, PDFs, and full reports are not included in this repository.
+**Source record:** final audit note and reconciled manifest in the authors' local experiment workspace.
 
-The repository includes the exact V16 scoring-rule snapshot used for this audit at `评价规则库/rules_v1.yaml` (SHA-256: `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`). The run-specific source revision and full runtime configuration are not included. The rules match; the current code checkout is not claimed to be an exact replay of the historical run.
+## Profile and run configuration
 
-The accompanying [`original-149-v16-results.csv`](original-149-v16-results.csv) provides one row per unique paper with V16 scores where available. It uses a stable ID derived from the source PDF's SHA-256 checksum and omits titles, journal names, paths, and paper text.
+The repository includes the V16 scoring-rule snapshot at [`../../评价规则库/rules_v1.yaml`](../../评价规则库/rules_v1.yaml), SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`. The historical run used `MGMT-LIT-EVAL-V1:V16` with 34 rules, DeepSeek Flash, temperature 0, thinking disabled, and scoring scale `MGMT-SCALE-V6`.
+
+The title-free [per-paper outcome table](original-149-v16-results.csv) contains one row per unique paper, with scores where available. Each ID is derived from the source PDF’s SHA-256 checksum; the table omits titles, journal names, paths, and paper text.
+
+The next reproduction milestone is to link this audit to the exact source revision, full runtime configuration, dependency versions, prompts, retrieval settings, and cache state, then execute a clean rerun.
 
 ## Corpus coverage
 
-- The source folder contained **149 PDF files**.
-- Exact SHA-256 deduplication produced **146 unique papers**; three files were exact duplicates.
-- **144 of 146 unique papers** have a complete, traceable V16 report with all six dimension scores. This is 98.6% coverage of the deduplicated corpus.
-- **Two unique papers** have no complete report. Each had two saved attempts marked `pdf_parse_blocked`; the evaluation harness stopped before model scoring, so no score was generated or imputed.
-- The final audit states that all 144 selected reports exist and pass checks for profile, model, scale, dimensions, and total-score consistency.
+- Source folder: **149 PDF files**.
+- Exact SHA-256 deduplication: **146 unique papers**; three files were exact duplicates.
+- Complete reports: **144 of 146 unique papers** (98.6%), with all six dimension scores.
+- Parsing cases: **two unique papers** had two saved attempts each marked `pdf_parse_blocked`; evaluation stopped before model scoring and no score was generated.
+- Report checks: all 144 selected reports pass the local audit checks for profile, model, scale, dimensions, and total-score consistency.
 
-## Run configuration
-
-- Rule profile: `MGMT-LIT-EVAL-V1:V16`, 34 rules.
-- Model: DeepSeek Flash; temperature 0; thinking disabled.
-- Scoring scale: `MGMT-SCALE-V6`.
-- A 73-paper V16 backfill was performed for the missing-report list: 71 produced complete reports; the remaining two were blocked during PDF parsing. The reconciled 144-paper result also includes complete V16 reports recovered from earlier run locations.
+The audit also records a 73-paper V16 backfill: 71 produced complete reports, while two remained blocked during PDF parsing. The reconciled set includes complete reports recovered from earlier run locations.
 
 ## Descriptive score summary
 
-For the 144 complete unique-paper reports, the reconciled appendix reports a mean total score of **76.46** (SD **7.64**), median **76.19**, and range **49.63–95.78**. These are descriptive results for this corpus and scoring configuration. They do not establish expert agreement, criterion validity, or that the scoring scale is calibrated for manuscripts generally.
+Across the 144 complete unique-paper reports, the reconciled appendix reports a mean total score of **76.46** (SD **7.64**), median **76.19**, and range **49.63–95.78**. These statistics describe this corpus and configuration. The expert-comparison study will establish how scores relate to expert judgments and how calibration changes across manuscript types.
 
-## Interpretation and limits
+## Sample and next evidence steps
 
-- The corpus consists of published AI/HRM empirical papers. It is not an expert-labeled benchmark and does not test rejection of low-quality or off-topic manuscripts.
-- The corpus includes exact duplicates before deduplication; all coverage rates above use the 146 unique-paper denominator.
-- Two parse-blocked papers remain unresolved; they are not treated as zero scores.
-- Journal/source metadata are confirmed for 90 unique papers; 56 remain unconfirmed in the local audit and should not be used for journal-tier conclusions without further verification.
-- Raw per-paper reports and paper-text traces are withheld from this repository pending copyright, confidentiality, and dataset-license review.
-- The exact run-to-code-revision mapping and a clean independent rerun still need to be prepared for third-party reproduction.
+The audited sample consists of published AI/HRM empirical papers. The next sample will include expert labels and a broader range of paper types to evaluate judgment agreement, coverage, and score behavior across the intended scope.
 
-## Local source records
+Journal/source metadata are confirmed for 90 unique papers; the local audit marks 56 as unconfirmed. The data team will complete source metadata verification before using journal-tier comparisons.
 
-The audit was reconciled from `PaperEval/data/original_149_v16_round/manifest.csv`, `PaperEval/runs/original_149_missing_v16_20261026/appendix_scores.csv`, the associated run logs, and complete report files distributed across the local workspace. The source audit note is `PaperEval/runs/original_149_missing_v16_20261026/progress.md`.
+Two parse-blocked papers remain in the coverage record. The parser workstream will inspect failure modes, improve handling where appropriate, and rerun the same inputs with the run configuration recorded.
+
+## Data access and provenance
+
+The PDFs and full paper-level reports are held in the research workspace. The team will complete an item-level access inventory covering source, DOI, acquisition route, version, permitted processing, retention, and sharing. Editor-facing materials will include the access matrix and a shareable benchmark or synthetic substitute.
+
+The audit was reconciled from `PaperEval/data/original_149_v16_round/manifest.csv`, `PaperEval/runs/original_149_missing_v16_20261026/appendix_scores.csv`, associated run logs, and complete report files distributed across the local workspace. The source audit note is `PaperEval/runs/original_149_missing_v16_20261026/progress.md`.

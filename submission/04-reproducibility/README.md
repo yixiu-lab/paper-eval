@@ -1,33 +1,33 @@
-# Reproducibility Materials — Partial
+# Reproducibility and Access Package
 
-The call expects work to be reproducible. It notes that non-shareable data is unlikely to fit unless an appropriate synthetic substitute can reproduce the insights, and that proprietary AI infrastructure should be reasonably accessible to other researchers.
+## Materials in this repository
 
-## Included in this repository
-
-- Source code and draft rule profile.
-- Python dependency list (`requirements.txt`).
-- Example configuration files.
+- PaperEval source code and draft scoring profile V16.
+- Python dependency list and example configurations.
 - Offline self-check scripts.
-- An English summary of historical mechanism experiments: [`experiment-evidence.md`](experiment-evidence.md).
-- An English audit of the full 149-PDF V16 corpus run: [`original-149-v16-audit.md`](original-149-v16-audit.md).
-- A title-free, per-paper score/status table keyed by source PDF checksum: [`original-149-v16-results.csv`](original-149-v16-results.csv).
+- [Historical mechanism experiment summary](experiment-evidence.md).
+- [149-PDF V16 audit](original-149-v16-audit.md).
+- [Title-free, per-paper outcome table](original-149-v16-results.csv), one row per unique source PDF.
 
-## Existing records not yet published here
+## Existing research records
 
-The authors' local workspace contains a curated evidence package assembled on October 8, 2026. Its index reports 17 papers, 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments in its trace database, and catalogs seven experiment groups. This is a traceable experimental subset, not the entire corpus evaluation. A separate final audit dated October 26, 2026 reconciles the original 149-PDF corpus to 146 unique papers, with 144 complete V16 reports and two parse-blocked papers; see [`original-149-v16-audit.md`](original-149-v16-audit.md). These are real historical experimental records; the repository includes aggregate and title-free outcomes, while the raw traces remain local pending a sharing-rights review.
+The authors' curated evidence package, indexed October 8, 2026, reports a 17-paper trace database with 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments across seven experiment groups. This is a focused experimental subset. The separate October 26, 2026 audit reconciles the 149-PDF corpus to 146 unique papers, 144 complete reports, and two parse-blocked papers.
 
-The per-paper table omits titles, journal names, local paths, and paper text. Its full SHA-256 values are stable fingerprints and could be matched by someone who already has a source PDF. The exact V16 rule profile used in the full-corpus audit is now included at `../../评价规则库/rules_v1.yaml`. The run-to-code-revision and full runtime-configuration mapping is still incomplete. The raw bundle is not copied into this repository because run traces may contain paper excerpts and paper-level data whose sharing rights have not been established. Before sharing raw reports, review copyright, confidentiality, and data licenses.
+The current repository presents aggregate findings and title-free outcomes. Full traces and source PDFs stay in the research workspace while the team completes the item-level sharing review. The accompanying [access plan](../05-ethics-and-access/README.md) defines the inventory, release, and editor-access workflow.
 
-## Remaining gaps before an independent reproduction claim
+## Next reproduction release
 
-- A legally shareable benchmark corpus or a documented synthetic substitute.
-- Dataset/source manifest with license, access route, version, and checksums.
-- A verified mapping from each reported historical run to the exact code revision and full runtime configuration used.
-- Exact tested Python/runtime and dependency lock with versions.
-- A complete configuration with secrets removed, model/provider/version, and access alternatives.
-- A publication-ready run manifest for each reported result, with paper identities redacted where needed.
-- Seeds, prompts, rule-profile fingerprint, retrieval parameters, cache status, logs, and failure cases.
-- Expected outputs and a verified end-to-end reproduction guide.
-- Independent rerun by a researcher other than the prototype author.
+1. Create a source manifest with DOI, acquisition route, license/access basis, version, checksum, and permitted processing/sharing status.
+2. Map each reported historical run to its exact code revision, V16 fingerprint, runtime configuration, and dependency versions.
+3. Produce a sanitized run manifest with model/provider/version, prompts, retrieval settings, cache state, logs, and failures.
+4. Select a shareable benchmark or synthetic substitute and publish expected outputs.
+5. Write and verify a clean end-to-end reproduction guide; request an independent rerun.
+6. Provide an editor-facing access matrix describing included materials and access routes.
 
-Do not place API keys, private manuscripts, or restricted data in this folder.
+## Current V16 run facts
+
+The checked-in 34-rule profile matches the profile used in the audit. The historical run used DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The audit reports 144 complete reports out of 146 unique papers; two papers stopped at PDF parsing and have no score. The run-to-code mapping and full runtime manifest are the next release items.
+
+## Run manifest fields
+
+For each new run, record: run ID and date; source-data version and access class; code revision; Python and dependency versions; model/provider and endpoint; rule-profile fingerprint; prompt version; retrieval providers and parameters; evidence budget; cache state; random seed where applicable; output location; failures; and responsible operator. Store credentials separately from the manifest.
