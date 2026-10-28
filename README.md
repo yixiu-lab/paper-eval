@@ -10,7 +10,6 @@
 - `prompts/`：评价 Agent 提示词
 - `scripts/`：离线自检工具
 - `web/` 与 `app.py`：本地 Web/API 原型
-- `EXTERNAL_RETRIEVAL_README.md`：外部文献检索模块说明
 
 ## 快速开始
 
@@ -18,7 +17,8 @@
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python scripts\自检_评分标尺.py`r`npython scripts\自检_外部检索.py
+python scripts\自检_评分标尺.py
+python scripts\自检_外部检索.py
 ```
 
 默认示例使用 OpenAI 兼容配置。真实模型调用需要在本机设置 `OPENAI_API_KEY`，或按需修改 `configs/agent_runtime.example.yaml`。不要把 `.env`、密钥或真实运行数据提交到仓库。
@@ -26,5 +26,3 @@ python scripts\自检_评分标尺.py`r`npython scripts\自检_外部检索.py
 ## 研究状态
 
 当前规则仍在迭代，状态可能标记为 draft。评分输出用于研究实验和方法验证，不代表论文真实质量的确定性结论。实验数据和样本原文不包含在此仓库中。
-
-
