@@ -1,0 +1,26 @@
+agent_runtime:
+  mode: llm
+  provider: openai_compatible
+  base_url: https://api.openai.com/v1
+  api_key_env: OPENAI_API_KEY
+  model: gpt-4.1-mini
+  temperature: 0
+  timeout_seconds: 120
+  max_evidence_per_rule: 6
+  enable_llm_agents: true
+
+apis_needed:
+  required_for_current_mvp:
+    - 云端 LLM API Key
+    - OpenAI-compatible chat completions endpoint
+  required_for_llm_agents:
+    - OPENAI_API_KEY 或其他 OpenAI-compatible 服务密钥
+  optional_for_better_pdf_parsing:
+    - GROBID service URL
+    - MinerU local/runtime service
+  optional_for_vector_search:
+    - Embedding model API key 或本地 embedding 模型
+    - PostgreSQL pgvector / Milvus / FAISS
+  optional_for_metadata:
+    - Crossref API
+    - Semantic Scholar API

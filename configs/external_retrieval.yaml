@@ -1,0 +1,87 @@
+# External Literature Retrieval Evaluation —— 实验配置基线
+#
+# 这个文件记录本次正式实验所用的检索 / 重排配置，作为论文「Experimental Setup」一节的
+# 机器可读来源。命令行参数与此处一致；`experiments/<name>/experiment_manifest.json`
+# 是运行时实际生效值的快照，两者应当一致——若不一致，manifest 优先。
+#
+# 用法：
+#   python -m literature_eval.retrieval_eval.cli run-all \
+#       --experiment external_retrieval \
+#       --scope data/retrieval_gold/experiment_scope.json \
+#       --per-paper 8 --per-type 2 \
+#       --per-claim-limit 8 \
+#       --per-query-limit 20 --max-queries 5 --candidate-pool-limit 120 \
+#       --citation-source openalex --openalex-reference-limit 120 \
+#       --min-interval 0.6 --bootstrap 2000 --seed 20260101
+
+experiment:
+  name: external_retrieval
+  seed: 20260101
+  bootstrap_iterations: 2000
+  K: [5, 10, 20, 50]
+
+gold_set:
+  # Gold 的发现路径：目标论文在 OpenAlex 登记的 referenced_works（作者自己的引文网络）。
+  # 刻意不使用 PaperEval 的检索结果，避免 retrieval pool bias。
+  discovery: openalex_referenced_works
+  claim_source: paper_body_claim_markers
+  selection:
+    per_paper_limit: 8
+    per_type_limit: 2
+  gold_mapping:
+    min_relevance: 2
+    per_claim_limit: 8
+    # 机械预标注（claim 术语 ∩ prior 标题/摘要），annotation_status=machine_prelabel。
+    # relevance 的最终值只能由 annotation_records.jsonl 的人工标注决定。
+    method: lexical_term_overlap
+
+retrieval:
+  providers: [crossref, openalex, semantic_scholar_bulk]
+  per_query_limit: 20
+  max_queries_per_claim: 5
+  candidate_pool_limit: 120
+  min_interval_seconds: 0.6
+  request_retries: 3
+  timeout_seconds: 25
+  time_leak_policy: publication_year 存在且 < target_paper_year
+  routes:
+    query: 每个 claim 由 paper title + claim 术语展开 3-5 条检索式
+    citation: 目标论文 → referenced_works（OpenAlex，完整枚举）
+    semantic: claim/摘要/研究问题 与 候选标题+摘要 的 TF-IDF 余弦（本地，无外部调用）
+
+reranker:
+  kind: deterministic_weighted_signals
+  module: literature_eval.literature_search.literature_rerank
+  signals:
+    topic_relevance: 0.26
+    construct_overlap: 0.20
+    theory_relevance: 0.10
+    mechanism_relevance: 0.10
+    context_relevance: 0.08
+    semantic_similarity: 0.18
+    citation_relationship: 0.05
+    publication_year: 0.03
+  route_weight:
+    citation: 0.10
+    semantic: 0.08
+    query: 0.05
+  llm_rerank: false
+
+ablation_methods:
+  - {method: query, routes: [query], reranker: false}
+  - {method: citation, routes: [citation], reranker: false}
+  - {method: semantic, routes: [semantic], reranker: false}
+  - {method: query_citation, routes: [query, citation], reranker: false}
+  - {method: query_semantic, routes: [query, semantic], reranker: false}
+  - {method: multi_route, routes: [query, citation, semantic], reranker: false}
+  - {method: multi_route_reranker, routes: [query, citation, semantic], reranker: true}
+
+failure_case_rules:
+  low_recall_at_20: recall@20 < 0.34
+  low_ndcg_at_10: nDCG@10 < 0.30
+  no_gold_in_top10: Top-10 内无 relevance>=2 的 Gold
+
+notes:
+  - 检索与重排全程无 LLM 参与，结果可精确复现（同缓存同配置下逐位一致）。
+  - 目标论文的年份取自论文元数据 / 文件名；候选年份缺失时不进入候选池。
+  - Citation 路的 gold 结构性优势在报告中单独披露（见 README 研究诚信约束 §3）。

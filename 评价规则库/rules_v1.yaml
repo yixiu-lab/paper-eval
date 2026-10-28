@@ -1,0 +1,2017 @@
+rule_profile_id: MGMT-LIT-EVAL-V1
+rule_profile_name: 管理学文献质量评价首版规则
+version: V17
+status: draft
+scoring_scale: 100
+# 两池标尺：基准池是「达到发表水准」的基准分，加分池是超过合格才拿得到的分数。两者相加 = scoring_scale。
+# 基准池 60：各方面都合格的论文正好 60 分，与「60 分及格」的直观一致；超出合格的部分放进加分池。
+# V13 起额外强制：每个维度都必须 基准:加分 = 6:4（即 Σ该维基准规则权重 = 0.6 × 维度权重）。
+# 原因：scorer 的维度满分是摊分出来的（pool × 该维规则权重 / 池总权重），不是直接取维度权重；
+# 只有每维 6:4 时摊分结果才等于声明的维度权重。V12 下 B 满分 25.26/声明 20、D 21.95/25 就是这个缺口。
+scoring_pools:
+  baseline: 60
+  bonus: 40
+# 证据预算随规则库版本化：分数绝对值依赖每条规则的证据条数（实测 10→20 段整体上移约 7 分），
+# 不能悄悄改，否则历史分数与专家标注的可比性会静默失效。
+# V15 补充：上面这条只挡住了「条数」变化。V15 改的是**选哪 10 条**（关键词表去污染 + C/D 专属召回 +
+# 每规则 retrieval_terms + 可选检索层），条数不变但分数会变——预算治理必须同时盯「条数」与「选择逻辑」。
+evidence_budget:
+  max_evidence_per_rule: 20
+judgement_policy: Agent 只输出档位与证据；权重、分值映射和全部算术由 Harness 按规则库声明确定性执行。 总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分。 权重分三层且逐层精确求和：Σ维度权重 = Σ构念权重 = Σ规则份额；加不平由 validate_rule_profile 拒绝。 维度满分由两池摊分得出（基准池 60 × 该维基准规则权重 / Σ基准规则权重 + 加分池 40 × 该维加分规则权重 / Σ加分规则权重），因此每个维度必须满足 基准:加分 = 6:4，此时维度满分才等于声明的维度权重。 每条规则的 role 决定它是基准项还是加分项（一个构念不跨角色）：基准项衡量「够不够发表水准」，**合格即满分**——mostly 与 partial 同记 1.0，只有 weak 0.5 / not_satisfied 0.0 扣分，且不设 satisfied；加分项衡量「有没有超出合格」，只有 satisfied 记 1.0（mostly 0.5 / partial 0.25 / weak·not_satisfied 0.0），只加分不扣分。 每条规则另有 retrieval_terms（英文检索词），供证据选择使用：规则锚点是中文、被评论文是英文，拿中文搜英文正文恒不命中。 score_mapping 是唯一的档位分值真源。 标尺版本 MGMT-SCALE-V5；无法判断不进分子也不进分母（宽松口径）。
+dimensions:
+- dimension_id: A
+  dimension_name: 选题价值与问题定位
+  weight: 15
+  description: 评价论文是否提出值得研究、清楚定位、能进入有效学术对话的问题。
+- dimension_id: B
+  dimension_name: 理论贡献与创新性
+  weight: 20.0
+  description: 评价论文是否改变、挑战、整合或推进既有理论对话。
+- dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  weight: 20.0
+  description: 评价概念、逻辑前提、推理链条、假设或命题构建是否严密。
+- dimension_id: D
+  dimension_name: 研究设计与方法质量
+  weight: 25
+  description: 评价研究设计、数据、测量、模型、识别和方法执行是否支撑研究问题。
+- dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  weight: 15.0
+  description: 评价结果呈现、分析充分性、证据链和结论边界是否可信。
+- dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  weight: 5
+  description: 评价可复制性、透明度、外部效度、局限讨论和实践/社会意义。
+constructs:
+- construct_id: A-TOPIC
+  construct_name: 选题后果可见性
+  dimension_id: A
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: A-GAP
+  construct_name: 研究缺口与谜题
+  dimension_id: A
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: A-QUESTION
+  construct_name: 研究问题可检验性
+  dimension_id: A
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: A-LIT
+  construct_name: 文献对话定位
+  dimension_id: A
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: A-SCOPE
+  construct_name: 问题范围与可操作性
+  dimension_id: A
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: B-DIALOGUE
+  construct_name: 理论对话推进与质疑
+  dimension_id: B
+  weight: 6.461539
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: B-INTEGRATION
+  construct_name: 跨理论或跨学科整合
+  dimension_id: B
+  weight: 4.444444
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: B-NOVELTY
+  construct_name: 新概念、新机制或测量创新
+  dimension_id: B
+  weight: 5.538461
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: B-INTERESTING
+  construct_name: 有趣性与反直觉发现
+  dimension_id: B
+  weight: 3.555556
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-CONCEPT
+  construct_name: 概念定义与命名清晰
+  dimension_id: C
+  weight: 4.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-PREMISE
+  construct_name: 逻辑前提恰当
+  dimension_id: C
+  weight: 2.666667
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-REASONING
+  construct_name: 推理过程严密
+  dimension_id: C
+  weight: 4.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-HYPOTHESIS
+  construct_name: 假设或命题扎根
+  dimension_id: C
+  weight: 4.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-BOUNDARY
+  construct_name: 理论边界条件
+  dimension_id: C
+  weight: 2.666667
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-ALTERNATIVE
+  construct_name: 替代解释处理
+  dimension_id: C
+  weight: 2.666666
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: C-WRITING
+  construct_name: 语言表达与写作清晰度（不计分）
+  dimension_id: C
+  weight: 0.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-DESIGN
+  construct_name: 研究设计匹配研究问题
+  dimension_id: D
+  weight: 6.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-DATA
+  construct_name: 数据来源与样本
+  dimension_id: D
+  weight: 4.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-MEASUREMENT
+  construct_name: 测量与构念效度
+  dimension_id: D
+  weight: 5.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-MODEL
+  construct_name: 模型设定与识别策略
+  dimension_id: D
+  weight: 5.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-EXECUTION
+  construct_name: 方法执行规范
+  dimension_id: D
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: D-QUAL
+  construct_name: 质性研究范式匹配
+  dimension_id: D
+  weight: 2.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-COMPLETENESS
+  construct_name: 结果呈现完整规范
+  dimension_id: E
+  weight: 1.8
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-ALIGNMENT
+  construct_name: 结果与问题对应
+  dimension_id: E
+  weight: 3.6
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-ROBUSTNESS
+  construct_name: 稳健性与补充分析
+  dimension_id: E
+  weight: 1.5
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-STRENGTH
+  construct_name: 证据支持强度
+  dimension_id: E
+  weight: 3.6
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-CONCLUSION
+  construct_name: 结论解释与边界
+  dimension_id: E
+  weight: 1.5
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: E-DISCUSSION
+  construct_name: 讨论综合与提升
+  dimension_id: E
+  weight: 3.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: F-REPRO-TRANSPARENCY
+  construct_name: 可复现与透明
+  dimension_id: F
+  weight: 2.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: F-LIMITATIONS
+  construct_name: 局限讨论
+  dimension_id: F
+  weight: 1.0
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: F-EXTERNAL
+  construct_name: 外部效度与适用范围
+  dimension_id: F
+  weight: 0.75
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: F-PRACTICAL
+  construct_name: 实践启示
+  dimension_id: F
+  weight: 0.75
+  note: 权重为 v0 方案，待专家标注校准
+- construct_id: F-SOCIAL
+  construct_name: 社会与全球问题相关性
+  dimension_id: F
+  weight: 0.5
+  note: 加分项：由社会问题 grounding 输入层将论文主题与发表年份附近的公共议题、国际治理议题或人类问题进行匹配，随后交由 F 维度 Reviewer 判断，待专家标注校准
+rules:
+- rule_id: A-TOPIC-SIGNIFICANCE-V1
+  version: V1
+  dimension_id: A
+  dimension_name: 选题价值与问题定位
+  indicator_name: 研究问题重要性
+  definition: 判断论文是否说明研究问题在理论、实践或社会层面具有重要性，而非只是小范围补缺。
+  required_evidence: 需要能定位到论文说明该问题为何重要、为何值得研究的原文片段。
+  evidence_location:
+  - Abstract
+  - Introduction
+  - Motivation
+  observation_points:
+  - 是否指向重要理论问题或现实问题
+  - 是否说明问题影响的对象和范围
+  - 是否避免只以“较少研究”为主要理由
+  - 是否体现 rigor 与 relevance 的结合
+  judgement_values:
+    mostly: 指出该问题不被解决会在理论或实践上产生什么可辨认的后果，读者能据此看出受影响的对象与量级，而不是只被告诉这个问题重要
+    partial: 说明了问题重要，也点到受影响的对象，但后果只说到关系到某领域发展这类程度，读者勉强看出价值，损失内容仍未被交代
+    weak: 只以研究热度、政策提法或文献数量说明重要，读者找不到不解决的后果与受影响对象，问题价值靠题材分量支撑，结论据此难以被认真对待
+    not_satisfied: 该要素缺失：论文没有对问题重要性作实质定位，或把重要性等同于相关研究较少这类与价值无关的理由
+    uncertain: 解析缺失、候选证据过窄，或研究范式不以重要性陈述进入问题，使这一项缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - Colquitt & George 2011
+  - Grant & Pollock 2011
+  - Tihanyi 2020
+  status: draft
+  cluster: A-TOPIC
+  retrieval_terms:
+  - important
+  - significance
+  - pressing problem
+  - practical relevance
+  - theoretical relevance
+  - consequences
+  - organizations
+  - society
+  - policy
+  - research gap
+  - motivation
+  - this study addresses
+  rationale: 区分重要性表态与后果交代。合格线是读者能指认后果与受影响对象；仅表态重要落 partial，只靠热度或提法支撑落 weak；不谈价值或只以研究少为由落缺失。顶刊级重大议题由 top_journal_gate 承担。
+  threshold: 摘要或引言有原文说明该问题不被解决所造成的具体后果，读者能指认受影响对象以及损失落在哪一环。
+  mostly_threshold: 摘要或引言中有一句话交代该问题不被解决会造成何种后果，读者能指认受影响的对象。
+- rule_id: A-GAP-PUZZLE-V1
+  version: V1
+  dimension_id: A
+  dimension_name: 选题价值与问题定位
+  indicator_name: Research Gap / Puzzle 清晰性
+  definition: 判断论文是否明确指出现有研究不足、理论矛盾、经验异常、puzzle 或重要未解问题。
+  required_evidence: 需要引用关于 gap、puzzle、paradox、breakdown、inadequacy 或研究空白的原文证据。
+  evidence_location:
+  - Introduction
+  - Literature Review
+  observation_points:
+  - 是否说明既有研究知道什么
+  - 是否指出不知道什么或解释不了什么
+  - gap 是否与研究问题直接相关
+  - 是否避免泛泛声称“尚无研究”
+  judgement_values:
+    satisfied: 缺口收窄到能被本文条件直接回应的具体未解项，读者能看出本文补上的是哪一步，这一步补上后哪类解释随之失效
+    mostly: 指出既有研究解释不了或尚未处理的具体内容，缺口范围收到本文能正面回应的程度，读者能看出本文接的是哪一段对话
+    partial: 提到了文献空白或结论矛盾，缺口边界偏宽，同题材论文都能声称在填补，读者能看出回应方向，落点却仍不确定
+    weak: 缺口以此类研究尚少一类说法出现，读者看不出既有研究究竟缺了什么，本文与理论对话的关系悬空，推进主张随之站不住
+    not_satisfied: 该要素缺失：引言没有指明既有研究缺什么或解释不了什么，或把缺口等同于此类研究尚少而与理论对话无关
+    uncertain: 解析缺失、候选证据过窄，或研究范式不以缺口定位问题，使这一项缺少可依据的文本
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - Grant & Pollock 2011
+  - Hollenbeck 2008
+  - Colquitt & George 2011
+  status: draft
+  cluster: A-GAP
+  retrieval_terms:
+  - research gap
+  - gap in the literature
+  - puzzle
+  - paradox
+  - conflicting findings
+  - little is known
+  - unresolved
+  - overlooked
+  - has not been examined
+  - prior research
+  - extend prior work
+  rationale: 区分提到空白与界定缺口。合格线是缺口窄到本文条件足以回应；边界偏宽落 partial，只称研究尚少落 weak；没有缺口落缺失。悖论级 puzzle 由 top_journal_gate 承担。
+  threshold: 引言有一段说明既有研究已知什么、仍未解决什么，该未解决项能被本文的数据或论证直接回应。
+  mostly_threshold: 引言点出一处既有研究未处理或解释不了的内容，读者能指认本文接续的是哪一项。
+- rule_id: A-QUESTION-CLARITY-V1
+  version: V1
+  dimension_id: A
+  dimension_name: 选题价值与问题定位
+  indicator_name: 研究对象与研究问题明确
+  definition: 判断论文是否清楚说明研究对象、核心问题、研究目标或假设检验对象。
+  required_evidence: 需要能定位到研究对象、研究问题、研究目标或核心假设的原文片段。
+  evidence_location:
+  - Abstract
+  - Introduction
+  observation_points:
+  - 研究对象是否可识别
+  - 研究问题是否具体
+  - 研究目标是否可执行
+  - 问题、对象、目标是否相互对应
+  judgement_values:
+    mostly: 研究问题落到具体的对象、关系或过程上，读者能说出什么结果支持它、什么结果推翻它，问题边界因此可辨认
+    partial: 研究方向清楚，对象也可指认，检验条件仍不明确，多种结果都可算作回答，读者无法确定本文要证成什么，推导缺少落点
+    weak: 只给出研究主题或研究对象，读者看不出要检验哪种关系，问题在后续推导中始终没有收窄，结论回到泛泛陈述
+    not_satisfied: 该要素缺失：全文找不到可辨认的研究问题，或问题表述与论文实际执行的分析内容相互矛盾，读者无法确定本文在回答什么
+    uncertain: 解析缺失、候选证据过窄，或研究范式不以可检验问题组织全文，使这一项缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Bono & McNamara 2011
+  - Grant & Pollock 2011
+  status: draft
+  cluster: A-QUESTION
+  retrieval_terms:
+  - research question
+  - we examine
+  - this study investigates
+  - research objective
+  - hypotheses
+  - research model
+  - we test
+  - the purpose of this study
+  - focal construct
+  - dependent variable
+  - theoretical model
+  rationale: A 维度恢复区分度的关键：把问题清楚升级为问题可证伪。合格线是读者能预设证伪条件；对象具体而检验条件不明落 partial，只剩主题落 weak；无可辨认问题落缺失。
+  threshold: 摘要或引言给出的研究问题含具体对象与关系，读者能设想一个会否定它的观察结果。
+  mostly_threshold: 摘要或引言能指认研究对象与所问关系，读者能说出该问题打算证成什么。
+- rule_id: A-LITERATURE-POSITIONING-V1
+  version: V1
+  dimension_id: A
+  dimension_name: 选题价值与问题定位
+  indicator_name: 文献对话定位
+  definition: 判断论文是否把研究放入清楚的学术对话中，说明与已有理论、发现或争议的关系。
+  required_evidence: 需要引用论文对已有文献、理论路线、争议或共识的定位说明。
+  evidence_location:
+  - Introduction
+  - Literature Review
+  - Theory
+  observation_points:
+  - 是否说明相关理论视角
+  - 是否解释与已有发现的关系
+  - 是否避免只堆砌引用
+  - 是否为后续贡献铺垫清楚
+  judgement_values:
+    satisfied: 把本文放进一场仍在进行的争论，点明双方各持什么、本文站在哪一侧，读者能看出若不接这一步哪条既有解释会随之失效
+    mostly: 说明本文接的是哪一条理论路线或哪一场争论，读者能看出本文与既有结论处于延续、限定还是改写的关系
+    partial: 综述覆盖了相关文献，站位只到研究领域一层，读者能看出对话范围，却认不出本文站在哪条路线或哪一侧，贡献难以对位
+    weak: 文献按主题成段出现，读者看不出本文与任何既有结论之间存在取舍关系，对话对象始终虚化，贡献主张缺少可比照的参照系
+    not_satisfied: 该要素缺失：文献仅以罗列方式出现，读者看不出本文与任何既有理论路线的关系，或论文没有把自己放进既有对话
+    uncertain: 解析缺失、候选证据过窄，或论文属新兴议题而既有对话尚未成形，使这一项缺少可依据的文本
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - Sparrowe & Mayer 2011
+  - Grant & Pollock 2011
+  - Hollenbeck 2008
+  status: draft
+  cluster: A-LIT
+  retrieval_terms:
+  - literature review
+  - prior research
+  - theoretical perspective
+  - stream of research
+  - conversation
+  - debate
+  - divergent findings
+  - building on
+  - extends the literature
+  - research tradition
+  - seminal work
+  rationale: 与 A-GAP 分工：这条问对话对象与站位，gap 那条问未知项在哪。合格线是指认所属路线或争论；只到领域一层落 partial，仅按主题罗列落 weak；没有对话落缺失。
+  threshold: 引言或理论部分点明本文所属的理论路线或所加入的争论，读者能说出对话的另一方是谁。
+  mostly_threshold: 引言或理论部分出现一句把本文与某条既有理论路线或某场争论相连的表述。
+- rule_id: A-SCOPE-ACTIONABILITY-V1
+  version: V1
+  dimension_id: A
+  dimension_name: 选题价值与问题定位
+  indicator_name: 问题范围与可操作性
+  definition: 判断研究范围是否足够支撑有意义贡献，同时问题设定是否可研究、可分析、可落地。
+  required_evidence: 需要定位到论文对研究范围、构念边界、研究场景或可操作研究路径的说明。
+  evidence_location:
+  - Introduction
+  - Theory
+  - Methods
+  observation_points:
+  - 范围是否过窄或数据切片过薄
+  - 是否覆盖关键构念、机制或情境
+  - 是否能被研究设计回应
+  - 是否能产生具体实践或理论洞见
+  judgement_values:
+    mostly: 研究范围收到能被本文数据与设计完整回应的程度，范围之外的问题被明确排除，读者不会期待本文回答它没有条件回答的问题
+    partial: 范围交代清楚，仍留有超出设计能力的期待，读者能看出本文大致能答什么，宣称覆盖的构念或情境是否被数据触及仍不确定
+    weak: 范围宽到任何单一研究都答不完，设计尺度与所宣称范围明显错位，读者无法判断哪部分结论有数据支撑，可信度因而下降
+    not_satisfied: 该要素缺失：范围宽泛到无法由任何单一研究回应，或论文宣称覆盖的内容与其数据实际能覆盖的范围相悖
+    uncertain: 解析缺失、候选证据过窄，或论文体裁不声明可操作范围，使这一项缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - Colquitt & George 2011
+  - Tihanyi 2020
+  status: draft
+  cluster: A-SCOPE
+  retrieval_terms:
+  - scope
+  - boundary conditions
+  - research setting
+  - context
+  - unit of analysis
+  - level of analysis
+  - generalizability
+  - theoretical model
+  - empirical setting
+  - research design
+  - limitations
+  rationale: 与 A-QUESTION 分工：这条问范围能否被本文答完，不问问题能否被证伪。合格线是范围与设计能力对齐；留有溢出期待落 partial，范围与数据错位落 weak；宣称与事实相悖落缺失。
+  threshold: 方法或引言交代研究范围与数据边界，读者能指认哪些相关问题被本文明确排除在外。
+  mostly_threshold: 方法或引言说明研究范围与数据边界，读者能看出该范围与其设计能力大体对齐。
+- rule_id: B-THEORY-INTEGRATION-V1
+  version: V1
+  dimension_id: B
+  dimension_name: 理论贡献与创新性
+  indicator_name: 跨理论或跨学科整合
+  definition: 判断论文是否通过跨理论整合、同一理论内不同机制的连接、跨层次解释，或者过程阶段与情境要素的组合，形成统一解释。任一路径均可成立；评价整合后解释了什么及各部分如何联系。
+  required_evidence: 需要定位各理论视角、机制、层次或阶段的来源与解释分工，以及它们连接后新增的解释；并结合外部文献辨认相对已有框架的增量。
+  evidence_location:
+  - Theory
+  - Literature Review
+  - Discussion
+  observation_points:
+  - 是否说明为何需要多理论
+  - 是否明确理论假设差异
+  - 是否处理认识论/层级/人性假设兼容
+  - 是否不是简单拼接理论
+  judgement_values:
+    satisfied: 跨理论、同一理论内多机制、跨层次或者过程阶段整合中的任一路径得到完整展开：各部分分工与连接关系明确，正文论证或结果支撑组合后的新增解释，外部比较能辨认其增量
+    mostly: 任一整合路径已形成清晰解释，连接关系及新增含义大体有证据支撑，但一处关键连接的展开或比较仍不充分
+    partial: 已识别多个视角、机制、层次或阶段并尝试连接，但连接如何产生新增解释仍只得到局部说明
+    weak: 多个视角只作为背景或变量来源被先后引用，彼此不构成解释关系，理论部分更像多视角综述，贡献主张缺少整合支撑
+    not_satisfied: 证据显示只重复已有组合，或并列罗列视角、机制与阶段而没有解释它们的连接及新增含义
+    uncertain: 解析缺失或候选证据未覆盖整合所需内容，无法辨认解释分工与连接关系
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 4.444444
+  applicable_type: 通用
+  source_reference:
+  - Shaw et al. 2018
+  - Sparrowe & Mayer 2011
+  - Nadkarni et al. 2018
+  status: draft
+  cluster: B-INTEGRATION
+  retrieval_terms:
+  - theoretical integration
+  - multiple theoretical perspectives
+  - integrate
+  - complementary
+  - cross-disciplinary
+  - organizational theory
+  - behavioral theory
+  - draws on
+  - combines
+  - theoretical lens
+  - interdisciplinary
+  rationale: 整合价值来自解释部分之间的连接与新增解释。单一命名理论也可连接多个机制或阶段；多理论数量本身不决定档位。
+  threshold: 任一整合路径的解释分工、连接关系和相对既有框架的新增含义均有可定位证据。
+  mostly_threshold: 任一整合路径的解释分工与连接关系明确，新增含义大体得到支撑。
+- rule_id: B-CONCEPT-MECHANISM-NOVELTY-V1
+  version: V1
+  dimension_id: B
+  dimension_name: 理论贡献与创新性
+  indicator_name: 概念、机制与情境化理论推进
+  definition: 判断论文是否通过新概念、新机制、新命题、新测量路径，或者把既有理论情境化并揭示新的机制表现、适用边界、作用顺序或构念含义推进知识。任一路径均可成立；新行业、新时期或新技术环境中的研究需说明该情境带来的具体认识增量。
+  required_evidence: 需要定位贡献主张、相对既有解释的差异以及支撑该差异的理论论证或研究结果。情境化路径需展示情境特征如何改变、细化或扩展既有理解。
+  evidence_location:
+  - Theory
+  - Findings
+  - Discussion
+  observation_points:
+  - 是否从现象上升到概念
+  - 是否提出可解释机制
+  - 是否构建新的因果或过程结构
+  - 是否避免停留于描述性发现
+  judgement_values:
+    mostly: 新概念、机制、命题、测量，或者情境化产生的机制细化、适用边界、作用顺序或构念含义中至少一项增量清楚可辨，正文论证或结果与外部比较支持它与既有解释的差异
+    partial: 可辨认一项概念、机制、测量或情境化贡献，但情境为何重要、改变了何种理解或相对文献的差异仅得到局部说明
+    weak: 新提法基本是既有构念换了名称，读者按原有解释即可读懂所得结果，新增内容无法被指认，创新主张因此站不住
+    not_satisfied: 该要素缺失：论文沿用既有构念与既有机制，或新提法只是换了名称，没有带来可辨认的解释差异
+    uncertain: 解析缺失、候选证据过窄，或论文属复制检验一类不以新机制为目标的体裁，使这一项缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 5.538461
+  applicable_type: 通用
+  source_reference:
+  - Nadkarni et al. 2018
+  - Bansal et al. 2018
+  - 章凯等 2023
+  status: draft
+  cluster: B-NOVELTY
+  retrieval_terms:
+  - new construct
+  - novel mechanism
+  - theoretical contribution
+  - we develop
+  - we propose
+  - conceptual model
+  - reconceptualize
+  - mechanism
+  - theory building
+  - extends theory
+  - proposition
+  rationale: 情境能够暴露既有理论未说明的机制、边界或构念含义，因此可形成理论贡献。判档依据是增量的清晰度与证据支持程度；仅更换样本或地点且未产生认识增量时不满足。
+  threshold: 至少一条贡献路径有可定位的新增认识，并能说明相对既有解释的差异。
+  mostly_threshold: 任一贡献路径的增量明确，内部论证或结果和外部文献比较支持该增量。
+- rule_id: B-INTERESTINGNESS-V1
+  version: V1
+  dimension_id: B
+  dimension_name: 理论贡献与创新性
+  indicator_name: 有趣性与反直觉洞见
+  definition: 判断论文是否通过反直觉结果、揭示被忽略的机制、解释文献分歧、区分以往混同的过程，或者揭示情境依赖关系，形成有证据支撑的新洞见。任一路径均可成立。
+  required_evidence: 需要引用论文如何否定、反转、重释或揭示既有认知的原文证据。
+  evidence_location:
+  - Introduction
+  - Theory
+  - Discussion
+  observation_points:
+  - 是否呈现看似 X 实为非 X 的洞见
+  - 是否揭示意外关系或机制
+  - 是否与重要问题相连
+  - 是否避免 HARKing 或脆弱复杂模型
+  judgement_values:
+    satisfied: 任一路径形成清晰洞见：明确既有预期或未解问题，说明本文发现增加了什么理解，并有对应结果或论证支撑其解释；情境内成立且边界清楚的洞见也可满足
+    mostly: 反直觉、隐藏机制、分歧解释、过程区分或情境依赖中的一项洞见清楚且有证据，但其产生原因或相对已有认识的比较尚有局部缺口
+    partial: 存在值得注意的发现或解释，但它增加了什么理解、为何成立或与既有认识有何差异，仅得到局部说明
+    weak: 声称反直觉、隐藏机制或情境洞见，但只给标签或零散发现，未说明比较基点与新增认识
+    not_satisfied: 未呈现上述任一路径的认识增量，或所声称的洞见与正文证据相矛盾
+    uncertain: 解析缺失、候选证据过窄，或论文属复制或方法检验一类不以意外发现为目标的体裁，使这一项缺少可依据的文本
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 3.555556
+  applicable_type: 通用
+  source_reference:
+  - Davis 1971
+  - Tihanyi 2020
+  - Colquitt & George 2011
+  status: draft
+  cluster: B-INTERESTING
+  retrieval_terms:
+  - counterintuitive
+  - surprising
+  - unexpected
+  - contrary to expectations
+  - paradox
+  - tension
+  - challenges the assumption
+  - we find that
+  - interesting
+  - intriguing
+  - reverses
+  rationale: 洞见的价值在于增加理解；结果方向与既有预期一致时，仍可通过揭示机制、解释分歧或明确情境边界形成洞见。
+  threshold: 至少一项洞见有明确比较基点、新增认识和对应结果或论证。
+  mostly_threshold: 任一路径的洞见与证据对应，新增认识清楚，解释或比较尚有局部缺口。
+  mostly_note: 不要求颠覆性结论；论文自己说清了'为何这个发现值得注意'即可。
+- rule_id: B-DIALOGUE-ADVANCE-V1
+  version: V1
+  dimension_id: B
+  dimension_name: 理论贡献与创新性
+  indicator_name: 对既有认知的质疑、整合与推进
+  definition: 判断论文是否通过质疑前提、整合文献分歧、补充关键经验检验、细化机制，或者在重要新情境中明确理论边界与适用含义，说清相对既有理解的增量。任一路径均可成立。
+  required_evidence: 需要定位既有研究的认识或不足、本文回应及其理论论证或结果，并与检索到的相关先行文献比较。
+  evidence_location:
+  - Introduction
+  - Theory
+  - Discussion
+  observation_points:
+  - 是否点名一处可疑前提
+  - 是否给出分歧来源的取向
+  - 是否指出相对既有理解的具体增量
+  judgement_values:
+    mostly: 走通上述任一路径：点名一处可疑前提、给出分歧来源的取向，或指出本文相对既有理解多出什么，读者能指认推进落在哪里
+    partial: 与文献有往来，但推进只以丰富了相关研究一类说法带过，读者能看出本文想推进，却说不出推进落在哪一处
+    weak: 结论复述既有理解的要点，读者看不出本文相对文献多出什么，贡献主张缺少可指认的落点
+    not_satisfied: 该要素缺失：全文未对既有认知提出质疑，未处理结论分歧，也未把本文认识与既有理解作对照
+    uncertain: 解析缺失、候选证据过窄，或论文体裁不以相对既有理解的推进组织论证，使这一项缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 6.461539
+  applicable_type: 通用
+  source_reference:
+  - Colquitt & George 2011
+  - Grant & Pollock 2011
+  - Geletkanycz & Tepper 2012
+  status: draft
+  cluster: B-DIALOGUE
+  retrieval_terms:
+  - theoretical contribution
+  - advance theory
+  - challenge the assumption
+  - dialogue
+  - research agenda
+  - we contribute
+  - extend prior research
+  - theoretical implications
+  - conversation
+  - shifts the debate
+  - adds to the literature
+  rationale: 原先把'质疑前提''整合分歧''指出增量'拆成三条并取平均，导致只走通其中一条路径的论文被其余两条拖低。现合并为一条：三条路径任一走通即达到 mostly，全部展开且有证据支撑为 satisfied。该构念总权重仍为 6 分，与合并前一致。
+  threshold: 三条路径中至少一条被展开且有正文证据支撑，读者能指认该推进改变了哪个判断。
+  mostly_threshold: 三条路径中至少一条走通：点名可疑前提、给出分歧取向，或指出相对既有理解的增量。
+- rule_id: C-CONCEPT-CLARITY-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 概念定义与命名清晰
+  definition: 判断核心概念是否定义清楚、命名恰当，并与理论逻辑和研究对象相匹配。
+  required_evidence: 需要定位到核心概念定义、构念说明、命名依据或测量对应关系的原文片段。
+  evidence_location:
+  - Theory
+  - Literature Review
+  - Methods
+  observation_points:
+  - 概念定义是否明确
+  - 新概念或重定义是否有理论依据
+  - 是否避免 jingle/jangle 问题
+  - 概念与研究问题是否匹配
+  judgement_values:
+    mostly: 大部分核心概念清楚界定涵盖与排除的现象范围，少数与相邻构念的界限仍需读者从上下文推出
+    partial: 概念有定义，但界定偏宽或与相邻构念界限模糊，读者需要依靠上下文才能大致确定它所指的现象范围
+    weak: 概念界定只点出部分特征，与相邻构念的交界处读者仍拿不准，据此操作容易与近邻构念混同
+    not_satisfied: 核心概念只被提及而未被界定，或与相邻构念混用，读者无法确定该概念到底指向现实中的哪一类现象
+    uncertain: 解析缺失或候选证据过窄，或论文属纯评论体裁而无需自行界定概念，使该判断缺少可依据的文本
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 4.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Shaw et al. 2018
+  - Zhang & Shaw 2012
+  status: draft
+  cluster: C-CONCEPT
+  retrieval_terms:
+  - we define
+  - definition
+  - conceptualize
+  - construct
+  - distinct from
+  - construct validity
+  - refers to
+  - conceptual definition
+  - operationalize
+  - related but distinct
+  - domain of the construct
+  rationale: 概念界定是后续推理的前提。五档是界定清晰度的阶梯：可辨认现象范围即算够，界定漂移但可推断尚可，读者需靠上下文定所指已是硬伤，只提及未界定则不够。
+  threshold: 正文给出概念内涵界定，并说明它为何与最接近的相邻构念不重合，而非只划定涵盖范围。
+  mostly_threshold: 正文至少一处给出核心概念的内涵界定，读者据此能判断该现象涵盖与排除的范围。
+- rule_id: C-LOGIC-PREMISE-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 逻辑前提恰当
+  definition: 判断理论推导依赖的事实前提、语义前提和适用前提是否清楚且合理。
+  required_evidence: 需要引用论文理论推导中关键前提、假设或适用条件的说明。
+  evidence_location:
+  - Theory
+  - Literature Review
+  observation_points:
+  - 前提是否符合事实
+  - 语义是否清晰自洽
+  - 前提是否适用于研究问题
+  judgement_values:
+    satisfied: 关键前提逐条给出依据与适用条件，读者无需代为接受任何一条即可跟随推导，主线之外的替代前提也被交代为何不取
+    mostly: 关键前提多数可被识别，个别前提的依据或适用范围需读者代为接受，推导主线仍站得住
+    partial: 关键前提部分被交代，个别前提依据不足或适用范围含糊，读者对其成立仍存疑问，但不致阻断后续推导
+    weak: 关键前提虽能指出，但作者未说明它为何在此情境成立，读者代入本领域事实后会对其可靠性起疑
+    not_satisfied: 推导所依赖的前提未被识别，或前提与研究现象明显不相称，使后续理论主张从一开始就失去支撑
+    uncertain: 解析缺失或候选证据过窄，或论文体裁不依赖可指认的显式前提，使该判断缺少可依据的文本
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 2.666667
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Sparrowe & Mayer 2011
+  status: draft
+  cluster: C-PREMISE
+  retrieval_terms:
+  - premise
+  - assumption
+  - we assume
+  - theoretical logic
+  - taken for granted
+  - building on
+  - drawing on
+  - underlying assumption
+  - we argue
+  - theoretical foundation
+  - established theory
+  rationale: 前提是理论链的地基。五档按前提可辩护程度递减：能指认又与情境相称即算够，个别前提需读者代为接受尚可，依据不明或与事实冲突即不够。
+  threshold: 正文可指认关键前提及其依据，并交代该前提为何在本研究情境下成立，而非只列出前提。
+  mostly_threshold: 正文能指认出至少一个关键前提，该前提与研究情境相称，未被文中其他事实否定。
+- rule_id: C-REASONING-RIGOR-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 推理过程严密
+  definition: 判断论文从理论、文献或数据到命题/假设/发现的推理链条是否完整、清楚、无明显跳跃。
+  required_evidence: 需要定位到核心推理段落、命题推导、归纳发现解释或理论模型说明。
+  evidence_location:
+  - Theory
+  - Findings
+  observation_points:
+  - 演绎推理是否清楚完整
+  - 归纳推理是否与数据契合
+  - 是否存在明显反例未处理
+  - 结论是否由前文自然推出
+  judgement_values:
+    mostly: 推理主线可循，个别环节依赖未言明的假定或出现跳跃，读者需要自行补一步才能接上后面的结论
+    partial: 推理主线能顺着读下来，但关键处缺少交代，读者得替作者补上一个理由才能让结论落地
+    weak: 从前提到结论的若干环节只有断言而无理由，读者按文中论证推不出结论，只能当作作者的主张接受
+    not_satisfied: 推理链存在明显断点，或结论不是由前文前提推出，读者依据文中论证无法复现该结论的得出过程
+    uncertain: 解析缺失或候选证据过窄，或论文以叙述方式呈现而不展开完整推理过程，使该判断无法稳定作出
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 4.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Sparrowe & Mayer 2011
+  - Bansal et al. 2018
+  status: draft
+  cluster: C-REASONING
+  retrieval_terms:
+  - we argue
+  - theoretical argument
+  - therefore
+  - because
+  - consistent with
+  - in line with
+  - hypothesis development
+  - we predict
+  - reasoning
+  - derive
+  - theoretical model
+  rationale: 推理链是理论与假设之间的桥。五档按可复核程度递减：照文中步骤能推出结论即算够，需自行补步尚可，链条断裂或结论非由前提推出即不够。
+  threshold: 从前提到核心命题的推导在文中可复核，且最易断裂的环节有作者明确交代。
+  mostly_threshold: 推理主线完整可循，个别环节需读者自行补一步，或最易断裂处未主动处理，但结论仍能从文中论证推出。
+  mostly_note: 不要求作者处理每一个潜在断裂点；只有读者按文中论证推不出结论时才降到 partial 以下。
+- rule_id: C-HYPOTHESIS-GROUNDING-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 假设或命题扎根充分
+  definition: 判断假设、命题或理论主张是否扎根于相关文献与理论叙事，而不是仅靠引用堆砌。
+  required_evidence: 需要引用假设/命题之前的理论论证和相关文献对话。
+  evidence_location:
+  - Theory
+  - Hypotheses
+  observation_points:
+  - 假设与相关研究关系是否清楚
+  - 是否超越实证结果罗列
+  - 读者到达假设时是否能预期
+  - 是否解释构念为何相关
+  judgement_values:
+    mostly: 多数核心假设在提出之前有理论理由支撑，只有个别假设仅靠引用标记交代来源，读者仍能预期方向
+    partial: 假设方向有理论依托，但依托停留在相关文献的罗列，读者仍难以看出这条关系为何应当被预期
+    weak: 假设只与个别文献的结论挂上关系，缺少说明该关系为何在此情境中成立，方向像是从数据反推而来
+    not_satisfied: 假设或命题与既有理论对话脱节，接近凭空提出，读者无法从文中找到任何应当预期该关系的理由
+    uncertain: 解析缺失、候选证据过窄，或本文类型不产生假设与命题，使该规则缺乏可判断对象而无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 4.0
+  applicable_type: 定量/理论/混合
+  source_reference:
+  - Sparrowe & Mayer 2011
+  - Grant & Pollock 2011
+  status: draft
+  cluster: C-HYPOTHESIS
+  retrieval_terms:
+  - hypothesis
+  - we hypothesize
+  - hypothesis development
+  - we predict
+  - theoretical rationale
+  - prior research suggests
+  - consistent with theory
+  - hypothesized relationship
+  - propositions
+  - mediating
+  - moderating
+  rationale: 该规则区分假设有理论来源与靠常识、数据先行落地的论文。五档按假设从理论中长出的程度递减，读者读到假设前是否已被说服，决定它落在哪一档。
+  threshold: 过半核心假设在提出前有理论理由支撑其方向，且至少一条说明该关系为何在此情境成立。
+  mostly_threshold: 过半核心假设在其论证段前能找到支撑该关系方向的理论理由，而非只出现引用标记。
+- rule_id: C-BOUNDARY-CONDITIONS-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 理论边界条件清楚
+  definition: 判断论文是否说明理论或发现适用的情境、层级、时间、行业、文化或方法边界。
+  required_evidence: 需要定位到边界条件、适用范围、情境限制或理论限制的原文说明。
+  evidence_location:
+  - Theory
+  - Methods
+  - Discussion
+  observation_points:
+  - 是否说明适用情境
+  - 是否说明分析层级
+  - 是否处理跨层级边界
+  - 是否避免无限泛化
+  judgement_values:
+    satisfied: 适用情境、层级与时间条件分别写明并与理论机制挂钩，读者能指认边界之外主张失效的机制原因，无需自行补齐限定语
+    mostly: 文中交代了主张成立的适用范围，个别限定语的具体所指需读者自行从上下文补齐，仍可大致圈定
+    partial: 文中承认主张存在适用条件，但条件内容含糊，读者仍无法判断它在哪种情境或层级下能够成立
+    weak: 只在结尾补一句适用范围，未与理论机制挂钩，读者据此仍分不清边界之外的主张为何失效
+    not_satisfied: 理论主张被无条件地陈述，文中未交代其成立的适用范围，读者按字面理解会得到被过度推广的结论
+    uncertain: 解析缺失或候选证据过窄，或论文属描述性体裁而不提出需限定范围的主张，使该判断难以稳定作出
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 2.666667
+  applicable_type: 通用
+  source_reference:
+  - Sparrowe & Mayer 2011
+  - Shaw et al. 2018
+  - 章凯等 2023
+  status: draft
+  cluster: C-BOUNDARY
+  retrieval_terms:
+  - boundary condition
+  - scope condition
+  - moderating effect
+  - contingency
+  - under what conditions
+  - applies to
+  - limited to
+  - generalizability
+  - we focus on
+  - theoretical scope
+  - moderating role
+  rationale: 边界决定主张能被用到哪里。五档按适用范围可推断的程度递减：条件可指认又解释得清即算够，仅承认有边界而说不清即不够，无条件陈述属过度推广。
+  threshold: 至少一处说明命题成立的情境或层级条件，并交代该条件之外主张为何不再成立。
+  mostly_threshold: 正文至少一处说明命题或结论成立所需的情境、层级或时间条件，而非只出现“存在边界”一类说法。
+- rule_id: C-ALTERNATIVE-EXPLANATIONS-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 替代解释处理
+  definition: 判断论文是否识别并处理可能的替代机制、竞争理论、反向因果或混淆解释。
+  required_evidence: 需要引用论文对替代解释、竞争假设、控制策略或稳健性解释的说明。
+  evidence_location:
+  - Theory
+  - Methods
+  - Results
+  - Discussion
+  observation_points:
+  - 是否提出 plausible alternative mechanisms
+  - 是否通过理论或方法排除替代解释
+  - 是否讨论反向因果或遗漏变量
+  - 是否诚实说明仍无法排除的解释
+  judgement_values:
+    satisfied: 对核心主张构成威胁的替代机制被识别，文中用理论或方法给出排除理由，该威胁不再动摇核心结论
+    mostly: 文中指出主要替代机制并说明它为何被排除，读者读完仍会追问残余威胁有多大、会不会翻盘
+    partial: 文中以控制变量或附加设定间接回应替代解释，未直接说明它为何不成立，该威胁仍可被读者质疑
+    weak: 只承认可能存在别的解释，未把它与本文核心主张对照说明，读者仍可用同一批材料给出另一种解释
+    not_satisfied: 文中未识别与核心主张竞争的替代解释，读者可依据同一批材料提出另一种同样合理的解释来替代它
+    uncertain: 解析缺失或候选证据过窄，或论文体裁不涉及因果或机制上的竞争解释，使该判断难以稳定作出
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 2.666666
+  applicable_type: 通用
+  source_reference:
+  - Sparrowe & Mayer 2011
+  - Bono & McNamara 2011
+  - Zhang & Shaw 2012
+  status: draft
+  cluster: C-ALTERNATIVE
+  retrieval_terms:
+  - alternative explanation
+  - rival explanation
+  - reverse causality
+  - omitted variable
+  - confound
+  - cannot rule out
+  - robustness
+  - control variables
+  - endogeneity
+  - selection bias
+  - common method bias
+  rationale: 替代解释是理论主张最易被攻击处。五档按排除程度递减：威胁被指名又给出理由即算够，只靠控制变量应付即不够，中间看残余威胁是否足以翻盘。
+  threshold: 至少指名一个主要竞争解释，给出排除理由，并说明残余威胁不至于改变核心结论。
+  mostly_threshold: 正文至少指名一个与核心主张竞争的替代解释，给出理论或方法上的排除理由。
+- rule_id: C-WRITING-QUALITY-V1
+  version: V1
+  dimension_id: C
+  dimension_name: 理论严谨性与假设逻辑
+  indicator_name: 语言表达与写作清晰度
+  definition: 判断论文的表达是否让读者能用最小阅读成本抓住论证结构：句子简洁、段落有主题句、逻辑连接承担真实推理关系、术语前后一致、图表与正文互相指路。
+  required_evidence: 需要正文（非摘要）的段落级证据，覆盖引言/理论、方法、结果三类章节中的至少两类，用于判断表达简洁度与逻辑顺畅度。
+  evidence_location:
+  - Introduction
+  - Theory
+  - Methods
+  - Results
+  - Discussion
+  observation_points:
+  - 句子与段落是否简洁，能否一眼看出主题句
+  - 段落之间、假设之间的逻辑连接是否顺畅，是否存在跳跃
+  - 关键术语与构念命名是否前后一致
+  - 图表是否被正文引用并解释
+  - 是否存在因表达含混而无法复核论证的段落
+  judgement_values:
+    mostly: 表达整体基本清楚，局部存在冗长、术语漂移或连接跳跃，增加了阅读成本但不影响论证能否成立
+    partial: 表达大致可读，但有相当篇幅需要回读才能确定论证走向，核心论证那几段仍能读懂
+    weak: 多处表达含混或术语前后不一，读者需要反复回读，仍难以辨认核心构念究竟指什么
+    not_satisfied: 表达妨碍论证复核，读者无论怎样回读都无法复述该部分在推什么，论证因此无法被检验
+    uncertain: 正文证据不足，或论文属非标准写作范式、语言风格差异较大，在不误伤作者的前提下无法作出判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 0.0
+  applicable_type: 通用
+  source_reference:
+  - 'Colquitt & George 2011（AMJ Part 3: Setting the hook）'
+  - 章凯等 2023
+  status: draft
+  cluster: C-WRITING
+  retrieval_terms:
+  - we first
+  - we then
+  - in sum
+  - taken together
+  - as shown in
+  - table
+  - figure
+  - however
+  - therefore
+  - we label
+  - terminology
+  rationale: 该规则不计分，只记录表达是否妨碍论证复核，不替代概念与推理判断。五档按阅读成本递减：顺畅可跟读算够，需局部回读尚可，无法复述论证即不够。
+  threshold: 引言或理论、方法、结果中至少两类章节有明确主题句，读者不回读即可复述其论证结构。
+  mostly_threshold: 正文的三类章节中至少两类能找到主题明确的段落，读者据此能复述该部分论证结构。
+- rule_id: D-DESIGN-FIT-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 研究设计匹配研究问题
+  definition: 判断研究设计是否能够回答论文提出的问题，尤其是因果、变化或过程问题是否使用匹配设计。
+  required_evidence: 需要定位到研究设计、研究问题类型、样本/时间结构或识别策略的说明。
+  evidence_location:
+  - Methods
+  - Research Design
+  observation_points:
+  - 因果问题是否避免单纯截面设计
+  - 变化问题是否有时间维度
+  - 过程问题是否有过程数据
+  - 设计是否被数据可得性过度主导
+  judgement_values:
+    satisfied: 除结构相符外，还交代该设计排除了哪一类替代解释、以及该预期模式为何只有这种设计能检验，读者能看出换一种设计哪类结论会失衡
+    mostly: 设计类别与问题的推断类型相符，只有在结论强度上存在小缺口，问题的回答对象未被改变
+    partial: 设计在推断类型上存在明显短板，读者能看出所得结论只在附加假定之下才回应论文提出的问题
+    weak: 设计难以支撑该推断，核心结论只能当作相关描述接受，算不上对研究问题的正面回答，差距已伤及可信度
+    not_satisfied: 设计类型与研究问题不匹配，例如以横断面材料回答因果问题，所得结论无法回应论文提出的问题
+    uncertain: 解析缺失或候选证据过窄，或论文未交代设计类型而无法从文本中判定，使该判断无法稳定地作出
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 6.0
+  applicable_type: 通用
+  source_reference:
+  - Bono & McNamara 2011
+  - 章凯等 2023
+  - Bansal et al. 2018
+  status: draft
+  cluster: D-DESIGN
+  retrieval_terms:
+  - research design
+  - cross-sectional
+  - longitudinal
+  - experimental design
+  - random assignment
+  - multi-wave
+  - time lag
+  - causal inference
+  - identification strategy
+  - field experiment
+  - survey design
+  - archival data
+  rationale: 设计错配时后续执行再规范也答不了问题。五档按设计与推断类型的贴合度递减：结构能支撑该推断即算够，结论只在附加假定下成立已是硬伤。
+  threshold: 正文可指认设计类型及其时间层次结构，并说明该结构为何足以回应所提推断类型。
+  mostly_threshold: 正文能指认设计类型及其时间与层次结构，该结构足以回应论文提出的推断类型。
+- rule_id: D-DATA-SAMPLE-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 数据来源与样本合理
+  definition: 判断数据来源、样本选择、样本规模、时间范围和场景是否适合研究问题。
+  required_evidence: 需要引用数据来源、样本获取、样本特征、时间范围或纳入排除标准。
+  evidence_location:
+  - Methods
+  - Data
+  - Sample
+  observation_points:
+  - 数据来源是否清楚
+  - 样本是否匹配研究对象
+  - 样本规模是否支持分析
+  - 是否说明数据获取过程和限制
+  judgement_values:
+    satisfied: 除交代来源与规模外，还给出代表性能被检验的依据（与目标总体的对比、纳入排除标准或样本流失分析），读者能判断代表性偏差会把结论拉向哪一边
+    mostly: 数据来源与规模交代清楚，取样方式与关键特征说明偏薄，代表性大致可信但读者仍存疑问
+    partial: 来源与规模有交代，抽样方式或样本特征的说明不足，读者难以判断样本对目标总体的代表程度
+    weak: 样本只在某一方面可用，而这一局限恰好覆盖论文的核心推断，结论只能收缩到更小的范围
+    not_satisfied: 数据来源或样本规模缺失，或样本与研究总体明显错位，使论文的主要分析建立在不成立的样本之上
+    uncertain: 解析缺失或候选证据过窄，或论文属理论、质性一类不以统计样本回答问题的体裁，使该判断难以作出
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 4.0
+  applicable_type: 实证
+  source_reference:
+  - Zhang & Shaw 2012
+  - Bono & McNamara 2011
+  - 章凯等 2023
+  status: draft
+  cluster: D-DATA
+  retrieval_terms:
+  - sample
+  - data collection
+  - respondents
+  - survey
+  - sampling
+  - response rate
+  - sample size
+  - data source
+  - recruitment
+  - firm-level data
+  - representativeness
+  rationale: 样本决定结论能覆盖谁。五档按样本可辩护程度递减：读者能判断代表性即算够，抽样说明偏薄尚可，样本错位或来源缺失则结论无处落地。
+  threshold: 正文说明来源与抽样方式、样本规模，并给出代表性能被检验的依据，而非只描述样本构成。
+  mostly_threshold: 正文说明数据来源与样本规模，样本特征足以让读者判断其与目标总体的对应关系。
+- rule_id: D-MEASUREMENT-VALIDITY-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 构念测量与操作化有效
+  definition: 判断变量、构念、编码或质性分类是否准确捕捉理论概念，并提供足够效度说明。
+  required_evidence: 需要定位到测量来源、量表改编、编码规则、构念操作化或效度检验说明。
+  evidence_location:
+  - Methods
+  - Measures
+  - Coding
+  observation_points:
+  - 测量是否对应构念本质
+  - 是否说明量表/条目来源
+  - 改编是否有理由和效度证据
+  - 编码和聚合决策是否清楚
+  judgement_values:
+    mostly: 测量方案基本对应构念，效度理由偏薄或改编依据不明，读者对两者是否等价仍会保留疑问
+    partial: 测量或编码与构念大体对应，但效度依据偏薄，读者对操作化是否捕捉到构念本质仍存疑问
+    weak: 操作化只覆盖构念的部分内涵，依据本身站得住，但所得结果对该构念的代表性已被实质削弱
+    not_satisfied: 测量或编码与构念内涵错位，或操作化方式与研究问题相悖，所得变量无法代表所要检验的概念
+    uncertain: 解析缺失或候选证据过窄，或论文属理论、模拟一类不产生测量操作的体裁，使该判断难以稳定作出
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 5.0
+  applicable_type: 实证
+  source_reference:
+  - Bono & McNamara 2011
+  - Zhang & Shaw 2012
+  - 章凯等 2023
+  status: draft
+  cluster: D-MEASUREMENT
+  retrieval_terms:
+  - measurement
+  - scale
+  - items
+  - construct validity
+  - cronbach
+  - factor analysis
+  - reliability
+  - adapted from
+  - validated scale
+  - discriminant validity
+  - coding scheme
+  rationale: 操作化错位会让结果与理论主张失去连接。五档按操作化与构念的等价程度递减：依据能支撑操作化即算够，只覆盖部分内涵属中间地带。
+  threshold: 正文能指认测量或编码与构念的对应，并给出效度或改编依据使读者接受该操作化。
+  mostly_threshold: 测量或编码方案与构念对得上，读者能接受该操作化；信度或效度检验不完整、改编依据未逐项交代不影响本档。
+  mostly_note: 不要求报告全部信效度指标（如同时给出 α、CR、AVE）；只要操作化与构念的对应关系可辨认即可。
+- rule_id: D-MODEL-IDENTIFICATION-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 模型设定与识别策略合理
+  definition: 判断模型设定、控制变量、识别策略或分析框架是否合理，能否降低偏误并支持推断。
+  required_evidence: 需要引用模型设定、控制变量、识别策略、估计方法或分析框架的原文说明。
+  evidence_location:
+  - Methods
+  - Analysis
+  - Results
+  observation_points:
+  - 模型是否与理论问题匹配
+  - 控制变量是否有理论依据
+  - 是否处理共同方法偏差
+  - 是否考虑内生性或选择偏差
+  judgement_values:
+    mostly: 模型与识别策略针对该推断的主要威胁作出安排，读者能看出该威胁已被排除到不影响结论的程度
+    partial: 识别安排只覆盖部分威胁，另有同样能解释所得结果的机制未被处理，推断强度因此受到限制
+    weak: 识别安排多属例行程式，主要替代解释在文中得不到处理，因果口吻超出证据能支持的范围
+    not_satisfied: 模型设定或识别依据缺失，主要替代解释未被排除，所得估计最终无法支撑论文所提出的因果主张
+    uncertain: 解析缺失或候选证据过窄，或论文属质性、理论一类不使用统计模型的体裁，使该判断难以稳定作出
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 5.0
+  applicable_type: 定量/混合
+  source_reference:
+  - Bono & McNamara 2011
+  - Zhang & Shaw 2012
+  - 章凯等 2023
+  status: draft
+  cluster: D-MODEL
+  retrieval_terms:
+  - identification
+  - endogeneity
+  - instrumental variable
+  - two-stage least squares
+  - difference-in-differences
+  - fixed effects
+  - control variables
+  - model specification
+  - selection bias
+  - omitted variable
+  - common method bias
+  rationale: 识别安排能否排除替代解释决定因果主张是否成立，这是设计质量的核心。五档按威胁被排除的程度递减，未处理主要威胁时估计撑不起因果口吻。
+  threshold: 正文说明识别安排如何排除主要替代解释，并交代该威胁被排除到何种程度。
+  mostly_threshold: 正文说明模型设定与针对主要替代解释的识别安排，或说明该设计为何不产生识别问题。
+- rule_id: D-METHOD-EXECUTION-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 方法执行规范
+  definition: 判断定量、质性或混合方法的执行、分析和报告是否符合相应研究体裁规范。
+  required_evidence: 需要引用数据收集、分析流程、编码过程、统计流程或方法执行细节。
+  evidence_location:
+  - Methods
+  - Findings
+  - Appendix
+  observation_points:
+  - 研究程序是否规范化
+  - 执行步骤是否完整
+  - 分析流程是否透明
+  - 是否如实报告关键方法决策
+  judgement_values:
+    mostly: 主要步骤有交代，个别影响复核的细节缺失或前后说法不一致，读者需猜测某一步究竟如何处理
+    partial: 主要步骤有交代，个别影响复核的环节存在缺口或前后说法不一致，读者需自行猜测该步如何处理
+    weak: 执行步骤多处含糊，主要分析的处理顺序无法从文中重建，读者只能凭作者的报告接受结果
+    not_satisfied: 关键分析步骤缺失，或执行方式违背该体裁的基本规范，读者无法复核论文所报告的主要分析结果
+    uncertain: 解析缺失或候选证据过窄，或论文属理论、评论一类不以数据执行体现方法的体裁，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Zhang & Shaw 2012
+  - Bansal et al. 2018
+  status: draft
+  cluster: D-EXECUTION
+  retrieval_terms:
+  - procedure
+  - we collected
+  - regression
+  - structural equation model
+  - coding process
+  - data analysis
+  - we followed
+  - analytical approach
+  - estimation
+  - appendix
+  - steps
+  rationale: 执行规范决定结果能否被追溯。五档按流程可重建的程度递减：读者能照描述重走主要分析即算够，个别环节需猜测尚可，关键步骤缺失即无法复核。
+  threshold: 至少两类主要分析章节交代收集与分析步骤，读者照描述能重建其处理顺序。
+  mostly_threshold: 正文交代数据收集与分析的主要步骤，读者据此能复现核心分析的处理顺序。
+- rule_id: D-QUAL-GENRE-FIT-V1
+  version: V1
+  dimension_id: D
+  dimension_name: 研究设计与方法质量
+  indicator_name: 质性研究体裁适配
+  definition: 针对质性论文，判断其体裁、认识论、数据、分析和写作结构是否相互匹配；非质性论文不适用本规则。
+  required_evidence: 需要定位到质性体裁、认识论立场、数据类型、分析过程或研究者反思说明。
+  evidence_location:
+  - Methods
+  - Findings
+  - Theory
+  observation_points:
+  - 是否说明本体/认识论假设
+  - 问题-数据-分析是否一致
+  - 是否避免模板生搬
+  - 发现呈现是否符合体裁逻辑
+  judgement_values:
+    mostly: 质性方法整体基本成立，认识论立场或分析程序交代偏薄，在体裁、分析与呈现之间出现局部的张力
+    partial: 质性方法基本成立，立场或分析程序交代偏薄，但读者仍能看出数据如何得出所报告的主题
+    weak: 质性程序多处借自其他范式，立场与呈现之间的落差让所报告的发现难以被接受为对该问题的回答
+    not_satisfied: 质性设计与所声明的立场或问题相悖，或用模板化流程套用不适配的体裁，发现呈现与该方法逻辑不符
+    uncertain: 解析缺失或候选证据过窄，或论文不属质性体裁而使本规则不适用，无法稳定判断其适配的程度
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 2.0
+  applicable_type: 质性
+  source_reference:
+  - Bansal et al. 2018
+  - Bono & McNamara 2012
+  status: draft
+  cluster: D-QUAL
+  retrieval_terms:
+  - qualitative
+  - case study
+  - interviews
+  - grounded theory
+  - coding
+  - thematic analysis
+  - inductive
+  - epistemology
+  - ethnography
+  - triangulation
+  - informants
+  - field notes
+  rationale: 质性质量不看指标而看范式内部自洽。五档按立场、数据、呈现相互贴合的程度递减，借用量化模板或立场与分析相悖即不够。
+  threshold: 正文说明质性立场、数据类型与分析程序，并说明该搭配为何适合所研究的问题。
+  mostly_threshold: 正文说明质性立场或分析程序，其呈现方式与该立场、数据来源相符。
+- rule_id: E-RESULTS-COMPLETENESS-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 结果呈现完整规范
+  definition: 判断结果是否完整呈现核心分析、关键指标、统计/编码结果和必要的表格图示。
+  required_evidence: 需要引用结果段落、表格、图或发现呈现中支持核心结论的信息。
+  evidence_location:
+  - Results
+  - Findings
+  - Tables
+  - Figures
+  observation_points:
+  - 结果是否覆盖所有核心问题/假设
+  - 统计或编码报告是否规范
+  - 表格图示是否支持理解
+  - 是否报告关键缺失或异常
+  judgement_values:
+    mostly: 每个核心问题在正文或表格里各有可读的数值与检验统计量，读者不必自己换算或推算就能核对结论
+    partial: 核心问题的关键数值已报出，个别分析只给方向性描述或散落在多处，读者把几处对起来仍能核对结论
+    weak: 关键分析只给显著性与方向，样本量、效应量或编码频次缺失，读者无从核对结论是否由这些结果得来
+    not_satisfied: 多项结论在结果部分找不到对应数值或编码呈现，读者只能接受作者说法而无从核对
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 1.8
+  applicable_type: 实证
+  source_reference:
+  - Zhang & Shaw 2012
+  - 章凯等 2023
+  status: draft
+  cluster: E-COMPLETENESS
+  retrieval_terms:
+  - results
+  - table
+  - figure
+  - coefficient
+  - standard error
+  - descriptive statistics
+  - correlation matrix
+  - sample size
+  - model fit
+  - regression results
+  - p-value
+  - confidence interval
+  rationale: 结果可查是E维度后续判断的前提。五档按可核对程度下降：有分岔处理依据、可核对、需对照、不可核对、无可核对对象，缺失结果会让整条可信度链失效。
+  threshold: 围绕每个核心问题都能定位到关键数值或编码结果，其呈现方式使读者无需自行推算即可核对。
+  mostly_threshold: 每个核心问题至少一处关键结果见诸正文或表格，个别分析只给出方向或指向他表，读者对照后仍能核对结论。
+  mostly_note: 不要求逐个报告系数与标准误；个别分析呈现简略但不妨碍核对结论即可。
+- rule_id: E-RESULTS-ALIGNMENT-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 结果与问题/假设对应
+  definition: 判断结果呈现是否直接回应研究问题、假设、命题或理论模型。
+  required_evidence: 需要定位到结果如何对应研究问题、假设或理论主张的原文证据。
+  evidence_location:
+  - Results
+  - Findings
+  - Discussion
+  observation_points:
+  - 每个核心问题是否有结果回应
+  - 假设检验是否逐项对应
+  - 发现是否回到理论模型
+  - 是否存在结果与主张脱节
+  judgement_values:
+    mostly: 任取一个核心问题或假设，都能指出直接回应它的结果，问题与结果的对应关系在文中可辨
+    partial: 多数问题有结果回应，个别问题只被侧面涉及，这一处由读者自己接上问题与结果的对应关系
+    weak: 部分问题所对应的结果只是擦边涉及，读者需自行判断该结果算不算回答，回应关系因此不稳
+    not_satisfied: 问题提出后在结果中找不到对应回应，或以另一问题的结果顶替，读者无法确认该问题是否被回答
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.6
+  applicable_type: 通用
+  source_reference:
+  - Zhang & Shaw 2012
+  - Geletkanycz & Tepper 2012
+  status: draft
+  cluster: E-ALIGNMENT
+  retrieval_terms:
+  - results
+  - hypothesis supported
+  - hypotheses supported
+  - partially supported
+  - findings
+  - hypothesis testing
+  - mediation analysis
+  - moderation analysis
+  - in support of
+  - theoretical model
+  rationale: 只判问题与结果是否闭合，不判证据强弱。五档按回应直接性递降：逐条对应、个别需接、仅擦边、无回应，越往下结论越难追回问题。
+  threshold: 任取一个核心问题或假设，都能指向至少一组直接回应它的结果，回应关系在文中明确可辨。
+  mostly_threshold: 多数核心问题各有直接对应的结果回应，个别问题只侧面涉及，该处的对应关系由读者自己接上。
+- rule_id: E-ROBUSTNESS-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 稳健性与补充分析
+  definition: 判断论文是否通过稳健性检验、补充分析、替代模型、消融或三角验证增强结果可信度。
+  required_evidence: 需要引用稳健性检验、替代模型、补充分析、消融或三角验证的原文片段。
+  evidence_location:
+  - Results
+  - Robustness Checks
+  - Appendix
+  observation_points:
+  - 是否使用替代测量或模型
+  - 是否检查关键结果稳定性
+  - 是否有补充或敏感性分析
+  - 是否解释不稳健结果
+  judgement_values:
+    satisfied: 文中点名自己最弱的一处，说明何种结果会推翻主结论，该检验的设定、结果与结论是否改变都在正文里可指认
+    mostly: 有一项稳健性或补充分析落在结论的要害环节，检验结果在文中报告，读者能看出该处威胁已按作者的说明被处理
+    partial: 所做的稳健性或补充分析针对的是次要环节，最脆弱处未受检验，读者对该处是否成立仍存疑问
+    weak: 只做了替代测量、换样本一类常规动作，没有针对结论脆弱处设计检验，读者不知威胁下结论是否成立
+    not_satisfied: 全文找不到对结论脆弱环节的检验，或所设检验与主结论无关，主要质疑自始未被回应
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 1.5
+  applicable_type: 实证
+  source_reference:
+  - Bono & McNamara 2011
+  - Zhang & Shaw 2012
+  - 章凯等 2023
+  status: draft
+  cluster: E-ROBUSTNESS
+  retrieval_terms:
+  - robustness check
+  - robustness
+  - alternative specification
+  - sensitivity analysis
+  - additional analysis
+  - alternative measure
+  - subsample
+  - falsification test
+  - control variables
+  - placebo
+  - results hold
+  rationale: 判检验是否落在结论最脆弱的一环，不数检验数量。五档按着力点递降：自认弱点受检、要害受检、次要处受检、常规动作、未受检，越靠上结论越经得起主要质疑。
+  threshold: 能指出一项检验直接针对作者自己承认的最弱环节，该检验的设定与结果都可指认，作者据此说明主结论是否改变。
+  mostly_threshold: 至少有一项稳健性或补充分析落在结论的关键环节，结果已在文中报告，读者能看出该处威胁已按作者说明被处理。
+  mostly_note: 不要求为每个核心关系都做检验；检验落在关键环节即可，其余次要关系可略。
+- rule_id: E-EVIDENCE-STRENGTH-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 证据支撑强度
+  definition: 判断论文使用的数据、分析和理论证据是否足以支撑核心主张。
+  required_evidence: 需要定位核心主张及其对应证据，判断证据是否直接、充分、一致。
+  evidence_location:
+  - Methods
+  - Results
+  - Findings
+  - Discussion
+  observation_points:
+  - 证据是否直接支持主张
+  - 是否有多处一致证据
+  - 证据是否来自正确章节
+  - 是否存在相反证据未处理
+  judgement_values:
+    mostly: 主要主张在结果部分各有自己的估计值或检验统计量，文中没有留下未作说明却与主张相反的证据
+    partial: 主要主张有直接证据，个别处证据仅间接相关或方向略有出入，作者已作说明，结论仍可接受
+    weak: 主要主张中有一部分在结果部分找不到直接对应的分析，靠推理或邻近结果接上，读者对手头证据能否撑住结论存疑
+    not_satisfied: 主要主张在结果部分找不到直接证据，或找到的证据方向与主张相反，结论实质悬空
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 3.6
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Bansal et al. 2018
+  - Geletkanycz & Tepper 2012
+  status: draft
+  cluster: E-STRENGTH
+  retrieval_terms:
+  - evidence
+  - support
+  - coefficient
+  - significant
+  - effect size
+  - confidence interval
+  - consistent
+  - findings
+  - robust
+  - path coefficient
+  - hypothesis testing
+  - direct evidence
+  rationale: 判证据是否指向主张，与稳健性分工：那条问威胁是否受检，这条问证据指向何处。五档按证据与主张的贴合度递降，证据来自相邻结果与证据方向相反分别落在两级。
+  threshold: 每条主要主张都能指回结果部分属于自己的估计值或检验统计量，文中没有方向相反却未作说明的证据。
+  mostly_threshold: 每条主要主张至少有一处来自结果部分的直接证据，个别处证据间接或方向略有出入但作者已交代。
+  mostly_note: 不要求跨方法或多子样本的相互印证；直接证据足以指回主张即可，该方法级印证留给其他规则。
+- rule_id: E-CONCLUSION-VALIDITY-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 结论解释不过度外推
+  definition: 判断结论是否基于结果合理解释，不夸大因果、范围、普遍性或实践含义。
+  required_evidence: 需要引用论文对结论、解释、限制或推广范围的说明。
+  evidence_location:
+  - Discussion
+  - Conclusion
+  observation_points:
+  - 结论是否回到证据
+  - 是否避免超过设计能力的因果表述
+  - 是否说明限制
+  - 是否避免把局部发现泛化为普遍结论
+  judgement_values:
+    satisfied: 每条结论末了写明它站得住的限度，文中主动标出与它相冲突或未获证实的证据，读者引用时不必自行打折
+    mostly: 结论的方向与适用范围没有穿过设计能支持的界线，读者把每句结论指回哪一组结果时不会落空
+    partial: 结论大体有据，个别处用词强于证据，如以相关材料下因果判断，读者略作保留即可接受其方向
+    weak: 多处表述明显强于证据，或把单一样本内的发现说成普遍规律，读者须自行打折后才能使用该结论
+    not_satisfied: 结论与结果不一致，或把设计无法支持的主张作为结论提出，读者无法把结论回接到任一结果
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 1.5
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Geletkanycz & Tepper 2012
+  - Tihanyi 2020
+  status: draft
+  cluster: E-CONCLUSION
+  retrieval_terms:
+  - we conclude
+  - limitations
+  - cannot be generalized
+  - causal
+  - caution
+  - overstate
+  - future research
+  - boundary conditions
+  - interpretation
+  - external validity
+  - robustness
+  - we cannot rule out
+  rationale: 只判结论是否超出证据限度，不问是否写了边界段落。五档按越界程度递降：自认张力、未越限、个别越界、多处越界、与结果相悖，越界会直接放大前面各处的证据不足。
+  threshold: 结论中每一处因果或推广表述都能指回结果部分同强度的支撑，文中另有对相冲突或未证实证据的主动交代。
+  mostly_threshold: 结论整体与结果相符，个别用词略强于证据，但不改变结论的方向与适用范围。
+- rule_id: E-DISCUSSION-SYNTHESIS-V1
+  version: V1
+  dimension_id: E
+  dimension_name: 证据、结果与结论可信度
+  indicator_name: 讨论部分理论综合
+  definition: 判断讨论是否整合结果，回到最初理论动机，并形成清楚的理论推进。
+  required_evidence: 需要引用讨论中回归 theoretical puzzle、综合发现、说明 theoretical advance 的片段。
+  evidence_location:
+  - Discussion
+  observation_points:
+  - 是否回到最初理论动机
+  - 是否回答 so what
+  - 是否把发现整合成统一叙事
+  - 是否说明对现有理论的改变
+  judgement_values:
+    satisfied: 讨论对本文主要结果给出机制或过程上的解释，说明结果为何以这种方式出现，读者能认出这一解释改写了既有说法中的哪一处
+    mostly: 讨论说清本文相对既有理解多出了什么，该说法由本文结果支撑，读者能复述这句话而不必自行归纳
+    partial: 讨论复述了结果也提到意义，但推进点说得含糊或与结果联系松弛，读者只能自己总结其理论增量
+    weak: 讨论罗列发现后附带感想式的意义陈述，未说明相对既有研究多出什么，理论与结果彼此脱节
+    not_satisfied: 没有实质讨论，或讨论内容与结果无关，发现停留在罗列而未形成任何判断
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 3.0
+  applicable_type: 通用
+  source_reference:
+  - Geletkanycz & Tepper 2012
+  - Grant & Pollock 2011
+  status: draft
+  cluster: E-DISCUSSION
+  retrieval_terms:
+  - discussion
+  - theoretical implications
+  - we contribute
+  - our findings suggest
+  - theoretical contribution
+  - extend theory
+  - theoretical lens
+  - mechanism
+  - in sum
+  - advance
+  rationale: E维度唯一判知识增量的规则，看讨论把结果解释成什么，不问它是否重述了贡献。五档按解释与结果咬合的程度递降：机制解释、说清增量、含糊、脱节、无判断，缺此则全文只停在结果复述。
+  threshold: 讨论中能指认一处机制或过程的解释，该解释说明本文结果为何以这种方式出现，其依据可在正文中指认。
+  mostly_threshold: 讨论有一句由本文结果支撑的推进说法，说清本文相对既有理解多出了哪一点，读者可直接复述。
+  mostly_note: 不要求讨论开出新的研究议程；能说清一处推进点即可。
+- rule_id: F-REPRODUCIBILITY-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 程序可复制性
+  definition: 判断论文是否提供足够信息，使他人能够理解并复现研究程序、数据处理和分析过程。
+  required_evidence: 需要引用研究流程、数据处理、分析步骤、参数、材料或附录说明。
+  evidence_location:
+  - Methods
+  - Appendix
+  - Supplementary Materials
+  observation_points:
+  - 程序是否结构化
+  - 数据处理决策是否透明
+  - 分析步骤是否可跟随
+  - 是否提供必要参数或材料
+  judgement_values:
+    mostly: 方法部分给出样本纳入、变量构造与分析步骤，读者照着能重走主要分析，途中不必自己决定任何一步
+    partial: 主要环节有描述，个别处如抽样方式或分析参数需要读者自己补一个决定才能接着往下做，重走时会出现分岔
+    weak: 只交代分析框架与变量名称，样本纳入与关键参数缺失，读者能看懂思路却无法照着完成同一分析
+    not_satisfied: 研究程序基本没有交代，或关键步骤与该体裁规范相悖，读者无法据此重走主要分析
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 1.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Zhang & Shaw 2012
+  status: draft
+  cluster: F-REPRO-TRANSPARENCY
+  retrieval_terms:
+  - procedure
+  - data collection
+  - analysis steps
+  - coding
+  - variable construction
+  - measures
+  - sample selection
+  - replication
+  - estimation procedure
+  - supplementary materials
+  rationale: 判按描述能否重走主要分析，替代原来的公开数据要求。五档按可照做程度递降：可照做、需自己补一步、仅有框架、无法重走。不公开数据不影响此条判定。
+  threshold: 仅凭方法部分就能写出等效的分析步骤与关键参数，中途没有需要读者自行补足的处理决策。
+  mostly_threshold: 方法部分交代样本纳入、变量构造与分析步骤，读者可照描述重走主要分析；个别参数或处理决策需推断。
+  mostly_note: 不要求公开数据或逐步脚本；流程写到读者能重走主要分析即可。
+- rule_id: F-DATA-CODE-TRANSPARENCY-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 数据、代码与材料透明
+  definition: 判断论文是否说明数据、代码、量表、访谈材料、编码本或补充材料的可获得性。
+  required_evidence: 需要定位到数据可得性、代码链接、材料说明、附录或公开仓库信息。
+  evidence_location:
+  - Methods
+  - Data Availability
+  - Appendix
+  - Supplementary Materials
+  observation_points:
+  - 是否说明数据是否公开
+  - 是否提供代码或分析材料
+  - 是否提供量表/访谈提纲/编码本
+  - 不公开时是否说明原因
+  judgement_values:
+    mostly: 文中有一句说明核心数据、代码或材料如何取得，读者据此能真的拿到，或明确交代不能共享的约束
+    partial: 提供了量表条目、任务材料或附录中的部分内容，核心数据或代码的获取状态仍未说明，读者只能取得外围材料
+    weak: 仅提到数据来自某机构或某平台，未说明能否再取得，读者不知该材料是否对外可用
+    not_satisfied: 全文未提及数据、代码或材料的可获取性，读者无从判断能否取得，也无从据以复核
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 1.0
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Zhang & Shaw 2012
+  status: draft
+  cluster: F-REPRO-TRANSPARENCY
+  retrieval_terms:
+  - data availability
+  - code availability
+  - available upon request
+  - replication package
+  - open data
+  - open materials
+  - repository
+  - survey instrument
+  - coding scheme
+  - ethical approval
+  rationale: 与可复现分工：那条看流程写得够不够细，这条看材料能否拿到。五档按可取得程度递降：可到手、仅外围、仅来源、未提及，不以是否真正公开为尺度。
+  threshold: 正文至少有一处说明核心数据、代码或材料的获取状态，含不公开时的原因或申请途径。
+  mostly_threshold: 正文说明了核心数据或代码能否获取、获取途径是什么，或交代了不能共享的约束与可替代材料。
+  mostly_note: 不要求数据真正公开；说明获取状态（含不公开的原因或申请途径）即可。
+- rule_id: F-LIMITATIONS-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 局限讨论诚实具体
+  definition: 判断论文是否诚实讨论研究限制，并将限制与设计、数据、方法或理论边界联系起来。
+  required_evidence: 需要引用论文关于研究限制、潜在弱点、未解决问题或未来研究的说明。
+  evidence_location:
+  - Discussion
+  - Limitations
+  - Conclusion
+  observation_points:
+  - 是否承认设计或数据弱点
+  - 是否说明限制对解释的影响
+  - 是否避免模板化局限
+  - 未来研究是否具体有价值
+  judgement_values:
+    mostly: 作者主动点出最影响结论的那处弱点，说明它限制哪类推断与适用范围，读者据此可用结论并留出折扣
+    partial: 有局限段落，条目偏次要或偏模板，最影响结论的弱点只被擦边提到，读者仍需自行估计其影响
+    weak: 局限段落只列举样本量、未来研究一类通用条目，未触及本文最关键弱点，读者看不出结论在何处最脆弱
+    not_satisfied: 全文未讨论自身弱点，读者只能自行推测结论在哪些方面可能不成立
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    mostly: 1.0
+    partial: 1.0
+    weak: 0.5
+    not_satisfied: 0.0
+    uncertain: null
+  role: baseline
+  weight: 1.0
+  applicable_type: 通用
+  source_reference:
+  - Geletkanycz & Tepper 2012
+  - Zhang & Shaw 2012
+  - 章凯等 2023
+  status: draft
+  cluster: F-LIMITATIONS
+  retrieval_terms:
+  - limitations
+  - limitation
+  - future research
+  - future studies
+  - caveat
+  - generalizability
+  - sample
+  - weaknesses
+  - cannot rule out
+  - avenues for future research
+  - design limitations
+  rationale: 判作者是否自觉界定自家产出的可用范围，与结论规则互补：这条看作者自觉，那条看文本实际越界。五档按自觉程度递降，须触及最关键弱点方算够。
+  threshold: 局限段落点名一项具体弱点，并说明它限制哪一类结论或哪一类情境下的使用。
+  mostly_threshold: 局限段落点到最影响结论的那处弱点，说明它限制哪类结论或情境，读者据此可对结论打折使用。
+  mostly_note: 不要求穷尽所有弱点；触及最关键的一处并说明影响即可。
+- rule_id: F-EXTERNAL-VALIDITY-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 外部效度与适用范围
+  definition: 判断研究结论推广到其他样本、时间、组织、行业、文化或情境的可信程度。
+  required_evidence: 需要引用样本边界、情境边界、推广范围或外部效度讨论。
+  evidence_location:
+  - Methods
+  - Discussion
+  - Conclusion
+  observation_points:
+  - 是否说明样本和情境限制
+  - 是否讨论跨时间或跨场景适用性
+  - 是否有支持推广的证据
+  - 是否避免不当普遍化
+  judgement_values:
+    satisfied: 除给出适用边界外，还提供跨样本、跨情境或跨时间的可比照证据，读者能就自身场景中的差异项判断结论是否需要修正
+    mostly: 清楚交代结论适用于哪些对象、时间与情境，读者能判断在自身场景下能否沿用
+    partial: 交代了样本与情境信息，但未把信息落到结论的适用范围上，读者需自行推断结论能走多远
+    weak: 只描述样本构成而未指向结论适用范围，读者拿到样本特征仍不知可否搬到别的组织或时期
+    not_satisfied: 未交代研究对象与情境，结论以不受限的口吻呈现，读者无法判断在自身场景能否沿用
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 0.75
+  applicable_type: 通用
+  source_reference:
+  - 章凯等 2023
+  - Bono & McNamara 2011
+  status: draft
+  cluster: F-EXTERNAL
+  retrieval_terms:
+  - external validity
+  - generalizability
+  - generalizable
+  - sample boundary
+  - context
+  - boundary conditions
+  - scope conditions
+  - other settings
+  - industry
+  - cross-cultural
+  - single country
+  rationale: 判结论能否被读者搬到自己的场景。五档按可搬用程度递降：给出沿用前提、给出边界、有信息未落到边界、仅样本描述、无交代，与结论规则区别在这条看范围交代。
+  threshold: 正文能定位到对适用对象、情境或时间范围的限定，而非仅描述样本构成。
+  mostly_threshold: 正文有明确限定适用对象、情境或时间范围的表述，读者据此可判断能否在本场景沿用。
+  mostly_note: 不要求跨样本复证；给出可判断的适用边界即可。
+- rule_id: F-PRACTICAL-IMPLICATIONS-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 实践启示具体
+  definition: 判断论文是否提供对管理者、组织、政策或实践者具体、有操作性的启示。
+  required_evidence: 需要定位到实践启示、管理启示、政策建议或组织实践建议的原文片段。
+  evidence_location:
+  - Discussion
+  - Practical Implications
+  - Conclusion
+  observation_points:
+  - 是否超越重复理论含义
+  - 是否说明具体行动对象
+  - 是否说明如何改善实践
+  - 是否与研究发现直接相关
+  judgement_values:
+    satisfied: 启示摆出可选做法之间的取舍，说明一种做法在什么条件下胜过另一种，实践者能据此在自身约束下选一条
+    mostly: 启示落到具体对象与条件，指出谁在什么情形下可据此调整做法，而非重述研究结论
+    partial: 提到实践意义但停在方向层面，未说明适用于谁或需要何种条件，读者难以把它转成行动判断
+    weak: 启示与本文结果关联松散，多为一般性管理劝告，实践者读后不知该改变哪一项做法
+    not_satisfied: 全文未涉及研究发现对实践者的含义，讨论止于理论层面
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 0.75
+  applicable_type: 通用
+  source_reference:
+  - Tihanyi 2020
+  - Colquitt & George 2011
+  - Geletkanycz & Tepper 2012
+  status: draft
+  cluster: F-PRACTICAL
+  retrieval_terms:
+  - practical implications
+  - managerial implications
+  - practitioners
+  - managers
+  - organizations
+  - policy implications
+  - recommendations
+  - decision making
+  - human resource
+  - actionable
+  - trade-offs
+  rationale: 判产出能否被实践方接手。五档按可接手程度递降：给出可比较选项、指明对象与条件、停在方向、关联松散、无涉及。管理学论文多数能点到对象，故中间档仍可分。
+  threshold: 启示段落指明受益方与适用条件，该做法与本文结果有明确指向关系，而非重述结论。
+  mostly_threshold: 启示段落指出谁在何种情形下可据此调整做法，该做法与本文结果有明确指向关系。
+- rule_id: F-SOCIAL-LONGTERM-IMPACT-V1
+  version: V1
+  dimension_id: F
+  dimension_name: 透明度、边界与实践意义
+  indicator_name: 社会与全球问题相关性
+  definition: 判断论文是否把研究问题与发表年份附近真实存在的社会、国际或人类问题相连接，并说明本文发现如何回应这些问题。
+  required_evidence: 需要同时引用论文中的问题/贡献/讨论证据，以及社会问题 grounding 输入层生成的 SIV-* 年度社会议题证据。
+  evidence_location:
+  - Introduction
+  - Discussion
+  - Conclusion
+  observation_points:
+  - 是否回应真实社会、国际或人类问题
+  - 是否说明受影响主体，例如员工、求职者、组织、平台劳动者或社会公众
+  - 是否把研究发现与公平、福祉、隐私、劳动安全、技能转型或负责任 AI 等议题相连
+  - 是否避免只把社会问题当作引言修辞
+  judgement_values:
+    satisfied: 论文明确回应一个可由 SIV-* 证据定位的社会、国际或人类问题，并说明本文结果如何为该问题提供机制、边界、治理或实践启示，受影响主体和行动含义都可辨认
+    mostly: 论文的问题或讨论与 SIV-* 社会议题高度相关，也说明了受影响主体或实践含义，但本文结果如何具体推进该问题仍略显笼统
+    partial: 论文提到社会、政策或公共价值问题，且能与 SIV-* 证据对应，但这种连接主要停留在引言动机或结尾表述，与本文结果连接较弱
+    weak: 论文只使用公平、福祉、社会影响、负责任 AI 等关键词，未说明具体社会问题、受影响主体或本文证据如何回应该问题
+    not_satisfied: 全文未涉及研究现象在社会、国际或人类问题层面的意义，或无法与任何 SIV-* grounding 证据形成可解释连接
+    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+  score_mapping:
+    satisfied: 1.0
+    mostly: 0.5
+    partial: 0.25
+    weak: 0.0
+    not_satisfied: 0.0
+    uncertain: null
+  role: bonus
+  weight: 0.5
+  applicable_type: 通用
+  source_reference:
+  - Tihanyi 2020
+  - Colquitt & George 2011
+  status: draft
+  cluster: F-SOCIAL
+  retrieval_terms:
+  - societal
+  - social impact
+  - global challenge
+  - public problem
+  - human problem
+  - long-term
+  - stakeholders
+  - employees
+  - well-being
+  - mental health
+  - inequality
+  - fairness
+  - bias
+  - discrimination
+  - privacy
+  - algorithmic management
+  - responsible AI
+  - responsible
+  - sustainability
+  - externalities
+  - public interest
+  rationale: 该规则把“选题是否回应真实公共问题”从普通实践启示中拆出，只作为加分项。社会问题 grounding 输入层先用发表年份附近的公共议题生成 SIV-* 证据，F 维度 Reviewer 再判断论文自身证据是否真正回应这些议题；只提关键词不加高分。
+  threshold: 至少一条论文内部证据与一条 SIV-* 社会议题证据共同支持该论文回应了明确社会、国际或人类问题，并说明了受影响主体或实践含义。
+  mostly_threshold: 论文内部证据与 SIV-* 证据能形成明确主题连接，且正文说明了受影响主体或公共价值。
