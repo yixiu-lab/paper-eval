@@ -39,7 +39,6 @@ The local experiment archive also records repeated-run, scoring-mechanism, evide
 
 ## Editor reading path
 
-- [Stage 1 package map](submission/README.md): requested materials, current assets, and next milestones.
 - [Technical appendix](submission/02-technical-appendix/README.md): architecture, V16 design, and evaluation plan.
 - [Research artifact](submission/03-research-artifact/README.md): implementation and reviewer walkthrough.
 - [149-PDF audit](submission/04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](submission/04-reproducibility/original-149-v16-results.csv).
