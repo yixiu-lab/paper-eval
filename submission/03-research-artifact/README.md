@@ -8,7 +8,7 @@ It is designed to process a research-paper PDF, assemble evidence for rule-level
 
 ## What is not included or established
 
-- No public benchmark, expert labels, or held-out evaluation corpus.
+- No public/shareable benchmark or expert labels.
 - No claim that scores predict expert judgments or publication outcomes.
 - No complete, independently verified end-to-end reproduction record.
 - No guarantee that external services or proprietary model endpoints are currently accessible.

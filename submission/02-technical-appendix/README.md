@@ -24,7 +24,7 @@ The code uses deterministic heuristics to assemble evidence packs and has an opt
 - Runtime dependencies: [`../../requirements.txt`](../../requirements.txt).
 - Example configurations: `../../configs/`.
 
-The baseline document describes a fixed model/configuration snapshot, but the matching cloud configuration and run evidence are not present in this repository snapshot. Do not assume the described configuration can currently be reproduced as-is.
+The full 149-PDF corpus run is summarized in [`../04-reproducibility/original-149-v16-audit.md`](../04-reproducibility/original-149-v16-audit.md), with title-free per-paper scores in [`../04-reproducibility/original-149-v16-results.csv`](../04-reproducibility/original-149-v16-results.csv): 146 unique papers after exact deduplication, 144 complete V16 reports, and two papers blocked before scoring by PDF parsing. The per-paper reports, source corpus, and original runtime configuration are not included here, so the result is documented but not independently reproducible from this repository snapshot yet.
 
 The local web/API prototype is intentionally excluded from this repository submission. The research artifact is the evaluation workflow and command-line components described above.
 

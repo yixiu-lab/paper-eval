@@ -2,6 +2,8 @@
 
 **Source:** the authors' curated “60/40 Two-Pool Scale” evidence package, indexed October 8, 2026. The package index reports a trace database containing 17 papers, 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments. This page summarizes the package index; it is not an independent reanalysis of raw runs.
 
+The 17-paper trace database is a subset in that evidence package. The separate, later V16 full-corpus audit covers 149 source PDFs (146 unique after exact deduplication), with 144 complete unique-paper reports and two parse-blocked papers. See [`original-149-v16-audit.md`](original-149-v16-audit.md) and its accompanying title-free [`per-paper results table`](original-149-v16-results.csv) for the reconciled audit and scores.
+
 ## Experiments recorded
 
 | Study | Scale reported in the evidence index | Reported observation | What it supports—and does not support |

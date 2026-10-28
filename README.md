@@ -8,7 +8,8 @@ The project is being prepared as a research artifact for the *Organization Scien
 
 - Prototype code and draft scoring rules are included.
 - Offline self-check scripts are included, but their results do not establish end-to-end validity or generalizability.
-- No evaluation corpus, expert-judgment dataset, completed submission proposal, or complete reproduction record is included.
+- The source PDFs and an expert-judgment benchmark are not included. The full-corpus V16 audit covers 149 source PDFs (146 unique), with 144 complete reports and two parse-blocked papers; a title-free per-paper results table is linked in [`submission/04-reproducibility/`](submission/04-reproducibility/).
+- The short proposal and complete raw reproduction package are still outstanding.
 - The executable prototype, scoring rule labels, and some comments remain in Chinese. The English submission materials are in [`submission/`](submission/). Translation of the runtime and scoring source is still outstanding.
 - Do not upload confidential manuscripts, API credentials, private run outputs, or copyrighted full texts.
 
