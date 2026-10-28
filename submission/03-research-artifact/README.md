@@ -1,6 +1,6 @@
 # Research Artifact: Prototype and Repository
 
-The research artifact is the PaperEval prototype in this repository. It includes a local web/API application, a command-line evaluation path, reviewer-agent modules, draft scoring rules, retrieval components, example configurations, prompts, and offline self-check scripts.
+The research artifact is the PaperEval evaluation workflow in this repository. It includes a command-line evaluation path, reviewer-agent modules, draft scoring rules, retrieval components, example configurations, prompts, and offline self-check scripts. The local web/API prototype is intentionally excluded.
 
 ## What the prototype currently does
 

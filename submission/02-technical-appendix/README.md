@@ -20,12 +20,13 @@ The code uses deterministic heuristics to assemble evidence packs and has an opt
 
 ## Runtime and entry points
 
-- Web/API entry point: `../../app.py`.
 - Single-paper CLI: `python -m literature_eval.cli evaluate` (provide the required paper, rule-profile, and output arguments).
 - Runtime dependencies: [`../../requirements.txt`](../../requirements.txt).
 - Example configurations: `../../configs/`.
 
 The baseline document describes a fixed model/configuration snapshot, but the matching cloud configuration and run evidence are not present in this repository snapshot. Do not assume the described configuration can currently be reproduced as-is.
+
+The local web/API prototype is intentionally excluded from this repository submission. The research artifact is the evaluation workflow and command-line components described above.
 
 ## Known limitations and open questions
 

@@ -19,7 +19,6 @@ The project is being prepared as a research artifact for the *Organization Scien
 - `configs/`: example runtime and retrieval configurations.
 - `prompts/`: reviewer-agent prompts.
 - `scripts/`: offline validation and evaluation utilities.
-- `web/` and `app.py`: local web/API prototype.
 - `submission/`: call-aligned proposal, technical appendix, artifact, reproducibility, and ethics materials.
 
 ## Quick start
