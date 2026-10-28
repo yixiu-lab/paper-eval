@@ -30,7 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval.reliability import (  # noqa: E402
+from paper_eval.reliability import (  # noqa: E402
     ReliabilityConfig,
     RuleRecord,
     RunTrace,
@@ -42,14 +42,14 @@ from literature_eval.reliability import (  # noqa: E402
     run_variance,
     spearman,
 )
-from literature_eval.reliability_diagnosis import (  # noqa: E402
+from paper_eval.reliability_diagnosis import (  # noqa: E402
     CALIBRATION_SCHEMES,
     build_reliability_report,
     calibration_uncertainty,
     diagnose_reliability,
     render_reliability_markdown,
 )
-from literature_eval.rules import load_rule_profile  # noqa: E402
+from paper_eval.rules import load_rule_profile  # noqa: E402
 
 RULES_PATH = ROOT / "评价规则库" / "rules_v1.yaml"
 CONFIG_PATH = ROOT / "configs" / "agent_runtime.deepseek.yaml"
@@ -528,7 +528,7 @@ def backtests(profile, config: ReliabilityConfig) -> None:
     if not BACKTEST_RUNS.exists():
         print(f"    （跳过真实数据回测：找不到 {BACKTEST_RUNS}）")
         return
-    from literature_eval.reliability import discover_report_paths, load_traces_from_reports
+    from paper_eval.reliability import discover_report_paths, load_traces_from_reports
 
     paths: list[Path] = []
     for name in ("v23_ef_3papers", "v23b_ef_repeat_3papers", "v23c_ef_3papers", "v23d_ef_3papers"):

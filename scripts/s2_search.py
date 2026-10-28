@@ -8,7 +8,7 @@
     /paper/{id}/references   200
     /author/{id}             200（4/4 轮）
 只有「相关性排序」确实要 key（SEMANTIC_SCHOLAR_API_KEY，免费申请见 --help 输出）；其余匿名可用。
-HTTP 细节都在 literature_eval/semantic_scholar.py；本脚本只做参数与展示。
+HTTP 细节都在 paper_eval/semantic_scholar.py；本脚本只做参数与展示。
 
 用法：
     python scripts/s2_search.py "algorithmic management employee outcomes"
@@ -39,18 +39,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval.external_retrieval import (  # noqa: E402
+from paper_eval.external_retrieval import (  # noqa: E402
     ExternalRetrievalConfig,
     clean_paper_title,
     search_external,
 )
-from literature_eval.llm import load_local_env  # noqa: E402
-from literature_eval.semantic_scholar import S2Config, S2Error  # noqa: E402
-from literature_eval.semantic_scholar import author as s2_author  # noqa: E402
-from literature_eval.semantic_scholar import citations as s2_citations  # noqa: E402
-from literature_eval.semantic_scholar import find_by_title, paper_detail  # noqa: E402
-from literature_eval.semantic_scholar import references as s2_references  # noqa: E402
-from literature_eval.semantic_scholar import selftest as s2_selftest  # noqa: E402
+from paper_eval.llm import load_local_env  # noqa: E402
+from paper_eval.semantic_scholar import S2Config, S2Error  # noqa: E402
+from paper_eval.semantic_scholar import author as s2_author  # noqa: E402
+from paper_eval.semantic_scholar import citations as s2_citations  # noqa: E402
+from paper_eval.semantic_scholar import find_by_title, paper_detail  # noqa: E402
+from paper_eval.semantic_scholar import references as s2_references  # noqa: E402
+from paper_eval.semantic_scholar import selftest as s2_selftest  # noqa: E402
 
 PAPER_ID_PATTERN = re.compile(r"^(?:DOI:|ARXIV:|CORPUSID:|MAG:|ACL:|PMID:|PMCID:|URL:)|^[0-9a-f]{40}$", re.I)
 

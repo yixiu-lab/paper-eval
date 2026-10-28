@@ -11,8 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.evidence_gate import apply_evidence_gate
-from literature_eval.models import AgentJudgement, Evidence, Judgement
+from paper_eval.evidence_gate import apply_evidence_gate
+from paper_eval.models import AgentJudgement, Evidence, Judgement
 
 
 def evidence(evidence_id: str, page: int, section: str, text: str) -> Evidence:

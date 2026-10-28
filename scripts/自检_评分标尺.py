@@ -19,9 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.models import AgentJudgement, Judgement
-from literature_eval.rules import load_rule_profile, validate_rule_profile
-from literature_eval.scorer import (
+from paper_eval.models import AgentJudgement, Judgement
+from paper_eval.rules import load_rule_profile, validate_rule_profile
+from paper_eval.scorer import (
     BASELINE_MAPPING,
     BONUS_MAPPING,
     aggregate_scores,
@@ -183,7 +183,7 @@ def main() -> int:
     print("规则库严格校验通过：加不平 / 无归属 / 引用不存在的构念 / 空构念 / 两池加不平 / 非法角色 / 基准项带 satisfied / 构念跨角色 全部会被拒绝。")
 
     # 7) 维度满分是规则库属性，不应随论文类型（适用范围）变化
-    from literature_eval.rules import out_of_scope_rule_ids
+    from paper_eval.rules import out_of_scope_rule_ids
 
     def dim_maxes(paper_type: str) -> dict[str, float]:
         skipped = out_of_scope_rule_ids(profile, paper_type)

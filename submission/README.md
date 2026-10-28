@@ -1,19 +1,38 @@
-# Stage 1 Submission Package
+# Organization Science Stage 1 Package
 
-Target venue: *Organization Science*, “AI-Enabled Frontiers in Organizational Science.”
+**Call:** *AI-Enabled Frontiers in Organizational Science*
 
-**Deadline: November 1, 2026.** The call requests a short proposal of approximately 3–5 pages / 1,500–2,000 words plus references, a technical appendix or supplement, and a prototype with a Git repository or equivalent artifact. Proposals are assessed for novelty, feasibility, development stage, ethics, reproducibility, scalability, potential use and adoption, and potential to expand the research frontier.
+**Stage 1 deadline:** November 1, 2026
 
-The call seeks innovation in how social science is conducted, rather than a conventional paper that merely uses AI. The materials below describe the current prototype conservatively. Sections marked **MISSING** need author input or new evidence; they are intentionally retained as folders and checklists rather than filled with invented claims.
+## Project in one minute
 
-## Package contents
+PaperEval is a prototype for evidence-grounded AI assessment of management research. It links rule-level judgments to selected paper evidence, applies structured evidence checks, preserves uncertainty for human review, and aggregates scores deterministically. The project is framed as reusable research infrastructure and an AI-measurement experiment. It is not presented as an automated replacement for peer review.
 
-1. [`01-proposal/`](01-proposal/): proposal draft status and author-input checklist. **The proposal itself is missing.**
-2. [`02-technical-appendix/`](02-technical-appendix/): current architecture, workflow, scoring design, and known limitations.
-3. [`03-research-artifact/`](03-research-artifact/): prototype description and repository map.
-4. [`04-reproducibility/`](04-reproducibility/): reproduction materials. **Complete run records and shareable evaluation data are missing.**
-5. [`05-ethics-and-access/`](05-ethics-and-access/): ethics, data, and model access checklist. **Author-approved statements are missing.**
+The current V16 audit covers 149 source PDFs: 146 unique papers after exact deduplication, 144 with complete V16 reports, and two blocked during PDF parsing before scoring. These records demonstrate a working prototype at meaningful scale, but not validity against expert judgments. See the [audit](04-reproducibility/original-149-v16-audit.md) and [title-free per-paper outcomes](04-reproducibility/original-149-v16-results.csv).
 
-## Source of requirements
+**Version boundary:** the repository currently contains a V17 draft scoring profile; the V16 corpus results are historical and were not generated with that checked-in profile. The exact V16 rule/configuration snapshot is not included here.
 
-Requirements were extracted from the attached call for science, *AI-Enabled Frontiers in Organizational Science* (provided by the authors; reviewed October 28, 2026). The call asks authors to submit through the *Organization Science* portal. Confirm portal details and any updates before submission.
+## Fit with the call
+
+The project most closely aligns with **reusable research infrastructure**, **new forms of measurement**, and **critical/diagnostic boundary-setting**. Its potential contribution is to make AI-assisted research assessment more inspectable and empirically testable. The proposal must still specify the scientific question, expert-validation design, and how the resulting evidence would change organizational research.
+
+## Stage 1 package checklist
+
+| Required item | Status | Location |
+|---|---|---|
+| Short proposal (3–5 pages / 1,500–2,000 words plus references) | **MISSING — author draft required** | [`01-proposal/`](01-proposal/) |
+| Technical appendix or supplement | Draft present; requires author and technical review | [`02-technical-appendix/`](02-technical-appendix/) |
+| Prototype and repository | Included; local Web/API interface intentionally excluded | [`03-research-artifact/`](03-research-artifact/) and repository root |
+| Reproducibility evidence | Historical runs documented; raw traces and corpus withheld pending rights review; independent reproduction package incomplete | [`04-reproducibility/`](04-reproducibility/) |
+| Ethics, data rights, and model access | **MISSING — author statements required** | [`05-ethics-and-access/`](05-ethics-and-access/) |
+
+## Reader path
+
+1. Start with the repository [overview](../README.md) for the research question, workflow, evidence, and limits.
+2. Read the [technical appendix](02-technical-appendix/README.md) to inspect the prototype design.
+3. Review the [149-PDF V16 audit](04-reproducibility/original-149-v16-audit.md) and [mechanism experiment summary](04-reproducibility/experiment-evidence.md).
+4. Check the [reproducibility gaps](04-reproducibility/README.md) and [ethics/access checklist](05-ethics-and-access/README.md).
+
+## Evidence boundary
+
+The reported runs are exploratory and span historical versions. No expert-labeled benchmark, independent validity study, or proof that the 60/40 pool ratio is optimal is included. Two unique papers could not be scored because PDF parsing was blocked; no scores were imputed. Full-text reports and source PDFs are not distributed here.

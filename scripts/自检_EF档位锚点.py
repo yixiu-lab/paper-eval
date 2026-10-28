@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.rules import (  # noqa: E402
+from paper_eval.rules import (  # noqa: E402
     REQUIRED_JUDGEMENT_KEYS_BY_ROLE,
     load_rule_profile,
     validate_rule_profile,

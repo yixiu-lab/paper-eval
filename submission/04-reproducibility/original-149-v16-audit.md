@@ -3,6 +3,8 @@
 **Audit date:** October 26, 2026  
 **Source record:** the final audit note and reconciled manifest in the authors' local experiment workspace. This page contains only aggregate results; the paper-level manifest, PDFs, and full reports are not included in this repository.
 
+The repository currently contains a V17 draft scoring profile. This audit used V16; its exact rule profile and complete runtime configuration are not included in the repository. Do not interpret these historical scores as outputs of the checked-in V17 rules.
+
 The accompanying [`original-149-v16-results.csv`](original-149-v16-results.csv) provides one row per unique paper with V16 scores where available. It uses a stable ID derived from the source PDF's SHA-256 checksum and omits titles, journal names, paths, and paper text.
 
 ## Corpus coverage

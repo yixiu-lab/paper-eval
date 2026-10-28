@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.external_retrieval import (
+from paper_eval.external_retrieval import (
     ExternalRetrievalConfig,
     _normalize_crossref,
     _normalize_openalex,
@@ -33,7 +33,7 @@ from literature_eval.external_retrieval import (
     retrieve_related_works,
     search_external,
 )
-from literature_eval.rules import load_rule_profile
+from paper_eval.rules import load_rule_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 FAKE_ITEMS = [
@@ -206,7 +206,7 @@ def main() -> int:
     print(f"外部证据块：生成 {len(blocks)} 条，首条编号 {blocks[0].evidence_id}，带相关度档位与 EXT-* 编号")
 
     # 4e) 限流防护：429 必须重试，非可重试错误不得空转
-    import literature_eval.external_retrieval as ext_mod
+    import paper_eval.external_retrieval as ext_mod
 
     attempts = {"n": 0}
     original_raw_fetch = ext_mod._raw_fetch
@@ -287,7 +287,7 @@ def main() -> int:
     print("超长 Retry-After：要求等 3600 秒时不硬等，直接报出「填 mailto 进礼貌池」的可操作原因")
 
     # 4f) 剔除本文自身：检索式由本文标题拼成，本文几乎必然是最高分命中
-    from literature_eval.external_retrieval import is_self_reference
+    from paper_eval.external_retrieval import is_self_reference
 
     paper_title = "Choudhury et al. - 2020 - Machine learning and human capital complementarities: Experimental evidence on bias mitigation"
     assert is_self_reference("Machine learning and human capital complementarities: Experimental evidence on bias mitigation", paper_title)
@@ -435,7 +435,7 @@ def main() -> int:
     # 12) 引文路（citation route）：目标论文 → references。这条路直连 Semantic Scholar，
     #     不走注入 fetcher，所以用假的 S2 客户端打桩。缺了这条检查时，目标论文被成功定位
     #     反而会抛 AttributeError（target 被当成单元素包装解包成 list），离线永远测不出来。
-    import literature_eval.literature_search as ls
+    import paper_eval.literature_search as ls
 
     real_find, real_refs = ls.s2_find_by_title, ls.s2_references
     target_paper = {"paperId": "S2-TARGET", "externalIds": {"DOI": "10.1/target"},

@@ -9,9 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval.harness import evaluate_pdf
-from literature_eval.pdf_parser import parse_pdf
-from literature_eval.rules import load_rule_profile, validate_rule_profile
+from paper_eval.harness import evaluate_pdf
+from paper_eval.pdf_parser import parse_pdf
+from paper_eval.rules import load_rule_profile, validate_rule_profile
 
 
 RULES = ROOT / "评价规则库" / "rules_v1.yaml"

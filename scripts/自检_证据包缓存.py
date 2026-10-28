@@ -21,11 +21,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval import evidence_retrieval  # noqa: E402
-from literature_eval.agents import AGENTS  # noqa: E402
-from literature_eval.evidence_retrieval import evidence_cache_scope, select_evidence  # noqa: E402
-from literature_eval.models import Evidence  # noqa: E402
-from literature_eval.rules import load_rule_profile  # noqa: E402
+from paper_eval import evidence_retrieval  # noqa: E402
+from paper_eval.agents import AGENTS  # noqa: E402
+from paper_eval.evidence_retrieval import evidence_cache_scope, select_evidence  # noqa: E402
+from paper_eval.models import Evidence  # noqa: E402
+from paper_eval.rules import load_rule_profile  # noqa: E402
 
 RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
 RULE = load_rule_profile(RULES).rules_by_id["D-DATA-SAMPLE-V1"]

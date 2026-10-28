@@ -4,7 +4,7 @@
 "论文把结果写好了"的信号（results indicate / coefficient / robustness check /
 hypothesis supported）。按它排序，进包的一定是最像"好结果"的段落；而"没报数值""只给方向"
 "检验不显著""数据不可得""结论强过证据"这些能支撑低档的段落只能靠排序尾部的偶然进包。
-改法见 `literature_eval/agents.py` 的 `evidence_form_channels` / `guarantee_evidence_forms`。
+改法见 `paper_eval/agents.py` 的 `evidence_form_channels` / `guarantee_evidence_forms`。
 
 本自检钉四件事：
   1) E/F 每条规则的包**非空**、**不超 limit**，并且"支持高档"与"支持低档"两类段落都出现；
@@ -28,15 +28,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval.agents import (  # noqa: E402
+from paper_eval.agents import (  # noqa: E402
     AGENTS,
     build_dimension_reading_packs,
     build_reading_pack,
     evidence_form_channels,
 )
-from literature_eval.llm import AgentRuntimeConfig  # noqa: E402
-from literature_eval.models import Evidence  # noqa: E402
-from literature_eval.rules import load_rule_profile  # noqa: E402
+from paper_eval.llm import AgentRuntimeConfig  # noqa: E402
+from paper_eval.models import Evidence  # noqa: E402
+from paper_eval.rules import load_rule_profile  # noqa: E402
 
 RULES = ROOT / "评价规则库" / "rules_v1.yaml"
 LIMIT = 10

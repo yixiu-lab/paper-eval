@@ -17,21 +17,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval.agents import (  # noqa: E402
+from paper_eval.agents import (  # noqa: E402
     METHOD_QUALITY_AGENT,
     build_dimension_reading_packs,
     build_reading_pack,
 )
-from literature_eval.evidence_retrieval import (  # noqa: E402
+from paper_eval.evidence_retrieval import (  # noqa: E402
     build_evidence_vectors,
     build_query_terms,
     recall_evidence,
     select_evidence,
 )
-from literature_eval.external_retrieval import external_evidence_blocks  # noqa: E402
-from literature_eval.llm import AgentRuntimeConfig  # noqa: E402
-from literature_eval.models import Evidence  # noqa: E402
-from literature_eval.rules import load_rule_profile  # noqa: E402
+from paper_eval.external_retrieval import external_evidence_blocks  # noqa: E402
+from paper_eval.llm import AgentRuntimeConfig  # noqa: E402
+from paper_eval.models import Evidence  # noqa: E402
+from paper_eval.rules import load_rule_profile  # noqa: E402
 
 RULES = ROOT / "评价规则库" / "rules_v1.yaml"
 TARGET_RULE = "D-MEASUREMENT-VALIDITY-V1"

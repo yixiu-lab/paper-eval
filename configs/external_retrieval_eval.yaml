@@ -5,7 +5,7 @@
 # 是运行时实际生效值的快照，两者应当一致——若不一致，manifest 优先。
 #
 # 用法：
-#   python -m literature_eval.retrieval_eval.cli run-all \
+#   python -m paper_eval.retrieval_eval.cli run-all \
 #       --experiment external_retrieval \
 #       --scope data/retrieval_gold/experiment_scope.json \
 #       --per-paper 8 --per-type 2 \
@@ -51,7 +51,7 @@ retrieval:
 
 reranker:
   kind: deterministic_weighted_signals
-  module: literature_eval.literature_search.literature_rerank
+  module: paper_eval.literature_search.literature_rerank
   signals:
     topic_relevance: 0.26
     construct_overlap: 0.20

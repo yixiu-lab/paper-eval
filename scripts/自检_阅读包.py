@@ -15,9 +15,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.agents import AGENTS, build_reading_pack, section_matches
-from literature_eval.models import Evidence
-from literature_eval.rules import load_rule_profile
+from paper_eval.agents import AGENTS, build_reading_pack, section_matches
+from paper_eval.models import Evidence
+from paper_eval.rules import load_rule_profile
 
 RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
 AGENT_FOR_DIMENSION = {dimension: agent for agent in AGENTS for dimension in agent.dimension_ids}

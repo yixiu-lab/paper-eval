@@ -9,7 +9,7 @@ from .rules import load_rule_profile, validate_rule_profile
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run management literature evaluation MVP.")
+    parser = argparse.ArgumentParser(description="Run PaperEval on a research paper.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     validate = sub.add_parser("validate-rules")

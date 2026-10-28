@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.agents import (
+from paper_eval.agents import (
     AGENTS,
     DIMENSION_KEYWORD_HINTS,
     RULE_KEYWORD_HINTS,
@@ -29,8 +29,8 @@ from literature_eval.agents import (
     score_method_rigor_hits,
     score_theory_rigor_hits,
 )
-from literature_eval.models import Evidence
-from literature_eval.rules import load_rule_profile
+from paper_eval.models import Evidence
+from paper_eval.rules import load_rule_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 RULES = ROOT / "评价规则库" / "rules_v1.yaml"

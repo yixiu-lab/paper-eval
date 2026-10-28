@@ -18,18 +18,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval import evidence_retrieval
-from literature_eval.agents import AGENTS, build_reading_pack
-from literature_eval.evidence_retrieval import (
+from paper_eval import evidence_retrieval
+from paper_eval.agents import AGENTS, build_reading_pack
+from paper_eval.evidence_retrieval import (
     build_evidence_vectors,
     build_query_terms,
     recall_evidence,
     rerank_evidence,
     select_evidence,
 )
-from literature_eval.llm import parse_json_content  # noqa: F401  重排的坏响应就是在这一层被救回来 / 抛出去
-from literature_eval.models import Evidence
-from literature_eval.rules import IndicatorRule, load_rule_profile
+from paper_eval.llm import parse_json_content  # noqa: F401  重排的坏响应就是在这一层被救回来 / 抛出去
+from paper_eval.models import Evidence
+from paper_eval.rules import IndicatorRule, load_rule_profile
 
 RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
 AGENT_FOR_DIMENSION = {dimension: agent for agent in AGENTS for dimension in agent.dimension_ids}
@@ -356,7 +356,7 @@ def test_config_gate() -> None:
     """4b. 配置缺字段（老配置/替身对象）时按「关闭」处理，不能因为读不到开关就换链路。"""
     import dataclasses
 
-    from literature_eval.llm import AgentRuntimeConfig
+    from paper_eval.llm import AgentRuntimeConfig
 
     fields = {field.name for field in dataclasses.fields(AgentRuntimeConfig)}
     assert {
@@ -464,12 +464,12 @@ def test_no_new_dependency() -> None:
     """7. 没有新增第三方依赖：检索层只靠标准库 + 项目已有模块。"""
     for banned in ("numpy", "faiss", "sklearn", "scipy", "torch", "rank_bm25", "jieba"):
         assert banned not in sys.modules, f"引入了未声明的第三方依赖：{banned}"
-    source = (Path(__file__).resolve().parents[1] / "literature_eval" / "evidence_retrieval.py").read_text(
+    source = (Path(__file__).resolve().parents[1] / "paper_eval" / "evidence_retrieval.py").read_text(
         encoding="utf-8"
     )
     assert "import numpy" not in source and "import faiss" not in source
     # 复用既有检索原语，别自己重写一套分词/余弦
-    from literature_eval.retrieval import cosine, tokenize, vectorize  # noqa: F401
+    from paper_eval.retrieval import cosine, tokenize, vectorize  # noqa: F401
 
     assert evidence_retrieval.vectorize is vectorize
     assert evidence_retrieval.cosine is cosine

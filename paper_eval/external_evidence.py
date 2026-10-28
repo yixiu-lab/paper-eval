@@ -239,7 +239,7 @@ def _crossref_payload(doi: str, timeout: int, mailto: str = "") -> dict[str, Any
     url = f"{CROSSREF_ENDPOINT}/{urllib.parse.quote(doi)}"
     if mailto:
         url += "?" + urllib.parse.urlencode({"mailto": mailto})
-    agent = f"literature-eval/1.0 (mailto:{mailto})" if mailto else "literature-eval/1.0"
+    agent = f"paper-eval/1.0 (mailto:{mailto})" if mailto else "paper-eval/1.0"
     request = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": agent})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))

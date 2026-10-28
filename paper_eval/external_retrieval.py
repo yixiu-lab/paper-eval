@@ -41,7 +41,7 @@ from .semantic_scholar import SEARCH_FIELDS, S2Config
 from .semantic_scholar import search_bulk as s2_bulk
 from .semantic_scholar import search_relevance as s2_relevance
 
-# S2 的端点、key、限流、重试、缓存都在 literature_eval/semantic_scholar.py；
+# S2 的端点、key、限流、重试、缓存都在 paper_eval/semantic_scholar.py；
 # 这里保留 API_FIELDS 这个名字，免得动到已有自检脚本。
 API_FIELDS = SEARCH_FIELDS
 OPENALEX_ENDPOINT = "https://api.openalex.org/works"
@@ -596,7 +596,7 @@ def _normalize_openalex(payload: Any) -> list[dict[str, Any]]:
 
 
 def _http_search_semantic_scholar(query: str, config: ExternalRetrievalConfig) -> dict[str, Any]:
-    """相关性检索源。匿名常年 429（见 literature_eval/semantic_scholar.py 文档），
+    """相关性检索源。匿名常年 429（见 paper_eval/semantic_scholar.py 文档），
     失败会抛出并让 search_external 落到下一个源；有 key 时这里才是首选源。"""
     rows = s2_relevance(query, config.per_query_limit, S2Config.from_external(config), config.year_from, config.year_to)
     return {"data": rows}
@@ -622,7 +622,7 @@ def _http_search_openalex(query: str, config: ExternalRetrievalConfig) -> dict[s
             window += f",to_publication_date:{config.year_to}-12-31"
         params["filter"] = window
     url = OPENALEX_ENDPOINT + "?" + urllib.parse.urlencode(params)
-    agent = f"literature-eval/1.0 ({config.mailto})" if config.mailto else "literature-eval/1.0"
+    agent = f"paper-eval/1.0 ({config.mailto})" if config.mailto else "paper-eval/1.0"
     request = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": agent})
     with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
         return json.loads(response.read().decode("utf-8"))
@@ -681,7 +681,7 @@ def _http_search_crossref(query: str, config: ExternalRetrievalConfig) -> dict[s
     if config.mailto:
         params["mailto"] = config.mailto
     url = CROSSREF_ENDPOINT + "?" + urllib.parse.urlencode(params)
-    agent = f"literature-eval/1.0 (mailto:{config.mailto})" if config.mailto else "literature-eval/1.0"
+    agent = f"paper-eval/1.0 (mailto:{config.mailto})" if config.mailto else "paper-eval/1.0"
     request = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": agent})
     with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
         return json.loads(response.read().decode("utf-8"))

@@ -102,7 +102,7 @@ def _retry_after_seconds(exc: Exception) -> float | None:
 
 def _http_get_json(url: str, timeout: int, api_key: str | None) -> dict:
     """唯一的网络出口。自检会替换掉这个函数（见 selftest）。"""
-    headers = {"Accept": "application/json", "User-Agent": "literature-eval/1.0"}
+    headers = {"Accept": "application/json", "User-Agent": "paper-eval/1.0"}
     if api_key:
         headers["x-api-key"] = api_key
     request = urllib.request.Request(url, headers=headers)

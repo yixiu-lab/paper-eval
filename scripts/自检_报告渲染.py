@@ -14,8 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.html_report import render_html
-from literature_eval.models import (
+from paper_eval.html_report import render_html
+from paper_eval.models import (
     AgentJudgement,
     Evidence,
     EvaluationRun,
@@ -24,9 +24,9 @@ from literature_eval.models import (
     RunStatus,
     now_iso,
 )
-from literature_eval.report import build_report, render_markdown
-from literature_eval.rules import load_rule_profile, out_of_scope_rule_ids
-from literature_eval.scorer import aggregate_scores, score_judgements
+from paper_eval.report import build_report, render_markdown
+from paper_eval.rules import load_rule_profile, out_of_scope_rule_ids
+from paper_eval.scorer import aggregate_scores, score_judgements
 
 RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
 

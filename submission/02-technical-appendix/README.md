@@ -12,7 +12,7 @@ The six reviewer dimensions are: research question positioning; theoretical cont
 
 ## Scoring design
 
-The draft scoring profile separates a baseline pool (60 points) from a bonus pool (40 points). Baseline rules aim to represent adequacy thresholds; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and should be reported with completeness. This design is an implementation choice under study, not a validated universal scale. The active profile is in `../../评价规则库/rules_v1.yaml`; its detailed design notes are currently Chinese.
+The current V17 draft scoring profile separates a baseline pool (60 points) from a bonus pool (40 points). Baseline rules aim to represent adequacy thresholds; bonus rules represent evidence beyond adequacy. Uncertain judgments are excluded from the available-score denominator and should be reported with completeness. This design is an implementation choice under study, not a validated universal scale. The active profile is in `../../评价规则库/rules_v1.yaml`; its detailed design notes are currently Chinese. The historical V16 corpus results were produced with a different profile and are not results from the current V17 file.
 
 ## Evidence and retrieval
 
@@ -20,7 +20,7 @@ The code uses deterministic heuristics to assemble evidence packs and has an opt
 
 ## Runtime and entry points
 
-- Single-paper CLI: `python -m literature_eval.cli evaluate` (provide the required paper, rule-profile, and output arguments).
+- Single-paper CLI: `python -m paper_eval.cli evaluate` (provide the required paper, rule-profile, and output arguments).
 - Runtime dependencies: [`../../requirements.txt`](../../requirements.txt).
 - Example configurations: `../../configs/`.
 
@@ -32,7 +32,7 @@ The local web/API prototype is intentionally excluded from this repository submi
 
 - No expert-labeled benchmark or independent validity study is included.
 - No shareable paper corpus or data license inventory is included.
-- No end-to-end cloud run is evidenced in this repository snapshot.
+- The 149-PDF V16 result is summarized here, but full per-run traces, the V16 profile, and the original runtime configuration are not included.
 - The scoring scale and default retrieval parameters are not established as generally valid.
 - Uncertain-item denominator handling can affect comparability and must be reported.
 - The prototype, rules, prompts, and much of the source documentation remain Chinese; English translation and terminology review are outstanding.

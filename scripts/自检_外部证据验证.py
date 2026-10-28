@@ -22,10 +22,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from literature_eval import novelty_agent  # noqa: E402
-from literature_eval.agent_graph import validate_external_evidence_node, verify_novelty  # noqa: E402
-from literature_eval.claim_extraction import extract_claims  # noqa: E402
-from literature_eval.external_evidence import (  # noqa: E402
+from paper_eval import novelty_agent  # noqa: E402
+from paper_eval.agent_graph import validate_external_evidence_node, verify_novelty  # noqa: E402
+from paper_eval.claim_extraction import extract_claims  # noqa: E402
+from paper_eval.external_evidence import (  # noqa: E402
     apply_coverage_confidence_cap,
     apply_external_validation_to_judgements,
     build_repositories,
@@ -34,17 +34,17 @@ from literature_eval.external_evidence import (  # noqa: E402
     validate_external_evidence,
     verify_crossref,
 )
-from literature_eval.external_retrieval import (  # noqa: E402
+from paper_eval.external_retrieval import (  # noqa: E402
     ExternalRetrievalConfig,
     collect_external_literature,
 )
-from literature_eval.literature_search import (  # noqa: E402
+from paper_eval.literature_search import (  # noqa: E402
     attach_external_evidence_ids,
     expand_query_routes,
     run_literature_search,
 )
-from literature_eval.models import AgentJudgement, Evidence, Judgement, Paper  # noqa: E402
-from literature_eval.rules import load_rule_profile  # noqa: E402
+from paper_eval.models import AgentJudgement, Evidence, Judgement, Paper  # noqa: E402
+from paper_eval.rules import load_rule_profile  # noqa: E402
 
 PAPER_TITLE = "Choudhury et al. - 2020 - Machine learning and human capital complementarities"
 PAPER_YEAR = 2020
@@ -202,7 +202,7 @@ def step_2_to_4(claims) -> tuple[dict, list]:
     assert len(facets) >= 3, facets
 
     # 引文路：离线注入引文图（真实实现走 Semantic Scholar，这里只验合并、provenance 与去重）
-    import literature_eval.literature_search as ls
+    import paper_eval.literature_search as ls
 
     real_graph = ls.citation_graph
 
@@ -556,8 +556,8 @@ def step_9_graph_nodes(result: dict, retrieval_claims: list) -> None:
 
 def step_10_collect_end_to_end() -> None:
     """collect_external_literature 端到端（离线 fetcher），确认旧字段仍然齐全。"""
-    import literature_eval.external_evidence as ee
-    import literature_eval.literature_search as ls
+    import paper_eval.external_evidence as ee
+    import paper_eval.literature_search as ls
 
     profile = load_rule_profile(ROOT / "评价规则库" / "rules_v1.yaml")
     real_graph = ls.citation_graph

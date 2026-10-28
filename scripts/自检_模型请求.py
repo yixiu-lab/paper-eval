@@ -20,7 +20,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.llm import call_agent_json, call_plain_json, load_agent_runtime_config
+from paper_eval.llm import call_agent_json, call_plain_json, load_agent_runtime_config
 
 ROOT = Path(__file__).resolve().parents[1]
 DEEPSEEK_CONFIG = ROOT / "configs" / "agent_runtime.deepseek.yaml"
@@ -142,7 +142,7 @@ def main() -> int:
     print("回退链路：deepseek-flash 429 后切到 deepseek-v4-pro，thinking 开关未丢")
 
     # 6) 余额 / Key 错误要有中文提示，而不是抛原始英文
-    from literature_eval.runtime_errors import classify_runtime_error
+    from paper_eval.runtime_errors import classify_runtime_error
 
     balance = classify_runtime_error('LLM HTTP error 402: {"error":{"message":"Insufficient Balance"}}')
     assert balance["title"] == "API 余额不足", balance

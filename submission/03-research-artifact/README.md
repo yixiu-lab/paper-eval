@@ -6,6 +6,8 @@ The research artifact is the PaperEval evaluation workflow in this repository. I
 
 It is designed to process a research-paper PDF, assemble evidence for rule-level reviewer judgments, retrieve related literature, aggregate judgments using declared weights, and generate traceable reports. Treat these as implemented workflow features, not evidence that the resulting scores are accurate or useful to editors.
 
+The checked-in scoring profile is V17 draft. The 149-PDF results summarized in the reproducibility materials come from an earlier V16 profile and should be treated as historical prototype evidence.
+
 ## What is not included or established
 
 - No public/shareable benchmark or expert labels.

@@ -1,6 +1,6 @@
 # Short Proposal — Author Draft Required
 
-**Status: MISSING.** This folder is intentionally retained for the required proposal. The current repository does not establish the scientific contribution, validated results, author commitments, or a sufficiently specified research design needed to write a credible 1,500–2,000 word proposal.
+**Status: MISSING.** This folder is intentionally retained for the required proposal. The root README offers a working research-question framing and summarizes existing evidence, but the authors must confirm the contribution, specify the expert-validation design, and supply author commitments and references before a credible 1,500–2,000 word proposal can be finalized.
 
 ## Call requirements
 

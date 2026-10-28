@@ -11,19 +11,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from literature_eval.models import AgentJudgement, Evidence, Judgement
-from literature_eval.agents import AGENTS, build_second_pass_reading_pack, out_of_scope_rule_ids_of
-from literature_eval.agent_graph import aggregate_agent_scores
-from literature_eval.audit_agent import build_audit_payload
-from literature_eval.pdf_parser import detect_heading_section
-from literature_eval.reflection import reflect_run
-from literature_eval.rules import (
+from paper_eval.models import AgentJudgement, Evidence, Judgement
+from paper_eval.agents import AGENTS, build_second_pass_reading_pack, out_of_scope_rule_ids_of
+from paper_eval.agent_graph import aggregate_agent_scores
+from paper_eval.audit_agent import build_audit_payload
+from paper_eval.pdf_parser import detect_heading_section
+from paper_eval.reflection import reflect_run
+from paper_eval.rules import (
     load_rule_profile,
     normalize_paper_type,
     out_of_scope_rule_ids,
     rule_in_scope,
 )
-from literature_eval.scorer import aggregate_scores, rule_score_mapping, score_judgements
+from paper_eval.scorer import aggregate_scores, rule_score_mapping, score_judgements
 
 RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
 
