@@ -1,17 +1,28 @@
-# 管理学文献质量评价研究
+# PaperEval: Evidence-Grounded Evaluation of Management Research
 
-这是一个用于研究管理学论文质量评价的原型系统，重点是证据约束、规则化评分、外部文献检索与可追溯报告。项目仍处于研究和验证阶段，不能替代人工同行评审。
+PaperEval is an early-stage research prototype for evaluating management and organizational research papers. It combines rule-guided evidence retrieval, structured reviewer judgments, deterministic score aggregation, and traceable reports.
 
-## 内容
+The project is being prepared as a research artifact for the *Organization Science* call for science, “AI-Enabled Frontiers in Organizational Science.” The intended contribution is an inspectable, human-directed evaluation workflow that can be studied for validity, reliability, and failure boundaries. These are research goals, not established findings. No claim of expert-level accuracy or validated measurement is made.
 
-- `literature_eval/`：评价流程、证据处理、外部检索、评分与报告模块
-- `评价规则库/`：当前规则与设计说明
-- `configs/`：通用运行示例和检索评测配置
-- `prompts/`：评价 Agent 提示词
-- `scripts/`：离线自检工具
-- `web/` 与 `app.py`：本地 Web/API 原型
+## Current status
 
-## 快速开始
+- Prototype code and draft scoring rules are included.
+- Offline self-check scripts are included, but their results do not establish end-to-end validity or generalizability.
+- No evaluation corpus, expert-judgment dataset, completed submission proposal, or complete reproduction record is included.
+- The executable prototype, scoring rule labels, and some comments remain in Chinese. The English submission materials are in [`submission/`](submission/). Translation of the runtime and scoring source is still outstanding.
+- Do not upload confidential manuscripts, API credentials, private run outputs, or copyrighted full texts.
+
+## Repository map
+
+- `literature_eval/`: evaluation workflow, evidence handling, retrieval, scoring, and reports.
+- `评价规则库/`: active scoring profile and its design notes (source materials are currently Chinese).
+- `configs/`: example runtime and retrieval configurations.
+- `prompts/`: reviewer-agent prompts.
+- `scripts/`: offline validation and evaluation utilities.
+- `web/` and `app.py`: local web/API prototype.
+- `submission/`: call-aligned proposal, technical appendix, artifact, reproducibility, and ethics materials.
+
+## Quick start
 
 ```powershell
 python -m venv .venv
@@ -21,8 +32,12 @@ python scripts\自检_评分标尺.py
 python scripts\自检_外部检索.py
 ```
 
-默认示例使用 OpenAI 兼容配置。真实模型调用需要在本机设置 `OPENAI_API_KEY`，或按需修改 `configs/agent_runtime.example.yaml`。不要把 `.env`、密钥或真实运行数据提交到仓库。
+Model-backed runs require credentials supplied through environment variables or a local configuration that is not committed. Never commit API keys, `.env` files, private manuscripts, or real run data.
 
-## 研究状态
+## Call requirements and deadline
 
-当前规则仍在迭代，状态可能标记为 draft。评分输出用于研究实验和方法验证，不代表论文真实质量的确定性结论。实验数据和样本原文不包含在此仓库中。
+Stage 1 is due **November 1, 2026**. The call requests (1) a 3–5 page / 1,500–2,000 word short proposal plus references, (2) a technical appendix or supplement, and (3) a prototype and Git repository or equivalent artifact. See [`submission/README.md`](submission/README.md) for the checklist and gaps.
+
+## License and data
+
+No project license or redistributable evaluation dataset is currently provided. Resolve licensing and data-sharing terms before public release or reproduction claims.
