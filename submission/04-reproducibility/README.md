@@ -4,7 +4,7 @@
 
 - PaperEval source code and draft scoring profile V16.
 - Python dependency list and example configurations.
-- Offline self-check scripts.
+- Validation scripts for local logic, mocked services, and live integrations.
 - [Historical mechanism experiment summary](experiment-evidence.md).
 - [149-PDF V16 audit](original-149-v16-audit.md).
 - [Title-free, per-paper outcome table](original-149-v16-results.csv), one row per unique source PDF.
@@ -31,3 +31,15 @@ The checked-in 34-rule profile matches the profile used in the audit. The histor
 ## Run manifest fields
 
 For each new run, record: run ID and date; source-data version and access class; code revision; Python and dependency versions; model/provider and endpoint; rule-profile fingerprint; prompt version; retrieval providers and parameters; evidence budget; cache state; random seed where applicable; output location; failures; and responsible operator. Store credentials separately from the manifest.
+
+## Validation script guide
+
+“Offline self-check” means a check that runs without contacting a model or external retrieval service. The repository includes both offline checks and live integration scripts, so check the mode before running:
+
+| Check type | What it exercises | Network behavior |
+|---|---|---|
+| Local logic | Rule validation, scoring, evidence gates, parsing components, report rendering, reliability, and local caches | No external service calls; uses local inputs or fixtures |
+| Mocked service | Model request formatting and retrieval behavior with fake fetchers or simulated responses | Calls are intercepted locally; no provider receives the test payload |
+| Live integration | End-to-end evaluation through `scripts/自检_mvp.py`; optional external retrieval probe through `scripts/自检_外部检索.py --online` | Uses configured model/retrieval services and may send paper-derived text or query terms |
+
+The `scripts/自检_mvp.py` script is a live integration run despite its “self-check” name: its source config selects a model provider, and the evaluation workflow can send selected paper evidence to that endpoint. Run it only with a source paper and provider route cleared for that processing. Keep generated reports and caches in the ignored `runs/` directory, and review them before sharing.

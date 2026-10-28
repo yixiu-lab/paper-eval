@@ -16,6 +16,14 @@ This page is the operational plan for the next study and submission. The princip
 | Reports, traces, and caches | Evaluation outputs can include cited evidence, rationale, scores, provider/model information, and cached retrieval/evidence selections. | Store in the project’s access-controlled research workspace. Produce a reviewed, minimized release bundle for each public or editor-facing release. |
 | Credentials | Runtime configuration refers to credentials supplied through local environment variables. | Keep credentials in local secret storage; exclude them from Git history, logs, screenshots, and shared artifacts. |
 
+## Ethics statement and validation modes
+
+The current 149-paper audit used published AI/HRM research papers and did not collect expert-rater annotations. The repository records no institutional ethics determination for a human-participant study. Before recruiting experts or collecting ratings, the study lead will submit the protocol to the responsible institutional ethics office, follow its determination, and document the resulting review status, consent process, privacy controls, compensation, and retention schedule.
+
+The validation scripts have different data flows. Local logic checks use local fixtures; mocked-service checks intercept calls and use simulated responses. These checks do not transmit their test payloads to model or retrieval providers. The full evaluation script `scripts/自检_mvp.py` contacts the configured model and retrieval services, and `scripts/自检_外部检索.py --online` performs a live retrieval probe. These live runs can send selected paper evidence, titles, or claim-derived search terms to external services. The team will use them only with sources and provider routes approved for that processing, and will record the data class and endpoint in the run manifest.
+
+Generated reports, trace databases, and caches may retain paper-derived evidence or rationale. The data steward will keep them in the access-controlled research workspace, apply the project retention schedule, and review a minimized release bundle before sharing it with editors or other researchers.
+
 ## Human participants and expert assessment
 
 The current 149-paper audit used published papers and contains no expert-rater annotations. The next validity study is planned around expert assessment. Before contacting or collecting ratings from experts, the research leads will:
@@ -26,7 +34,7 @@ The current 149-paper audit used published papers and contains no expert-rater a
 4. Use coded rater IDs, restrict access to the identity key, and specify retention and deletion dates.
 5. Publish only appropriately de-identified ratings and aggregate results under the approved protocol.
 
-The research team will record the review body, determination, protocol identifier, and approval date in the submission materials when available.
+The research team will record the review body, determination, protocol identifier, and date in the submission materials before expert recruitment begins.
 
 ## Access and sharing plan
 

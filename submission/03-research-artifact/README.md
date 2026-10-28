@@ -2,7 +2,7 @@
 
 ## What reviewers can inspect
 
-This repository contains the PaperEval command-line workflow, reviewer-agent modules, V16 draft scoring profile, retrieval components, example configurations, prompts, and offline self-check scripts. The local Web/API prototype is outside the artifact scope.
+This repository contains the PaperEval command-line workflow, reviewer-agent modules, V16 draft scoring profile, retrieval components, example configurations, prompts, and validation scripts. The local Web/API prototype is outside the artifact scope.
 
 ## Reviewer walkthrough
 
@@ -17,6 +17,16 @@ This repository contains the PaperEval command-line workflow, reviewer-agent mod
 PaperEval processes a research-paper PDF, assembles evidence for rule-level judgments, retrieves related literature, aggregates judgments using declared weights, and generates traceable reports. Evidence references and uncertainty indicators let researchers inspect how a result was formed.
 
 The checked-in scoring profile is V16, the same 34-rule snapshot used in the 149-PDF audit. The audit completed 144 unique-paper reports; two papers were blocked at PDF parsing. The historical run manifest and code revision are the next reproducibility deliverables.
+
+## Validation scripts
+
+The scripts cover rule-profile structure, scoring and rule applicability, evidence gates and retrieval, report rendering, reliability diagnostics, and model-request formatting. They run in three modes:
+
+- **Local logic checks** use local fixtures and exercise parsing, scoring, reporting, or reliability components.
+- **Mocked-service checks** replace network calls with captured requests and simulated responses. For example, the model-request check verifies the request body without sending it to the configured provider; the external-retrieval check uses fake fetchers by default.
+- **Live integration runs** contact configured services. `scripts/自检_mvp.py` runs a full evaluation with the configured model and retrieval services. `scripts/自检_外部检索.py --online` adds a live retrieval probe. These are integration runs, not offline checks.
+
+Use only papers approved for the selected processing route when running live integrations. The relevant scripts can write reports, caches, and trace files under `runs/`, which is excluded from Git.
 
 ## Research milestones
 

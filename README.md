@@ -53,7 +53,7 @@ The local experiment archive also records repeated-run, scoring-mechanism, evide
 - `评价规则库/`: versioned scoring profiles and design notes; V16 is the profile used for the 149-PDF audit.
 - `configs/`: example runtime and retrieval configurations.
 - `prompts/`: reviewer-agent prompts.
-- `scripts/`: offline self-checks and retrieval utilities.
+- `scripts/`: local logic checks, mocked-service checks, and retrieval utilities. See the [validation guide](submission/04-reproducibility/README.md) for checks that contact live model or retrieval services.
 - `submission/`: English materials prepared for the *Organization Science* call.
 
 ## Reproduce the CLI setup
