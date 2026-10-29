@@ -5,12 +5,12 @@
 - PaperEval source code and draft scoring profile V16.
 - Python dependency list and example configurations.
 - Validation scripts for local logic, mocked services, and live integrations.
-- [Historical mechanism experiment summary](experiment-evidence.md).
-- [Experiment catalog](experiment-catalog.md), covering the 149-PDF audit and additional model, reliability, robustness, ablation, and retrieval studies.
-- [Cross-model V16 comparison](cross-model-v16.md).
-- [Robustness, fault-injection, and uncertainty experiments](robustness-experiments.md).
-- [Module ablations](module-ablation.md).
-- [External-literature retrieval evaluation](retrieval-evaluation.md).
+- [Historical mechanism experiment summary](../03-experiments/experiment-evidence.md).
+- [Experiment catalog](../03-experiments/experiment-catalog.md), covering the 149-PDF audit and additional model, reliability, robustness, ablation, and retrieval studies.
+- [Cross-model V16 comparison](../03-experiments/cross-model-v16.md).
+- [Robustness, fault-injection, and uncertainty experiments](../03-experiments/robustness-experiments.md).
+- [Module ablations](../03-experiments/module-ablation.md).
+- [External-literature retrieval evaluation](../03-experiments/retrieval-evaluation.md).
 - [149-PDF V16 audit](original-149-v16-audit.md).
 - [Title-free, per-paper outcome table](original-149-v16-results.csv), one row per unique source PDF.
 
@@ -18,7 +18,7 @@
 
 The authors' curated evidence package, indexed October 8, 2026, reports a 17-paper trace database with 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments across seven experiment groups. This is a focused experimental subset. The separate October 26, 2026 audit reconciles the 149-PDF corpus to 146 unique papers, 144 complete reports, and two parse-blocked papers.
 
-The current repository presents aggregate findings and title-free outcomes. Full traces and source PDFs stay in the research workspace while the team completes the item-level sharing review. The accompanying [access plan](../05-ethics-and-access/README.md) defines the inventory, release, and editor-access workflow.
+The current repository presents aggregate findings and title-free outcomes. Full traces and source PDFs stay in the research workspace while the team completes the item-level sharing review. The accompanying [access plan](../05-ethics-access/README.md) defines the inventory, release, and editor-access workflow.
 
 ## Next reproduction release
 
@@ -45,6 +45,6 @@ For each new run, record: run ID and date; source-data version and access class;
 |---|---|---|
 | Local logic | Rule validation, scoring, evidence gates, parsing components, report rendering, reliability, and local caches | No external service calls; uses local inputs or fixtures |
 | Mocked service | Model request formatting and retrieval behavior with fake fetchers or simulated responses | Calls are intercepted locally; no provider receives the test payload |
-| Live integration | End-to-end evaluation through `scripts/自检_mvp.py`; optional external retrieval probe through `scripts/自检_外部检索.py --online` | Uses configured model/retrieval services and may send paper-derived text or query terms |
+| Live integration | End-to-end evaluation through `02-system/scripts/自检_mvp.py`; optional external retrieval probe through `02-system/scripts/自检_外部检索.py --online` | Uses configured model/retrieval services and may send paper-derived text or query terms |
 
-The `scripts/自检_mvp.py` script is a live integration run despite its “self-check” name: its source config selects a model provider, and the evaluation workflow can send selected paper evidence to that endpoint. Run it only with a source paper and provider route cleared for that processing. Keep generated reports and caches in the ignored `runs/` directory, and review them before sharing.
+The `02-system/scripts/自检_mvp.py` script is a live integration run despite its “self-check” name: its source config selects a model provider, and the evaluation workflow can send selected paper evidence to that endpoint. Run it only with a source paper and provider route cleared for that processing. When run from `02-system/`, generated reports and caches go under the ignored `02-system/runs/` directory; review them before sharing.

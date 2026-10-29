@@ -5,7 +5,7 @@
 
 ## Profile and run configuration
 
-The repository includes the V16 scoring-rule snapshot at [`../../评价规则库/rules_v1.yaml`](../../评价规则库/rules_v1.yaml), SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`. The historical run used `MGMT-LIT-EVAL-V1:V16` with 34 rules, DeepSeek Flash, temperature 0, thinking disabled, and scoring scale `MGMT-SCALE-V6`.
+The repository includes the [V16 scoring-rule snapshot](../02-system/rules/rules_v1.yaml), SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`. The historical run used `MGMT-LIT-EVAL-V1:V16` with 34 rules, DeepSeek Flash, temperature 0, thinking disabled, and scoring scale `MGMT-SCALE-V6`.
 
 The title-free [per-paper outcome table](original-149-v16-results.csv) contains one row per unique paper, with scores where available. Each ID is derived from the source PDF’s SHA-256 checksum; the table omits titles, journal names, paths, and paper text.
 

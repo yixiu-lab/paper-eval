@@ -10,7 +10,7 @@ The local research archive contains a 17-paper trace database with 72 evaluation
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| V16 corpus audit | 149 PDFs; 146 unique | 144 complete reports; two parser-blocked | [Audit and title-free outcomes](original-149-v16-audit.md) |
+| V16 corpus audit | 149 PDFs; 146 unique | 144 complete reports; two parser-blocked | [Audit and title-free outcomes](../04-reproducibility/original-149-v16-audit.md) |
 | Scoring-scale development | V9–V16 iterations; early mechanism comparisons on three-paper samples | Five-level scoring, two-pool scoring, evidence budgets, thresholds, and weights were iteratively examined | [Historical experiment evidence](experiment-evidence.md) |
 | Journal-gradient comparison | V24: 12 papers; V25: 15 additional sample papers | Kendall's tau = +0.500 against journal-tier ordering in the archived analysis | [Historical experiment evidence](experiment-evidence.md) |
 | Repeatability and uncertainty | Four three-paper batches; a separate reliability analysis over 57 runs and 20 papers | Run, evidence, judgment, and calibration uncertainty were analyzed; the focal-paper example and ranking diagnostics are summarized in the reliability section below | [Reliability and uncertainty](#reliability-and-uncertainty) |

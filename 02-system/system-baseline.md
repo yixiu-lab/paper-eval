@@ -2,15 +2,17 @@
 
 ## Current artifact
 
-The repository contains the PaperEval command-line workflow and the V16 draft scoring profile used in the 149-PDF audit. The profile has 34 rules and SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`.
+This folder contains the PaperEval command-line workflow and the V16 draft scoring profile used in the 149-PDF audit. The profile has 34 rules and SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`.
 
-The historical audit used `MGMT-LIT-EVAL-V1:V16`, DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The checked-in rule snapshot is version-matched; the next artifact milestone is to attach the exact historical source revision and complete runtime configuration to the run manifest.
+The historical audit used `MGMT-LIT-EVAL-V1:V16`, DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The checked-in rule snapshot is version-matched; the historical source revision and complete runtime configuration remain reproducibility milestones.
 
 ## Entry points
 
-- Single-paper evaluation: `python -m paper_eval.cli evaluate --pdf <PDF_PATH> --rules <RULES_PATH> --out <OUTPUT_DIR>`.
-- Rule-profile validation: `python -m paper_eval.cli validate-rules --rules <RULES_PATH>`.
-- Offline self-checks: scripts under `scripts/`.
+Run these commands from the `02-system/` directory:
+
+- Single-paper evaluation: `python -m paper_eval.cli evaluate --pdf <PDF_PATH> --rules rules/rules_v1.yaml --out <OUTPUT_DIR>`.
+- Rule-profile validation: `python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml`.
+- Offline and integration checks: scripts under `scripts/`.
 - Package: `paper_eval/`.
 
 The research artifact centers on the CLI and reusable evaluation components. The local Web/API prototype is outside this repository’s scope.
@@ -27,7 +29,7 @@ V16 separates a 60-point baseline pool from a 40-point bonus pool. Baseline rule
 
 ## Evidence and next milestones
 
-The V16 audit includes 149 source PDFs, 146 unique papers after exact SHA-256 deduplication, 144 complete reports, and two parse-blocked papers. The [audit note](submission/04-reproducibility/original-149-v16-audit.md) and title-free [outcome table](submission/04-reproducibility/original-149-v16-results.csv) document the reconciled results.
+The V16 audit includes 149 source PDFs, 146 unique papers after exact SHA-256 deduplication, 144 complete reports, and two parse-blocked papers. The [audit note](../04-reproducibility/original-149-v16-audit.md) and title-free [outcome table](../04-reproducibility/original-149-v16-results.csv) document the reconciled results.
 
 The next reproducibility package will link each reported result to its code revision, runtime and dependency versions, model/provider, prompts, rule fingerprint, retrieval settings, and cache state. The data workstream will build a source-level access manifest and a shareable benchmark or synthetic substitute. The validation workstream will compare judgments with expert assessments and report stability across runs and paper types.
 

@@ -4,7 +4,7 @@
 
 This is the earlier scoring-mechanism evidence stream. The project also has later cross-model, uncertainty, prompt-injection, harness fault-injection, module-ablation, and external-retrieval records. See the [full experiment catalog](experiment-catalog.md) and its linked summaries.
 
-The 17-paper trace database is a focused subset. The separate V16 full-corpus audit covers 149 source PDFs, 146 unique papers, 144 complete reports, and two parse-blocked papers. See the [audit](original-149-v16-audit.md) and [title-free outcome table](original-149-v16-results.csv).
+The 17-paper trace database is a focused subset. The separate V16 full-corpus audit covers 149 source PDFs, 146 unique papers, 144 complete reports, and two parse-blocked papers. See the [audit](../04-reproducibility/original-149-v16-audit.md) and [title-free outcome table](../04-reproducibility/original-149-v16-results.csv).
 
 ## Experiments and follow-up milestones
 
