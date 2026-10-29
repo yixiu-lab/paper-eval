@@ -1,11 +1,51 @@
 # PaperEval
 
-PaperEval is an evidence-grounded workflow for evaluating scholarly papers. The project is organized into five sections:
+### An evidence-grounded workflow for studying AI-assisted research assessment
 
-1. [Proposal](01-proposal/README.md): project overview, proposal brief, and Stage 1 article location.
-2. [System](02-system/README.md): technical architecture, source code, V16 rules, prompts, configurations, and validation scripts.
-3. [Experiments](03-experiments/README.md): experiment catalog and study results.
-4. [Reproducibility](04-reproducibility/README.md): corpus audit, title-free outcomes, and reproduction materials.
-5. [Ethics and access](05-ethics-access/README.md): data access, review, privacy, and release planning.
+PaperEval studies how scholarly research can be assessed through explicit criteria, traceable evidence, and inspectable judgments. The project focuses initially on management and AI-HRM research and treats paper evaluation as a measurement process that can be examined at the rule, evidence, and score levels.
 
-Start with the [project overview and editor reading path](01-proposal/README.md).
+## Research problem
+
+AI-assisted paper assessment can produce fluent summaries and scores, but a score alone does not show whether the assessment used relevant evidence, applied criteria consistently, or handled uncertainty appropriately. PaperEval turns assessment criteria into rule-level judgments linked to passages from the paper and, where relevant, external literature. This makes the evaluation process available for inspection and empirical study.
+
+## Research question and contribution
+
+The project asks when evidence-grounded AI judgments align with expert assessments, how stable they are across runs and evidence settings, and which paper types or conditions require additional review.
+
+PaperEval contributes a research capability for studying AI-assisted assessment: a versioned scoring profile, rule-specific evidence, structured reviewer judgments, deterministic score aggregation, and reports that preserve the relationship between criteria, evidence, judgments, and scores. The system is a prototype; expert agreement, calibration, reliability, and scope are central evaluation questions.
+
+## System and technical approach
+
+For each paper, PaperEval parses the PDF into page- and section-linked evidence, builds a structured paper profile, and routes selected evidence to rule-level review tasks. When enabled, claim-led retrieval adds external prior-work evidence. Reviewer agents assess six dimensions, while the Harness validates judgment structure and evidence references, flags items for review, and computes scores using the selected rule profile.
+
+The current V16 profile has 34 rules across six dimensions: research-question positioning, theoretical contribution, theoretical rigor, research design, results and evidence, and discussion and boundaries. Its scoring design allocates 60 points to baseline criteria and 40 points to bonus criteria. Reports include dimension and total scores, completeness, evidence references, review flags, and run records.
+
+See the [technical architecture](02-system/technical-appendix.md), [system package](02-system/README.md), and [V16 rule workbook](02-system/rules/PaperEval_V16_scoring_rules.xlsx).
+
+## Experimental evidence
+
+The V16 corpus audit began with **149 source PDFs**. Exact deduplication yielded **146 unique papers**; the workflow produced **144 complete reports**, while two papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean score was 76.46 (SD 7.64), the median was 76.19, and the range was 49.63–95.78. This is one corpus audit, not the project-wide count of papers across all experiments.
+
+Additional studies examine repeated-run reliability and uncertainty, cross-model differences, module ablations, prompt-injection robustness, Harness fault handling, and claim-led literature retrieval. Their samples and designs differ, and findings are reported study by study. For example, the archived Harness fault-injection study tested 180 faulty outputs and 40 clean controls; the cross-model V16 comparison contains 12 valid runs across three papers. The retrieval evaluation records its current validation status and does not present unresolved comparisons as established performance results.
+
+See the [experiment catalog](03-experiments/experiment-catalog.md) for study scope and the [reproducibility folder](04-reproducibility/README.md) for the corpus audit and title-free outcomes.
+
+## Reading path
+
+1. [Proposal and project overview](01-proposal/README.md)
+2. [System architecture and implementation](02-system/README.md)
+3. [Experiment catalog and study summaries](03-experiments/README.md)
+4. [Corpus audit and reproduction materials](04-reproducibility/README.md)
+
+## Run the command-line workflow
+
+The implementation and example configurations are in [`02-system/`](02-system/). Run commands from that directory:
+
+```bash
+python -m venv .venv
+pip install -r requirements.txt
+python -m paper_eval.cli --help
+python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
+```
+
+For a single-paper evaluation, see the [system baseline](02-system/system-baseline.md) and [reviewer guide](02-system/reviewer-guide.md). Model-backed runs use a configured provider; record the provider/model, code revision, rule fingerprint, retrieval settings, and run status for each evaluation.
