@@ -29,7 +29,7 @@ The command-line harness coordinates the run, while the evaluation graph defines
 
 ## 2. Rule profile: the domain adaptation layer
 
-The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The current checked-in profile is **V16**, with 34 rules across six dimensions. Its fingerprint is SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`; the [V16 rule file](../../评价规则库/rules_v1.yaml) is versioned with the artifact.
+The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The current checked-in profile is **V16**, with 34 rules across six dimensions. Its fingerprint is SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`; the [V16 rule file](../../评价规则库/rules_v1.yaml) is versioned with the artifact, and the [Excel scoring-rule workbook](../../评价规则库/PaperEval_V16_scoring_rules.xlsx) provides a reviewer-friendly tabular view.
 
 | Dimension | Reviewer responsibility |
 | --- | --- |
