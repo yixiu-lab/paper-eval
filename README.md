@@ -18,15 +18,17 @@ PaperEval contributes a research capability for studying AI-assisted assessment:
 
 For each paper, PaperEval parses the PDF into page- and section-linked evidence, builds a structured paper profile, and routes selected evidence to rule-level review tasks. When enabled, claim-led retrieval adds external prior-work evidence. Reviewer agents assess six dimensions, while the Harness validates judgment structure and evidence references, flags items for review, and computes scores using the selected rule profile.
 
-The expert-constructed criteria comprise 34 rules across six dimensions: research-question positioning, theoretical contribution, theoretical rigor, research design, results and evidence, and discussion and boundaries. Reports include dimension and total scores, completeness, evidence references, review flags, and run records.
+The expert-constructed criteria cover six dimensions: research-question positioning, theoretical contribution, theoretical rigor, research design, results and evidence, and discussion and boundaries. Reports include dimension and total scores, completeness, evidence references, review flags, and run records.
 
 See the [technical architecture](02-system/technical-appendix.md) and [system package](02-system/README.md).
 
 ## Experimental evidence
 
-The corpus audit began with **149 source PDFs**. Exact deduplication yielded **146 unique papers**; the workflow produced **144 complete reports**, while two papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean score was 76.46 (SD 7.64), the median was 76.19, and the range was 49.63–95.78. This is one corpus audit, not the project-wide count of papers across all experiments.
+The corpus audit began with **149 source PDFs**. Exact deduplication yielded **146 unique papers**; the workflow produced **144 complete reports**, while two papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean score was 76.46 (SD 7.64), the median was 76.19, and the range was 49.63–95.78.
 
-Additional studies examine repeated-run reliability and uncertainty, model differences, prompt-injection robustness, Harness fault handling, and claim-led literature retrieval. The archived Harness fault-injection study tested 180 faulty outputs and 40 clean controls; the model comparison contains 12 valid runs across three papers. Detailed results are reported study by study.
+Other scoring studies used additional samples: a **10-paper** API batch; **27 papers** in two journal-gradient samples; a **20-paper** reliability analysis based on 57 historical runs; and a **17-paper** trace database. Further focused studies include a three-paper model comparison (12 valid runs), a five-paper architecture comparison, three-paper robustness and evidence-budget studies, and a seven-paper retrieval study. These samples overlap, so their counts should not be added to the 146-paper corpus audit as a project-wide total. Study-level results and designs are reported in the [experiment catalog](03-experiments/experiment-catalog.md).
+
+The Harness fault-injection study tested 180 faulty outputs and 40 clean controls. Detailed outcomes are reported study by study.
 
 See the [experiment catalog](03-experiments/experiment-catalog.md) for study scope and the [reproducibility folder](04-reproducibility/README.md) for the corpus audit and title-free outcomes.
 
