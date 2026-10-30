@@ -15,8 +15,8 @@ The archived comparison covers three papers, two models, and two runs per paper/
 
 Within-model absolute score differences across the two runs ranged from 0.56 to 1.97 points for Qwen3.7 Flash and from 0.00 to 1.33 points for DeepSeek Flash across the three samples.
 
-## Interpretation and next run
+## Interpretation
 
-The archived comparison shows model choice can shift scores, with the size of the difference varying by paper and dimension. The next comparison will isolate model effects with the same paper inputs, fixed retrieved evidence, identical prompts and V16 profile, two or more accessible models, and repeated runs under a versioned manifest.
+The archived comparison shows model choice can shift scores, with the size of the difference varying by paper and dimension. Because the runs used evidence retrieved at different times, the observed differences do not isolate model effects.
 
 The source summary also records a GLM-5.3 attempt that failed before producing a score because the provider returned an insufficient-balance response. It is logged as a service-access event and excluded from the 12 valid runs.

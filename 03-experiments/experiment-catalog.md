@@ -24,7 +24,7 @@ The local research archive contains a 17-paper trace database with 72 evaluation
 
 The offline reliability analysis combines 57 historical run records across 20 papers. For one illustrative paper with three comparable runs, the total-score mean was 69.78, standard deviation 2.86, and range 6.36. The analysis reported evidence overlap of 0.6197, judgment agreement of 0.9314, batch-ranking Spearman correlation of 0.6491, and Top-5 overlap of 0.25. The diagnostic separated run variance, evidence variance, judgment variance, and calibration uncertainty.
 
-These are diagnostics over archived runs, not expert-validity estimates. The 57 records span historical runs and do not form a fixed-evidence, five-repeat controlled experiment. A future controlled repeatability study will use a shared evidence package, pre-specified model settings, and repeated runs.
+These are diagnostics over archived runs, not expert-validity estimates. The 57 records span historical runs and do not form a fixed-evidence, five-repeat controlled experiment.
 
 ## Model diversity
 
@@ -32,4 +32,4 @@ The completed V16 cross-model summary contains two models and 12 valid runs on t
 
 ## Data release boundary
 
-This repository publishes study designs, aggregate outcomes, and title-free V16 scores. The local archive also contains PDFs, paper-linked traces, excerpts, API logs, and caches. Those raw materials are not part of this public release. The team will publish additional per-run artifacts after preparing a source-level access inventory and a minimized, shareable dataset.
+This repository publishes study designs, aggregate outcomes, and title-free scores. The local archive also contains PDFs, paper-linked traces, excerpts, API logs, and caches. Those raw materials are not part of this public release.

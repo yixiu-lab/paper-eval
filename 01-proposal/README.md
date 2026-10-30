@@ -6,7 +6,7 @@ PaperEval turns research-paper assessment into an inspectable measurement workfl
 
 ## Research objective
 
-We are developing a human-directed, evidence-grounded workflow for assessing management research. The next study will establish how its judgments compare with expert assessments, how stable the scores are across runs and evidence settings, and which paper types and conditions require additional review.
+The research examines how a human-directed, evidence-grounded workflow assesses management research, how its judgments compare with expert assessments, how stable scores are across runs and evidence settings, and which paper types and conditions require additional review.
 
 The contribution is a testable research capability: paper assessments can be examined at the rule, evidence, and aggregation levels, giving researchers a way to study AI-assisted measurement and its boundary conditions.
 
@@ -25,17 +25,9 @@ The primary implementation is in [`paper_eval/`](../02-system/paper_eval). The l
 
 The V16 audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**. The workflow produced **144 complete reports**; two papers were blocked before scoring by PDF parsing and remain without imputed scores. The audit reports a mean total score of 76.46 (SD 7.64), median 76.19, and range 49.63–95.78 across the 144 completed reports. This is one corpus audit, not the total number of papers evaluated across all project experiments.
 
-The checked-in profile is **V16**, a draft 34-rule profile, and its SHA-256 matches the profile used in the audit. The historical run used `MGMT-LIT-EVAL-V1:V16`, DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The next reproducibility milestone is to link the historical run to its exact source revision and full runtime manifest, then perform a clean rerun.
+The checked-in scoring profile matches the profile used in the audit. The historical run used DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`.
 
 The local archive also contains repeated-run and uncertainty analyses, scoring-mechanism and evidence-budget studies, a two-model comparison, prompt-injection and harness fault-injection tests, module ablations, and claim-driven retrieval experiments. The 17-paper trace database is a separate subset from the 149-PDF audit, and study samples overlap. The [experiment catalog](../03-experiments/experiment-catalog.md) maps the evidence by study family; individual summaries cover [cross-model results](../03-experiments/cross-model-v16.md), [robustness and uncertainty](../03-experiments/robustness-experiments.md), [module ablations](../03-experiments/module-ablation.md), and [retrieval evaluation](../03-experiments/retrieval-evaluation.md).
-
-## Research milestones
-
-1. **Reproducibility:** publish a version-linked run manifest, dependency lock, prompts, retrieval settings, and rerun guide.
-2. **Expert comparison:** build an expert-labeled benchmark under an institutionally reviewed protocol and compare rule-level judgments and aggregate scores.
-3. **Stability and calibration:** compare repeated runs and pre-specified scoring profiles, including the current 60/40 profile and alternative pool ratios.
-4. **Scope:** extend evaluation beyond published AI/HRM papers to varied paper types and document where performance changes.
-5. **Access:** complete a source-level rights inventory and prepare a shareable benchmark or synthetic substitute.
 
 ## Editor reading path
 
@@ -44,20 +36,16 @@ The local archive also contains repeated-run and uncertainty analyses, scoring-m
 - [149-PDF audit](../04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](../04-reproducibility/original-149-v16-results.csv).
 - [Historical experiment evidence](../03-experiments/experiment-evidence.md).
 - [Full experiment catalog](../03-experiments/experiment-catalog.md), including model, robustness, uncertainty, ablation, and retrieval studies.
-- [Reproduction plan](../04-reproducibility/README.md).
-- [Ethics, data, and access plan](../05-ethics-access/README.md).
+- [Reproducibility and data-access notes](../04-reproducibility/README.md).
+- [Ethics and data-handling statement](../05-ethics-access/README.md).
 - [System baseline](../02-system/system-baseline.md): entry points and version boundaries.
-
-## Stage 1 proposal article
-
-The five-page article is not in the repository yet. Its designated location is this folder; the proposal brief is available as [`proposal-brief.md`](proposal-brief.md).
 
 ## Repository map
 
 - [`02-system/`](../02-system/README.md): source code, configurations, prompts, V16 rules, technical appendix, and validation scripts.
 - [`03-experiments/`](../03-experiments/README.md): experiment catalog and study summaries.
-- [`04-reproducibility/`](../04-reproducibility/README.md): corpus audit, outcomes, and reproduction plan.
-- [`05-ethics-access/`](../05-ethics-access/README.md): ethics, data access, and release planning.
+- [`04-reproducibility/`](../04-reproducibility/README.md): corpus audit, outcomes, and reproduction details.
+- [`05-ethics-access/`](../05-ethics-access/README.md): ethics and data-handling statement.
 
 ## Reproduce the CLI setup
 
@@ -73,4 +61,4 @@ Model-backed runs use a configured provider and may incur service costs. For eac
 
 ## Ethics and access
 
-The current corpus consists of published AI/HRM papers; source PDFs and full paper-level traces remain in the research workspace while the team completes a source-level access inventory. The [ethics and access plan](../05-ethics-access/README.md) assigns the next actions for source permissions, expert-rater review, consent, privacy, provider terms, retention, and editor access. The project will provide a shareable benchmark or synthetic substitute alongside a version-linked reproduction package.
+The current corpus consists of published AI/HRM papers. Source PDFs and full paper-level traces remain in the research workspace and are not included in this repository. The [ethics and data-handling statement](../05-ethics-access/README.md) describes the audit scope, current participant-data status, and evaluation data flows.

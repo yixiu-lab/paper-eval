@@ -18,20 +18,11 @@
 
 The authors' curated evidence package, indexed October 8, 2026, reports a 17-paper trace database with 7,486 evidence records, 72 evaluation runs, and 2,342 agent judgments across seven experiment groups. This is a focused experimental subset. The separate October 26, 2026 audit reconciles the 149-PDF corpus to 146 unique papers, 144 complete reports, and two parse-blocked papers.
 
-The current repository presents aggregate findings and title-free outcomes. Full traces and source PDFs stay in the research workspace while the team completes the item-level sharing review. The accompanying [access plan](../05-ethics-access/README.md) defines the inventory, release, and editor-access workflow.
-
-## Next reproduction release
-
-1. Create a source manifest with DOI, acquisition route, license/access basis, version, checksum, and permitted processing/sharing status.
-2. Map each reported historical run to its exact code revision, V16 fingerprint, runtime configuration, and dependency versions.
-3. Produce a sanitized run manifest with model/provider/version, prompts, retrieval settings, cache state, logs, and failures.
-4. Select a shareable benchmark or synthetic substitute and publish expected outputs.
-5. Write and verify a clean end-to-end reproduction guide; request an independent rerun.
-6. Provide an editor-facing access matrix describing included materials and access routes.
+The current repository presents aggregate findings and title-free outcomes. Full traces and source PDFs remain in the research workspace; the public package does not include paper-linked full-text traces.
 
 ## Current V16 run facts
 
-The checked-in 34-rule profile matches the profile used in the audit. The historical run used DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The audit reports 144 complete reports out of 146 unique papers; two papers stopped at PDF parsing and have no score. The run-to-code mapping and full runtime manifest are the next release items.
+The checked-in scoring profile matches the profile used in the audit. The historical run used DeepSeek Flash, temperature 0, thinking disabled, and `MGMT-SCALE-V6`. The audit reports 144 complete reports out of 146 unique papers; two papers stopped at PDF parsing and have no score.
 
 ## Run manifest fields
 

@@ -9,8 +9,6 @@ The repository includes the [V16 scoring-rule snapshot](../02-system/rules/rules
 
 The title-free [per-paper outcome table](original-149-v16-results.csv) contains one row per unique paper, with scores where available. Each ID is derived from the source PDF’s SHA-256 checksum; the table omits titles, journal names, paths, and paper text.
 
-The next reproduction milestone is to link this audit to the exact source revision, full runtime configuration, dependency versions, prompts, retrieval settings, and cache state, then execute a clean rerun.
-
 ## Corpus coverage
 
 - Source folder: **149 PDF files**.
@@ -23,18 +21,18 @@ The audit also records a 73-paper V16 backfill: 71 produced complete reports, wh
 
 ## Descriptive score summary
 
-Across the 144 complete unique-paper reports, the reconciled appendix reports a mean total score of **76.46** (SD **7.64**), median **76.19**, and range **49.63–95.78**. These statistics describe this corpus and configuration. The expert-comparison study will establish how scores relate to expert judgments and how calibration changes across manuscript types.
+Across the 144 complete unique-paper reports, the reconciled appendix reports a mean total score of **76.46** (SD **7.64**), median **76.19**, and range **49.63–95.78**. These statistics describe this corpus and configuration; they are not expert-validity estimates.
 
-## Sample and next evidence steps
+## Sample characteristics
 
-The audited sample consists of published AI/HRM empirical papers. The next sample will include expert labels and a broader range of paper types to evaluate judgment agreement, coverage, and score behavior across the intended scope.
+The audited sample consists of published AI/HRM empirical papers. It does not include expert-rater annotations.
 
-Journal/source metadata are confirmed for 90 unique papers; the local audit marks 56 as unconfirmed. The data team will complete source metadata verification before using journal-tier comparisons.
+Journal/source metadata are confirmed for 90 unique papers; the local audit marks 56 as unconfirmed. Journal-tier comparisons should be interpreted with this metadata coverage in mind.
 
-Two parse-blocked papers remain in the coverage record. The parser workstream will inspect failure modes, improve handling where appropriate, and rerun the same inputs with the run configuration recorded.
+Two parse-blocked papers remain in the coverage record and have no score.
 
 ## Data access and provenance
 
-The PDFs and full paper-level reports are held in the research workspace. The team will complete an item-level access inventory covering source, DOI, acquisition route, version, permitted processing, retention, and sharing. Editor-facing materials will include the access matrix and a shareable benchmark or synthetic substitute.
+The PDFs and full paper-level reports are held in the research workspace and are not included in this repository. Public materials are limited to the title-free outcome table and aggregate audit description.
 
 The audit was reconciled from `PaperEval/data/original_149_v16_round/manifest.csv`, `PaperEval/runs/original_149_missing_v16_20261026/appendix_scores.csv`, associated run logs, and complete report files distributed across the local workspace. The source audit note is `PaperEval/runs/original_149_missing_v16_20261026/progress.md`.

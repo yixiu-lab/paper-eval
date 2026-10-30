@@ -11,7 +11,7 @@ The archived comparison used the same five paper inputs and model configuration 
 | Single Reviewer | 74.60 | 60–83 |
 | Direct LLM | 74.00 | 59–82 |
 
-The scores show how the workflow conditions produce different score scales on the same sample. The next expert-benchmark study will compare each condition with the same independent ratings and pre-specified outcomes.
+The scores show how the workflow conditions produce different score scales on the same sample. This comparison does not establish which condition is more accurate because it does not include independent expert ratings.
 
 ## Paired one-factor module ablation
 
@@ -29,8 +29,8 @@ A separate V16 run used one paper, a shared parsed-text evidence inventory, and 
 | Evidence gate | 92.406 | 0.000 |
 | Unified reviewer | 91.625 | −0.781 |
 
-The one-paper paired design isolates configured component changes for that run. The next study will repeat the ablation across a broader sample and compare rule-level outputs, review flags, and expert agreement.
+The one-paper paired design isolates configured component changes for that run, but the single-paper sample does not establish whether the observed changes generalize.
 
 ## Evidence-gate output comparison
 
-In a three-paper paired analysis, the same stored Reviewer judgments and evidence were processed with and without the evidence gate. The gate changed review/output fields for 8, 9, and 6 rules across the three papers, while the ordinal judgments remained the same. This record describes gate behavior on those runs; the next experiment will evaluate how the flags guide human reviewers.
+In a three-paper paired analysis, the same stored Reviewer judgments and evidence were processed with and without the evidence gate. The gate changed review/output fields for 8, 9, and 6 rules across the three papers, while the ordinal judgments remained the same. This record describes gate behavior on those runs; it does not measure how human reviewers use the flags.
