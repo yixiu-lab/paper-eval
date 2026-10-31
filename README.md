@@ -34,7 +34,7 @@ See the [experiment catalog](03-experiments/experiment-catalog.md) for study sco
 
 ## Reading path
 
-1. [Proposal and project overview](01-proposal/README.md)
+1. [Project overview](01-overview/README.md)
 2. [System architecture and implementation](02-system/README.md)
 3. [Experiment catalog and study summaries](03-experiments/README.md)
 4. [Corpus audit and reproduction materials](04-reproducibility/README.md)
