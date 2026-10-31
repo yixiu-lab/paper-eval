@@ -38,35 +38,51 @@ The main research artifact is the [Python implementation and command-line workfl
 
 ## Experimental evidence
 
-The project reports a set of studies with different samples and designs. Their samples overlap, so study counts should not be summed into a project-wide number of unique papers. The [experiment catalog](../03-experiments/experiment-catalog.md) maps the studies and provides links to each detailed record.
+The current experiment manuscript reports results in the sequence below. Each experiment has its own sample and comparison; samples overlap and should not be added to infer a project-wide number of unique papers. The [experiment index](../03-experiments/README.md) follows the same sequence and links to each detailed record.
 
-项目包含多项研究，各研究的样本和设计不同，且样本之间存在重叠，因此不能将各项样本数相加作为项目去重后的论文总数。[实验目录](../03-experiments/experiment-catalog.md)汇总各研究并链接到详细记录。
+当前实验稿按以下顺序报告结果。各实验使用各自的样本和比较条件，样本可能重叠，因此不能将样本数相加作为项目去重后的论文总数。[实验索引](../03-experiments/README.md)按相同顺序排列，并链接到各项详细记录。
 
-### Corpus audit / 语料审计
+### 1. Corpus and journal/source score profile / 语料与期刊/来源评分概况
 
-The audit started with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**. The workflow produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. For the 144 completed reports, the mean total score was 76.46 (SD 7.64), the median was 76.19, and the range was 49.63–95.78. These are descriptive results for this corpus and configuration, not expert-validity estimates. See the [audit summary](../04-reproducibility/original-149-v16-audit.md) and [title-free per-paper outcomes](../04-reproducibility/original-149-v16-results.csv).
+The audit began with **149 source PDFs**, which yielded **146 unique papers** after exact deduplication. It produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. The completed reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores, not expert-validity estimates. The manuscript also reports A–F dimension summaries and journal/source composition. See the [audit record](../04-reproducibility/original-149-v16-audit.md) and [title-free outcomes](../04-reproducibility/original-149-v16-results.csv).
 
-语料审计从 **149 份源 PDF** 开始。SHA-256 精确去重后得到 **146 篇独立论文**。系统生成 **144 份完整报告**；另有两篇论文在评分前因 PDF 解析失败而受阻。在已完成的 144 份报告中，总分均值为 76.46（标准差 7.64），中位数为 76.19，范围为 49.63–95.78。这些是针对该语料和配置的描述性结果，并非与专家判断一致性的效度结果。详见[审计摘要](../04-reproducibility/original-149-v16-audit.md)和[不含标题的逐篇结果](../04-reproducibility/original-149-v16-results.csv)。
+语料审计从 **149 份源 PDF** 开始，精确去重后得到 **146 篇独立论文**，其中 **144 篇**生成完整报告，另有两篇在评分前因 PDF 解析失败而受阻。完整报告的总分均值为 **76.46**（标准差 7.64），中位数为 **76.19**，范围为 **49.63–95.78**。这些是描述性评分，不代表专家效度。论文还报告了 A–F 维度摘要和期刊/来源构成。详见[审计记录](../04-reproducibility/original-149-v16-audit.md)和[不含标题的结果表](../04-reproducibility/original-149-v16-results.csv)。
 
-### Reliability, model, and architecture studies / 可靠性、模型与架构研究
+### 2. Exploratory model comparison / 探索性模型比较
 
-- A historical reliability analysis covers **57 runs across 20 papers** and reports score variation, evidence overlap, judgment agreement, and ranking stability. See [reliability and uncertainty results](../03-experiments/experiment-catalog.md#reliability-and-uncertainty).
-- A model comparison includes **12 valid runs across three papers and two models**. The archived runs used evidence retrieved at different times, so the results describe model sensitivity but do not isolate a causal model effect. See the [cross-model comparison](../03-experiments/cross-model-v16.md).
-- Architecture ablations include a **five-paper, four-condition** comparison, plus separate one-paper and three-paper analyses. These are descriptive comparisons; see [module ablations](../03-experiments/module-ablation.md).
+The manuscript compares five models on three shared papers, with two recorded runs per model and paper. Model means range from **77.91 to 89.99**, and average absolute differences between repeated runs range from **0.61 to 3.83** points. Evidence and retrieval were regenerated between runs, so the observed differences combine model and evidence variation. See the [five-model summary](../03-experiments/cross-model-v16.md).
 
-- 一项历史可靠性分析覆盖 **20 篇论文的 57 次运行**，报告分数变化、证据重叠、判断一致性和排序稳定性。详见[可靠性与不确定性结果](../03-experiments/experiment-catalog.md#reliability-and-uncertainty)。
-- 模型比较包含 **3 篇论文、2 个模型的 12 次有效运行**。存档运行使用了不同时间检索的证据，因此结果反映模型敏感性，但不能单独识别模型的因果影响。详见[跨模型比较](../03-experiments/cross-model-v16.md)。
-- 架构消融包括一项 **5 篇论文、4 种条件**的比较，以及另外的单篇和三篇论文分析。这些结果为描述性比较，详见[模块消融](../03-experiments/module-ablation.md)。
+论文在三篇共同样本上比较五个模型，每个模型和论文记录两轮运行。模型均分范围为 **77.91–89.99**，轮间平均绝对分差为 **0.61–3.83** 分。由于各轮重新提取证据并进行检索，观察到的差异同时包含模型和证据变化。详见[五模型汇总](../03-experiments/cross-model-v16.md)。
 
-### Robustness and retrieval studies / 稳健性与检索研究
+### 3. Reviewer structure comparison / Reviewer 结构比较
 
-- Prompt-injection tests used **three papers** and paired prompt conditions. The Harness fault-injection test covered **180 injected faulty outputs and 40 clean controls**. See [robustness and fault-injection results](../03-experiments/robustness-experiments.md).
-- The retrieval study covers **seven target papers, seven claims, and 366 citation-linked candidate mappings**. Candidate relevance was machine-prelabelled from citation links, not independently judged by experts. See [retrieval evaluation](../03-experiments/retrieval-evaluation.md).
-- Other archived scoring studies include a **10-paper API batch**, **27 papers** in two journal-gradient samples, and a **17-paper trace database**. Their outcomes and sample definitions are summarized in [historical experiment evidence](../03-experiments/experiment-evidence.md).
+Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. These outputs are descriptive because the conditions use different judgment and aggregation procedures and there are no independent expert scores. See the [four-condition comparison and module ablations](../03-experiments/module-ablation.md).
 
-- 提示注入测试使用 **3 篇论文**并配对比较不同提示条件。Harness 故障注入测试覆盖 **180 个注入故障输出和 40 个正常对照**。详见[稳健性与故障注入结果](../03-experiments/robustness-experiments.md)。
-- 检索研究涉及 **7 篇目标论文、7 项主张和 366 条引用关系候选映射**。候选相关性依据引用关系由机器预标注，并非由专家独立判断。详见[检索评估](../03-experiments/retrieval-evaluation.md)。
-- 其他存档评分研究包括 **10 篇论文的 API 批次**、两个期刊梯度样本中的 **27 篇论文**，以及一个 **17 篇论文的追踪数据库**。样本口径和结果汇总见[历史实验记录](../03-experiments/experiment-evidence.md)。
+四种评价结构在同一组 **5 篇论文**上比较：完整 PaperEval、单一 Reviewer、跳过 Harness 处理和正式两池汇总的六个规则级 Reviewer，以及直接模型评分。四种条件的均分依次为 **79.50**、**74.60**、**57.93** 和 **74.00**。由于判断与汇总方式不同，且没有独立专家评分，这些结果用于描述条件差异。详见[四条件比较和模块消融](../03-experiments/module-ablation.md)。
+
+### 4. Harness validation / Harness 校验
+
+The deterministic fault-injection study covered **180 injected faults** across nine machine-checkable categories and **40 clean controls**. The Harness detected all injected faults, automatically blocked or transformed 160, routed 20 reason–judgment conflicts for review, and passed all clean controls. See [fault-injection results](../03-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
+
+确定性故障注入研究覆盖九类机器可检查错误，共 **180 个注入错误**和 **40 个正常对照**。Harness 检出全部注入错误，自动阻断或转换 160 个，将 20 个理由—判断冲突标记为复核，并使全部正常对照通过。详见[故障注入结果](../03-experiments/robustness-experiments.md#deterministic-harness-fault-injection)。
+
+### 5. Adversarial instruction injection / 对抗性指令注入
+
+The paired prompt study used evidence from **three papers** and 108 attack cases per condition. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. See the [prompt-injection comparison](../03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
+
+配对提示词研究使用 **3 篇论文**的证据，每种条件包含 108 个攻击样例。加入证据边界指令后，命中攻击目标的案例从 **4/108（3.7%）降至 0/108**，判断变化从 14/108 降至 7/108，平均绝对序数偏移从 **0.250** 降至 **0.074**。详见[提示注入比较](../03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison)。
+
+### 6. Repeated-run stability / 重复运行稳定性
+
+Twenty papers were scored independently twice, producing **40 complete reports**. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. See [two-run repeatability results](../03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
+
+20 篇论文分别独立评分两次，共形成 **40 份完整报告**。配对平均绝对分差为 **2.382** 分，最大分差为 **8.388** 分，**17/20 篇（85.0%）**论文两轮等级一致。详见[双轮重复性结果](../03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript)。
+
+### Additional archived studies / 其他存档研究
+
+Additional records include a **10-paper** API batch, two journal-gradient samples with **27 papers** combined, a **17-paper** trace database, a separate reliability diagnostic with 57 historical runs across 20 papers, and a seven-paper/seven-claim retrieval setup with 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
+
+其他存档记录包括 **10 篇论文**的 API 批次、合计 **27 篇论文**的两个期刊梯度样本、**17 篇论文**的追踪数据库、包含 20 篇论文 57 次历史运行的独立可靠性诊断，以及包含 7 篇目标论文、7 项主张和 366 条引用候选映射的检索设置。检索候选依据引用关系由机器预标注，存档汇总存在主张数量不一致，因此此处不报告整体检索性能估计。详见[历史实验索引](../03-experiments/experiment-evidence.md)、[实验目录](../03-experiments/experiment-catalog.md)和[检索记录](../03-experiments/retrieval-evaluation.md)。
 
 ## Reviewer navigation / 审稿人阅读入口
 
