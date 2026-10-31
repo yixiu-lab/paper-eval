@@ -6,7 +6,7 @@ This folder contains the PaperEval command-line workflow, reviewer-agent modules
 
 ## Reviewer walkthrough
 
-1. Read the [project overview](../01-overview/README.md) for the research question and empirical record.
+1. Read the [project overview](../01-proposal/README.md) for the research question and empirical record.
 2. Inspect [`paper_eval/`](paper_eval/) for parsing, evidence assembly, rule-level review, scoring, and report generation.
 3. Inspect the V16 profile at [`rules/rules_v1.yaml`](rules/rules_v1.yaml) and the [system baseline](system-baseline.md).
 4. Review the [149-PDF audit](../04-reproducibility/original-149-v16-audit.md), [title-free outcomes](../04-reproducibility/original-149-v16-results.csv), and [experiment evidence](../03-experiments/experiment-evidence.md).
