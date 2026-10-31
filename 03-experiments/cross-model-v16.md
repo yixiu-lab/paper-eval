@@ -1,4 +1,22 @@
-# V16 Cross-Model Descriptive Comparison
+# Cross-Model Exploratory Comparison
+
+## Five-model comparison in the current experiment manuscript
+
+The current manuscript reports two runs for each of three shared papers across five models. The table below summarizes model-level means and average absolute differences between the two runs.
+
+| Model | Mean score across three papers | Mean absolute difference between runs |
+|---|---:|---:|
+| Qwen3.8-Flash | 89.99 | 3.83 |
+| Qwen3.5-35B-A3B | 86.55 | 2.35 |
+| Qwen3.7-Flash | 86.14 | 1.11 |
+| DeepSeek-Flash | 78.37 | 0.61 |
+| Kimi-K2.5 | 77.91 | 3.83 |
+
+The three shared papers had the same rank order across the models with complete records. Evidence was re-extracted and external literature was retrieved on each run, so run-to-run differences combine evidence and model-judgment variation. There were no independent expert scores; the results are descriptive and do not establish model accuracy or general superiority.
+
+The manuscript also records partial outcomes for Qwen-Flash, Qwen3.8-Max, and DeepSeek-V4-Pro. The DeepSeek-V4-Pro run used a different rule profile and is not directly comparable with the five-model table.
+
+## Earlier archived two-model comparison
 
 ## Design
 

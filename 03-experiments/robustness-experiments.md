@@ -1,5 +1,9 @@
 # Robustness and Harness Experiments
 
+## Two-run repeatability in the current experiment manuscript
+
+Twenty papers were independently scored twice, yielding 40 complete reports. Mean scores were 72.940 and 71.418 for the two runs. The paired mean absolute score difference was 2.382 points, the largest difference was 8.388 points, and 17 of 20 papers retained the same quality grade (85.0%). These results describe repeatability on this sample; they do not measure agreement with expert judgments.
+
 ## Evidence-level prompt-injection comparison
 
 The matched comparison used DeepSeek Flash and stored evidence packs from three papers. It covered six reviewer dimensions, three attack types (force-high, force-low, and fabricated evidence ID), and two repeats: 108 paired attack cases per prompt condition. The two conditions used the same papers, evidence, attack templates, model, and repeat numbers; the prompt differed in its evidence-boundary instruction.
