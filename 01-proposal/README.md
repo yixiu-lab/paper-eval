@@ -1,70 +1,53 @@
-# PaperEval
+# Research Rationale and Study Design
 
-### An evidence-grounded workflow for studying AI-assisted research assessment
+This page sets out the research logic behind PaperEval: why AI-assisted paper assessment needs to be examined as a measurement process, what the study investigates, and how the empirical work is organized. For the project summary, see the [repository overview](../README.md). For implementation details and results, use the linked system and experiment materials below.
 
-## Abstract
+## Research problem
 
-PaperEval investigates how artificial intelligence can support the assessment of management research through explicit evaluation criteria, traceable evidence, and inspectable judgments. Rather than relying on a single summary or overall score, the system translates a structured evaluation framework into rule-level assessments. For each paper, it links judgments to relevant passages, records the evidence and rationale behind them, and uses deterministic software to validate evidence references and aggregate scores into a report for researcher review.
+AI systems can generate fluent summaries and review-like judgments, but fluency alone does not show whether an assessment is grounded in the paper, applied consistently across criteria, or aggregated correctly. A single overall score also obscures how evidence and rule-level judgments produce the result.
 
-The empirical program examines how assessment outcomes vary across models and repeated runs, how reviewer configurations and workflow components shape results, how the system handles paper and external evidence, and which conditions warrant human review. By connecting criteria, evidence, judgments, validation, and scores in a traceable workflow, PaperEval provides a basis for examining both assessment outcomes and the process through which they are produced.
+PaperEval treats assessment as a sequence that can be inspected: criteria are applied to evidence from the paper; judgments are recorded against those criteria; software checks evidence references and scoring transformations; and the resulting report remains open to researcher review. This framing makes both the score and the process that produced it available for empirical analysis.
 
-## System workflow
+## Research objectives
 
-1. **Parse and represent the paper.** PaperEval extracts text and structure from a research-paper PDF, assigns page- and section-linked evidence identifiers, and builds a structured profile of the paper's question, claims, theory, methods, findings, and limitations. Severe parsing failures are recorded before scoring. See [PDF parsing and paper representation](../02-system/README.md#3-pdf-parsing-and-paper-representation) and [`pdf_parser.py`](../02-system/paper_eval/pdf_parser.py).
+The study has three objectives:
 
+1. **Operationalize structured assessment.** Implement a criterion-level workflow that connects paper passages, judgments, validation, and aggregate scores.
+2. **Examine outcome variation.** Compare results across models, repeated runs, and reviewer/workflow configurations.
+3. **Characterize evidence and review behavior.** Study evidence selection, optional prior-work retrieval, robustness to instruction-like evidence, and cases routed for human inspection.
 
-2. **Extract claims and retrieve prior work.** When enabled, claim-led retrieval uses the paper's research question, gap, theory, and contribution claims to find related work from configured scholarly metadata services. Retrieved records are normalized, linked to their sources, and used as external evidence for comparison-dependent judgments. See [claim-led external grounding](../02-system/README.md#5-claim-led-external-grounding) and the [retrieval study](../03-experiments/retrieval-evaluation.md).
+## Research questions
 
+1. How much do paper-level scores and criterion-level judgments vary across models and repeated runs?
+2. How do reviewer organization and workflow components affect judgments and aggregate scores?
+3. How does the workflow select and use paper evidence and retrieved prior work?
+4. Which output or evidence conditions can be detected automatically, and which should be referred for human review?
 
-3. **Route evidence to six evaluation dimensions.** The system assembles rule-specific evidence for research-question positioning, theoretical contribution, theoretical rigor, research design, results and evidence, and discussion and boundaries. Evidence packages retain the relevant passage, page, section, and evidence identifier. See [rule-specific evidence packages](../02-system/README.md#4-rule-specific-evidence-packages) and the [scoring criteria](../02-system/rules/rules_v1.yaml).
+## Empirical strategy
 
+The empirical work combines a corpus-level scoring audit with focused comparisons of model behavior, workflow structure, repeatability, evidence handling, retrieval, and Harness validation. The main audit contains **144 completed paper scores**; two additional unique papers were blocked before scoring by PDF parsing. Focused analyses revisit papers under different conditions and are not added to this count. The [data overview](../04-data/README.md#corpus-results) defines the corpus and released materials.
 
-4. **Generate structured reviewer judgments.** Specialist reviewers assess assigned rules and return a judgment, rationale, confidence, and cited evidence identifiers. The runtime also supports a unified-reviewer configuration. See [specialist review and judgment protocol](../02-system/README.md#6-specialist-review-and-judgment-protocol) and the [system overview](../02-system/README.md).
+The experiment records follow the sequence and evidence available in the current manuscript. Each study page describes its comparison and links to the corresponding results:
 
+- [Corpus and journal/source score profile](../03-experiments/README.md#1-corpus-and-journalsource-score-profile)
+- [Exploratory model comparison](../03-experiments/README.md#2-exploratory-comparison-across-models)
+- [Reviewer structure comparison](../03-experiments/README.md#3-reviewer-structure-comparison)
+- [Harness validation and fault injection](../03-experiments/README.md#4-harness-validation-and-fault-injection)
+- [Adversarial instruction injection](../03-experiments/README.md#5-adversarial-instruction-injection)
+- [Repeated-run stability](../03-experiments/README.md#6-repeated-run-stability)
+- [Full experiment catalog](../03-experiments/experiment-catalog.md)
 
-5. **Validate and aggregate.** The Harness checks judgment schemas and evidence references, validates external evidence where applicable, retries selected uncertain items, and flags issues for human inspection. Deterministic scoring then aggregates applicable rule judgments and records completeness and uncertainty. See [Harness validation and aggregation](../02-system/README.md#7-harness-validation-gating-and-aggregation), [`evidence_gate.py`](../02-system/paper_eval/evidence_gate.py), and [`scorer.py`](../02-system/paper_eval/scorer.py).
+## Method in brief
 
+The study uses an evidence-grounded assessment workflow. The system parses each paper into page- and section-linked evidence, assembles rule-specific evidence packages, and generates structured judgments. The Harness validates judgment structure and evidence references, flags selected cases for review, and calculates scores from the configured criteria. This page states the study design; the [system documentation](../02-system/README.md) describes the architecture, criteria, and implementation.
 
-6. **Produce inspectable outputs.** Each run can produce JSON, Markdown, and HTML reports, a run manifest, and a trace bundle. Reports connect scores to criteria, evidence, rationales, validation results, and review flags; optional reliability diagnostics summarize variation across saved runs. See [reports and run records](../02-system/README.md#8-reports-run-records-and-reliability-analysis).
+## Intended contribution
 
+PaperEval contributes an inspectable way to study AI-assisted assessment as a measurement workflow. It supports analysis of how model behavior, workflow choices, evidence handling, and deterministic validation relate to assessment outputs. The project reports these findings as observed in the available corpus and experimental records; it does not treat journal standing or a model-generated score as a ground-truth measure of paper quality.
 
+## Materials
 
-
-## Experimental evidence
-
-The current experiment manuscript reports results in the sequence below. Each experiment has its own sample and comparison; samples overlap and should not be added to infer a project-wide number of unique papers. The [experiment index](../03-experiments/README.md) follows the same sequence and links to each detailed record.
-
-
-
-PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and configuration. The manuscript also reports A–F dimension summaries and journal/source composition. See the [data overview](../04-data/README.md#corpus-results) and [title-free outcomes](../04-data/paper-outcomes.csv).
-
-
-
-The manuscript compares five models on three shared papers, with two recorded runs per model and paper. Model means range from **77.91 to 89.99**, and average absolute differences between repeated runs range from **0.61 to 3.83** points. Evidence and retrieval were regenerated between runs, so the observed differences combine model and evidence variation. See the [five-model summary](../03-experiments/cross-model-results.md).
-
-
-
-Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. These outputs are descriptive because the conditions use different judgment and aggregation procedures. See the [four-condition comparison and module ablations](../03-experiments/module-ablation.md).
-
-
-
-The deterministic fault-injection study covered **180 injected faults** across nine machine-checkable categories and **40 clean controls**. The Harness detected all injected faults, automatically blocked or transformed 160, routed 20 reason–judgment conflicts for review, and passed all clean controls. See [fault-injection results](../03-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
-
-
-
-The paired prompt study used evidence from **three papers** and 108 attack cases per condition. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. See the [prompt-injection comparison](../03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
-
-
-
-Twenty papers were scored independently twice, producing **40 complete reports**. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. See [two-run repeatability results](../03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
-
-
-
-The broader experimental program revisits the evaluated papers through model comparisons, repeated runs, workflow and scoring analyses, evidence-handling studies, retrieval analyses, and trace-based diagnostics. These analyses reuse papers and produce multiple run, judgment, and evidence records; they are presented as linked analyses of the research corpus, not as additional project-wide paper totals. See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
-
-
-
-- [System and technical approach](../02-system/README.md) — system layers, evidence flow, validation, scoring, and implementation map.
-- [Experiment catalog](../03-experiments/experiment-catalog.md) — study families, sample sizes, and summary outcomes.
-- [Data and experimental materials](../04-data/README.md) — corpus audit, outcomes, study samples, and sample-paper PDFs.
-- [Ethics and data handling](../05-ethics-access/README.md) — study materials, data flows, and human responsibility.
+- [System architecture and implementation](../02-system/README.md)
+- [Experiment sequence and results](../03-experiments/README.md)
+- [Data and released materials](../04-data/README.md)
+- [Ethics and data access](../05-ethics-access/README.md)

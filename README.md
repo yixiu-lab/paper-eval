@@ -72,7 +72,7 @@ Across the broader experimental program, the same paper corpus is revisited thro
 
 ## Reading path
 
-1. [Project overview](01-proposal/README.md)
+1. [Research rationale and study design](01-proposal/README.md)
 2. [System architecture and implementation](02-system/README.md)
 3. [Experiment catalog and study summaries](03-experiments/README.md)
 4. [Data and experimental materials](04-data/README.md) — audit data, sample index, and redistributable sample PDFs.
