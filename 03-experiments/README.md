@@ -16,7 +16,7 @@ This directory organizes the PaperEval experiments in the order used by the curr
 
 PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
 
-The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-data/paper-outcomes.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-data/corpus-audit.md). A separate journal-gradient study and its reported association with journal-tier ordering are summarized in [historical experiment evidence](experiment-evidence.md); it uses its own 12- and 15-paper samples.
+The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-data/paper-outcomes.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-data/corpus-audit.md). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same broader evaluation program.
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|
@@ -75,7 +75,7 @@ See the [paired prompt-injection experiment](robustness-experiments.md#evidence-
 
 The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This describes repeatability for the recorded sample.
 
-See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). A separate historical reliability diagnostic covers 57 archived run records across 20 papers and is reported separately in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty).
+See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Historical reliability diagnostics are synthesized in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty) as additional run-level analyses of evaluated papers.
 
 ![Run 1 and run 2 total scores for the 20-paper repeatability sample](figures/two-run-repeatability.png)
 
@@ -83,14 +83,8 @@ See [two-run repeatability results](robustness-experiments.md#two-run-repeatabil
 
 ## 7. Experiment summary and paper-level outcomes
 
-The [experiment catalog](experiment-catalog.md) maps the complete set of study families and defines each sample separately. A normalized per-study count list is in the [data section](../04-data/study-samples.md). The [data index](../04-data/README.md) links the corpus audit and title-free outcomes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-data/paper-outcomes.csv), which omits paper titles and source text.
+The [experiment catalog](experiment-catalog.md) maps the study families and links to detailed records. The [data index](../04-data/README.md) links the corpus audit and title-free outcomes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-data/paper-outcomes.csv), which omits paper titles and source text.
 
 ## Additional archived studies
 
-The repository also records studies that are not separate numbered sections in the current manuscript:
-
-- [Historical scoring and batch evidence](experiment-evidence.md): a 10-paper API batch, two journal-gradient samples (27 papers combined), three-paper evidence-budget and threshold studies, and other archived scoring comparisons.
-- [Retrieval evaluation](retrieval-evaluation.md): seven target papers, seven claims, and 366 citation-linked candidate mappings. Candidate relevance was machine-prelabelled from citation links; a claim-count mismatch remains in the archived aggregate, so no overall retrieval-performance estimate is presented here.
-- [Experiment catalog](experiment-catalog.md): an index of corpus audit, repeatability, model comparison, robustness, fault injection, ablations, and retrieval records, including the 17-paper trace database.
-
-These supplemental samples overlap with one another and with other study samples. Their counts are not additive.
+The repository also records historical scoring, batch, journal/source, evidence-budget, threshold, retrieval, and trace-based analyses that complement the numbered manuscript sections. These records revisit papers from the evaluation program and preserve run-level and evidence-level detail. The [experiment catalog](experiment-catalog.md) provides the thematic index; see [historical experiment evidence](experiment-evidence.md) and [retrieval evaluation](retrieval-evaluation.md) for study-specific methods and findings.

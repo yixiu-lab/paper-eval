@@ -58,7 +58,7 @@ Twenty papers were scored independently twice, producing **40 complete reports**
 
 
 
-Additional records include a **10-paper** API batch, two journal-gradient samples with **27 papers** combined, a **17-paper** trace database, a separate reliability diagnostic with 57 historical runs across 20 papers, and a seven-paper/seven-claim retrieval setup with 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. Per-study paper counts are itemized in the [study sample index](../04-data/study-samples.md). See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
+The broader experimental program revisits the evaluated papers through model comparisons, repeated runs, workflow and scoring analyses, evidence-handling studies, retrieval analyses, and trace-based diagnostics. These analyses reuse papers and produce multiple run, judgment, and evidence records; they are presented as linked analyses of the research corpus, not as additional project-wide paper totals. See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
 
 
 
