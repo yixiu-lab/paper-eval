@@ -104,6 +104,10 @@ When enabled by runtime configuration, the external-grounding path extracts clai
 
 Candidate records are normalized and deduplicated, filtered against the target paper's publication year when available, and reranked using claim and paper context. The selected prior works are converted into external evidence records with stable evidence IDs and metadata. These records can support A/B judgments about the research gap and contribution. External validation checks evidence coverage and citation conditions; a positive comparison-dependent judgment without required external support can be changed to uncertain or flagged for review.
 
+![Claim-led retrieval workflow from the methods manuscript](.assets/claim-led-retrieval-overview.png)
+
+*Figure. Claim-led retrieval illustration from the methods manuscript. The displayed candidate counts and example paper entries are schematic; the current multi-provider path is shown below.*
+
 ```mermaid
 flowchart LR
     C[Paper claims] --> Q[Claim-derived queries]
