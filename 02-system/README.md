@@ -6,6 +6,10 @@ This page is the system entry point for reviewers and collaborators. It combines
 
 PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
 
+![PaperEval overview from the methods manuscript](.assets/system-overview-from-method.png)
+
+*Figure. Conceptual PaperEval overview from the methods manuscript. The displayed score values and report examples are illustrative. Runtime validation is detailed in Section 7; calibration and reliability analysis is a separate post-run step described in Section 8.*
+
 The core processing chain is:
 
 ```mermaid
