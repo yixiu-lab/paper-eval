@@ -25,7 +25,7 @@ The study has three objectives:
 
 ## Empirical strategy
 
-The empirical work combines a corpus-level scoring audit with focused comparisons of model behavior, workflow structure, repeatability, evidence handling, retrieval, and Harness validation. The main audit contains **144 completed paper scores**; two additional unique papers were blocked before scoring by PDF parsing. Focused analyses revisit papers under different conditions and are not added to this count. The [data overview](../04-data/README.md#corpus-results) defines the corpus and released materials.
+The experiment covers **200 papers**. It produced 198 completed scores under the same calibrated criteria and scoring model; two papers were blocked before scoring by PDF parsing. Analyses examine model behavior, workflow structure, repeatability, evidence handling, retrieval, and Harness validation. The [data overview](../04-data/README.md#evaluation-results) defines the outcomes and released materials.
 
 The experiment records follow the sequence and evidence available in the current manuscript. Each study page describes its comparison and links to the corresponding results:
 

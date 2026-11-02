@@ -16,11 +16,6 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
     scored = [row for row in rows if row.get("record_status") == "scored"]
-    groups: dict[str, list[float]] = {}
-    for row in scored:
-        groups.setdefault(row.get("evaluation_group", "unspecified"), []).append(
-            float(row["score_total"])
-        )
 
     def score_summary(values: list[float]) -> dict[str, float | int]:
         return {
@@ -34,12 +29,15 @@ def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
 
     overall = [float(row["score_total"]) for row in scored]
     return {
-        "outcome_records": len(rows),
-        "scored_records": len(scored),
+        "papers_evaluated": len(rows),
+        "completed_scores": len(scored),
         "blocked_before_scoring": sum(row.get("record_status") != "scored" for row in rows),
         "overall": score_summary(overall),
-        "by_evaluation_group": {
-            group: score_summary(values) for group, values in sorted(groups.items())
+        "dimension_scores": {
+            dimension: score_summary(
+                [float(row[f"dimension_{dimension}"]) for row in scored if row.get(f"dimension_{dimension}")]
+            )
+            for dimension in "ABCDEF"
         },
     }
 

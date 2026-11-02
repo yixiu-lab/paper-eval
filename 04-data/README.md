@@ -1,26 +1,20 @@
 # Data and Research Materials
 
-This directory links paper-level scores, source inventories, and PDF copies that are explicitly marked for redistribution. The released outcome table combines the primary corpus audit with additional scored papers from focused journal and theory studies.
+This directory contains paper-level outcomes and a source index for the PaperEval experiment. The evaluation covers **200 papers**, with one record per distinct source-PDF hash. The 198 completed scoring records use the same calibrated criteria and scoring model.
 
-## Directory guide
+## Files
 
 | Item | Contents |
 | --- | --- |
-| [`paper-outcomes.csv`](paper-outcomes.csv) | Title-free scores and processing status for 200 distinct source-PDF records: 198 scored and two blocked before scoring |
-| [`sample-paper-index.csv`](sample-paper-index.csv) | DOI, checksum, license note, and release status for the primary corpus input set |
-| [`supplementary-paper-index.csv`](supplementary-paper-index.csv) | Source study, journal where identified, DOI, score, and PDF release status for 54 additional scored papers |
-| [`sample-papers/`](sample-papers/README.md) | 29 unchanged primary-corpus PDFs with a Creative Commons license identified in the source copy |
-| [`scored-papers/`](scored-papers/) | 20 unchanged supplementary PDFs with an explicit Creative Commons license in the source copy |
+| [`paper-outcomes.csv`](paper-outcomes.csv) | Title-free score outcomes and processing status for all 200 papers |
+| [`paper-index.csv`](paper-index.csv) | One-row-per-paper index with journal and DOI metadata, score status, license note, and PDF availability |
+| [`papers/`](papers/) | 49 unchanged PDFs whose source copies state a Creative Commons license |
 
-## Scored-paper counts
+## Evaluation results
 
-The primary corpus audit contains **144 completed paper scores** across 146 distinct source-PDF hashes; two papers were blocked before scoring by PDF parsing. The primary-corpus mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**.
+The workflow produced completed scores for **198 papers**. Two papers could not proceed to scoring because PDF parsing was blocked; their scores are left blank. Across the 198 completed reports, the mean total score was **76.60** (SD 8.57), the median was **76.43**, and the range was **49.63–95.78**.
 
-The release also includes **54 additional distinct papers** with completed score reports. These papers come from journal-comparison, multi-journal expansion, management and AI working-paper, and stratified evaluation samples. The reports record the same model and calibrated scoring criteria as the primary corpus. The additional set has a mean score of **77.00** (SD 10.72), a median of **78.18**, and a range of **53.87–93.53**.
-
-Across the two non-overlapping sets, the title-free table contains **198 scored papers** and two primary-corpus parse blocks. The combined mean is **76.60** (SD 8.57), the median is **76.43**, and the range is **49.63–95.78**. The combined summary describes these released score records; manuscript results specific to the 144-paper primary audit remain reported separately in the experiment materials.
-
-The paper-level outcomes omit titles, local paths, and source text. Papers are identified by a checksum-derived ID. The supplementary index provides DOI and journal metadata when available and links to a PDF only when the source copy states a Creative Commons license.
+The outcome table includes dimension scores A–F, the total score, the model and criteria used, and whether the associated local report passed the project checks. It omits titles, local paths, and source text. Each paper is identified by a checksum-derived ID.
 
 ## Outcome fields
 
@@ -28,21 +22,20 @@ The paper-level outcomes omit titles, local paths, and source text. Papers are i
 | --- | --- |
 | `sample_id` | Identifier derived from the first 12 characters of the source PDF's SHA-256 hash |
 | `source_sha256` | SHA-256 hash used to identify the source file and exact duplicates |
-| `evaluation_group` | `main_corpus` for the primary audit or `supplementary_experiments` for additional scored papers |
-| `model` | Recorded scoring model label; blank when no scoring run was completed |
-| `rule_set` | Calibrated assessment criteria used for the score; blank when scoring did not start |
-| `record_status` | `scored` for a completed paper-level score; `pdf_parse_blocked` when parsing stopped before scoring |
-| `score_total`, `dimension_A`–`dimension_F` | Total and dimension scores when scoring completed; blank for parse-blocked records |
-| `report_file_verified` | Whether the associated local report passed the project audit checks; report files are not included here |
+| `model` | Recorded scoring model; blank when scoring did not start |
+| `rule_set` | Calibrated assessment criteria; blank when scoring did not start |
+| `record_status` | `scored` for a completed score or `pdf_parse_blocked` when parsing stopped before scoring |
+| `score_total`, `dimension_A`–`dimension_F` | Total and dimension scores; blank for parse-blocked records |
+| `report_file_verified` | Whether the associated local report passed project checks; report files are not included here |
 
-## PDF release
+The [paper index](paper-index.csv) joins each outcome to DOI and journal metadata when available. It also records whether an unchanged PDF is included and the license statement identified in the source copy.
 
-The primary sample folder contains 29 unchanged PDFs, and `scored-papers/` contains 20 unchanged supplementary PDFs. The supplementary index lists all 54 additional scored papers; it marks the other 34 as metadata-and-score records without a released PDF because the available copy either states “All rights reserved” or does not establish redistribution permission. No PDF was modified to prepare this release. Readers should follow each included PDF's license notice and the [Creative Commons license terms](https://creativecommons.org/share-your-work/cclicenses/).
+## PDF availability
 
-The primary source inventory and PDF availability are documented separately in the [primary-paper index](sample-paper-index.csv).
+The `papers/` directory contains **49 unchanged PDFs** whose source copies explicitly state a Creative Commons license. The paper index records their source hashes and repository paths. The other 151 records retain their score or processing status and available bibliographic metadata, but have no PDF copy in the repository because redistribution permission is unconfirmed or the source copy states “All rights reserved.” Readers should follow the notice in each released PDF and the [Creative Commons license terms](https://creativecommons.org/share-your-work/cclicenses/).
 
-## Relation to experiments
+## Experimental code
 
-The 144-paper audit and the additional 54-paper score set are separate evaluation groups. The additional papers were scored under the same model and calibrated criteria, but they originated in different focused study samples. The [experiment index](../03-experiments/README.md#supplementary-scored-papers) reports their sample sources and links to the corresponding journal/source records. Repeated runs of a paper in other experiments are not counted again in the 198-paper outcome table.
+The experiment section includes scripts for the deterministic Harness fault-injection analysis and for recomputing descriptive statistics from the outcome table. See [`03-experiments/code/`](../03-experiments/README.md#experiment-code).
 
 See the [system overview](../02-system/README.md) for the scoring workflow and the [ethics and data-access statement](../05-ethics-access/README.md) for the project's data-handling description.
