@@ -10,22 +10,52 @@ The core processing chain is:
 
 ```mermaid
 flowchart LR
-    A[Research paper PDF] --> B[PDF parser]
-    B --> C[Paper profile and evidence index]
-    C --> D[Rule-specific evidence routing]
-    C --> E[Claim extraction]
-    E --> F[External prior-work retrieval]
-    D --> G[Six dimension reviewers A-F]
-    F --> G
-    G --> H[Structured judgment validation]
-    H --> I[Evidence and external-evidence checks]
-    I --> J[Uncertain-item evidence retry]
-    J --> K[Evidence gate]
-    K --> L[Deterministic scoring and aggregation]
-    L --> M[Reflection and process audit]
-    M --> N[JSON, Markdown, HTML reports and run trace]
-    N --> O[Optional reliability diagnosis]
+    subgraph inputs[Research inputs]
+        PDF[Research paper PDF]
+        Rules[Domain rule profile]
+        Config[Runtime configuration]
+    end
+
+    subgraph preparation[Paper parsing and evidence preparation]
+        Parser[PDF parser and diagnostics]
+        Context[Paper profile, section map, and evidence index]
+        Router[Rule-specific evidence routing]
+        Claim[Claim extraction]
+        Retrieval[Optional prior-work retrieval]
+    end
+
+    subgraph review[Rule-level review]
+        Pack[Evidence packages with page, section, and evidence IDs]
+        Reviewers[A-F dimension reviewers]
+        Judgments[Judgments, rationales, and evidence references]
+    end
+
+    subgraph harness[Harness]
+        Checks[Schema, evidence-reference, and consistency checks]
+        Retry[Uncertain-item evidence retry]
+        Scoring[Deterministic rule mapping and score aggregation]
+    end
+
+    subgraph outputs[Research outputs]
+        Scores[Rule, dimension, and total scores]
+        Reports[Reports and run trace]
+        Reliability[Optional repeatability and reliability diagnosis]
+    end
+
+    PDF --> Parser --> Context
+    Rules --> Router
+    Context --> Router --> Pack
+    Context --> Claim --> Retrieval --> Pack
+    Pack --> Reviewers --> Judgments --> Checks
+    Config --> Parser
+    Config --> Retrieval
+    Config --> Reviewers
+    Checks --> Retry
+    Retry --> Reviewers
+    Checks --> Scoring --> Scores --> Reports --> Reliability
 ```
+
+**Architecture figure.** Redrawn in English from the system figure in the technical manuscript. Prior-work retrieval and reliability diagnosis are optional paths.
 
 The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
 

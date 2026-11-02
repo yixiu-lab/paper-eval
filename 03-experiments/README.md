@@ -33,13 +33,27 @@ Dimension maxima differ, so these means describe the observed score profile and 
 
 The current manuscript compares five models on three shared papers, with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; average absolute differences between repeated runs range from **0.61 to 3.83** points. The runs re-extracted evidence and repeated external retrieval, so differences combine model and evidence variation. The findings are descriptive and do not establish model accuracy or general superiority.
 
-See the [five-model results](cross-model-results.md), including each recorded run for all three shared papers, model-level means, and run-to-run differences. The experiment uses the single expert-calibrated scoring-rule set documented in the [system rules](../02-system/rules/README.md).
+| Model | Mean across three papers | Mean absolute run-to-run difference |
+|---|---:|---:|
+| Qwen3.8-Flash | 89.99 | 3.83 |
+| Qwen3.5-35B-A3B | 86.55 | 2.35 |
+| Qwen3.7-Flash | 86.14 | 1.11 |
+| DeepSeek-Flash | 78.37 | 0.61 |
+| Kimi-K2.5 | 77.91 | 3.83 |
+
+*Table: Model-level summary from the five-model comparison. Each model was run twice on each of three shared papers.*
+
+See the [five-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in the [system rules](../02-system/rules/README.md).
 
 ## 3. Reviewer structure comparison
 
 Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. The conditions use different judgment and aggregation procedures, so score differences describe the conditions and are not directly comparable as accuracy estimates.
 
 See the [four-condition comparison and module ablations](module-ablation.md). The file also records separate one-paper module ablations and a three-paper paired comparison of evidence-gate outputs.
+
+![Total scores for five papers under four evaluation structures](figures/reviewer-structure-comparison.png)
+
+*Figure: Five-paper comparison of full PaperEval, single Reviewer, Reviewer-only counterfactual, and direct model scoring. The Reviewer-only condition uses a counterfactual aggregation scale.*
 
 ## 4. Harness validation and fault injection
 
@@ -53,11 +67,19 @@ The matched prompt comparison used evidence packs from **three papers**, six Rev
 
 See the [paired prompt-injection experiment](robustness-experiments.md#evidence-level-prompt-injection-comparison), which also distinguishes the matched comparison from separate production-prompt and synthetic-pilot runs.
 
+![Matched prompt-injection results for target reaching, judgment changes, and mean absolute shift](figures/prompt-injection-results.png)
+
+*Figure: Results by attack type for the original prompt and the evidence-boundary prompt. Each attack type contains 36 paired cases per prompt condition.*
+
 ## 6. Repeated-run stability
 
 The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This describes repeatability for the recorded sample.
 
 See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). A separate historical reliability diagnostic covers 57 archived run records across 20 papers and is reported separately in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty).
+
+![Run 1 and run 2 total scores for the 20-paper repeatability sample](figures/two-run-repeatability.png)
+
+*Figure: Paired total scores for 20 papers. Points nearer the dashed line have more similar scores across the two runs.*
 
 ## 7. Experiment summary and paper-level outcomes
 
