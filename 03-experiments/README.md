@@ -14,7 +14,7 @@ This directory organizes the PaperEval experiments in the order used by the curr
 
 ## 1. Corpus and journal/source score profile
 
-The corpus audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**, of which **144** had complete reports; two were blocked before scoring by PDF parsing. The 144 complete reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
+PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
 
 The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-data/paper-outcomes.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-data/corpus-audit.md). A separate journal-gradient study and its reported association with journal-tier ordering are summarized in [historical experiment evidence](experiment-evidence.md); it uses its own 12- and 15-paper samples.
 

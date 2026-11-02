@@ -4,7 +4,7 @@
 
 This is the earlier scoring evidence stream. The project also has cross-model, uncertainty, prompt-injection, harness fault-injection, module-ablation, and external-retrieval records. See the [full experiment catalog](experiment-catalog.md) and its linked summaries.
 
-The 17-paper trace database is a focused subset. The separate full-corpus audit covers 149 source PDFs, 146 unique papers, 144 complete reports, and two parse-blocked papers. See the [audit](../04-data/corpus-audit.md) and [title-free outcome table](../04-data/paper-outcomes.csv).
+The 17-paper trace database is a focused subset. The separate corpus audit contains completed scores for 144 papers; two additional unique papers were blocked before scoring by PDF parsing. See the [audit](../04-data/corpus-audit.md) and [title-free outcome table](../04-data/paper-outcomes.csv).
 
 ## Archived experiment results
 

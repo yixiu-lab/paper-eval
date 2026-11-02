@@ -8,7 +8,7 @@ This section collects the released data and supporting materials for inspecting 
 - [Paper-level outcomes](paper-outcomes.csv): title-free records with available total and dimension scores.
 - [Study sample index](study-samples.md): paper and run counts by study; samples remain separate.
 - [Released data notes](data-index.md): definitions and scope of the outcome table.
-- [Sample-paper index](sample-paper-index.csv): source identifiers, DOI values where available, and release status for the 149 input PDFs.
+- [Sample-paper index](sample-paper-index.csv): source identifiers, DOI values where available, and release status for the corpus PDF inventory.
 - [Redistributable sample PDFs](sample-papers/README.md): unchanged copies with an explicit sharing license noted in the source PDF.
 - [Experiment catalog](../03-experiments/experiment-catalog.md): study designs, samples, and results across the project.
 - [Experiment evidence](../03-experiments/experiment-evidence.md): supporting records for additional study families.

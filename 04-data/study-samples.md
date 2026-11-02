@@ -4,7 +4,7 @@ Counts below are study-specific. Samples overlap; do not sum them to claim a pro
 
 | Study | Papers evaluated | Completed scoring / runs | Scope note |
 | --- | ---: | --- | --- |
-| Corpus audit | 149 source PDFs; 146 unique after exact deduplication | 144 complete scores; two unique papers stopped at PDF parsing | Three source PDFs were exact duplicates. See the [audit outcomes](paper-outcomes.csv). |
+| Corpus audit | 144 papers with completed scores | 144 complete reports; two additional unique papers blocked at PDF parsing | See the [audit outcomes](paper-outcomes.csv). |
 | API batch | 10 papers | Batch outcomes are summarized in the [experiment evidence](../03-experiments/experiment-evidence.md). | A separate operational batch. |
 | Journal-gradient studies | 12 papers in the first sample; 15 additional papers in the second | Reported separately by sample | The combined sample is 27 papers, independent of the corpus audit. |
 | Repeated-run stability | 20 papers | Two complete reports per paper (40 reports) | Paired repeatability, not a unique-paper expansion. |
@@ -18,4 +18,4 @@ Counts below are study-specific. Samples overlap; do not sum them to claim a pro
 | Harness fault injection | No paper-level sample | 180 injected faulty outputs and 40 clean controls | Software validation cases, not paper evaluations. |
 | Retrieval study | 7 target papers | 7 claims and 366 candidate mappings | Relevance labels are machine-prelabelled; aggregate metric reconciliation is pending. |
 
-The corpus audit is the only study in this index that reports source-file, deduplicated-paper, and completed-report counts together. Other samples and run records are separate and may overlap.
+The corpus audit reports completed paper scores separately from parse-blocked cases. Other samples and run records are separate and may overlap.

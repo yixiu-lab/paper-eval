@@ -2,7 +2,7 @@
 
 ## Corpus size and experimental scope
 
-The **149-PDF** figure refers to one Corpus audit: 149 source files, 146 unique PDFs after exact deduplication, 144 complete reports, and two parser-blocked papers. It is not the count of every paper used across the project. Other studies reuse overlapping samples, so their sample sizes should not be added together as a project-wide unique-paper total.
+The corpus audit reports completed scores for **144 papers**; two additional unique papers were blocked before scoring by PDF parsing. Other studies reuse overlapping samples, so their sample sizes should not be added together as a project-wide unique-paper total.
 
 The research archive contains a trace database covering 17 papers and 72 evaluation runs, with 2,342 agent judgments, 7,486 evidence records, and 215 reflection issues. Additional experiment folders include claim-level retrieval slices. This catalog summarizes the main study families; each row retains its own sample definition.
 
@@ -10,7 +10,7 @@ The research archive contains a trace database covering 17 papers and 72 evaluat
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| Corpus and journal/source score profile | 149 PDFs; 146 unique | 144 complete reports; two parser-blocked; source composition and dimension summaries | [Audit and title-free outcomes](../04-data/corpus-audit.md) |
+| Corpus and journal/source score profile | 144 papers scored | Two additional papers were blocked before scoring; source composition and dimension summaries | [Audit and title-free outcomes](../04-data/corpus-audit.md) |
 | Cross-model exploratory comparison | Three shared papers × five models × two recorded runs (30 scores) | Model means range from 77.91 to 89.99; evidence was not fixed between runs, so results are descriptive | [Five-model comparison](cross-model-results.md) |
 | Reviewer structure comparison | Five papers, four evaluation structures | Full PaperEval, unified Reviewer, Reviewer-only, and direct scoring conditions are summarized descriptively | [Module ablations](module-ablation.md) |
 | Harness fault injection | 180 injected faulty outputs and 40 clean controls across nine fault types | Deterministic checks detected all injected faults; 88.9% were automatically contained and 11.1% routed for review | [Robustness experiments](robustness-experiments.md) |
