@@ -10,56 +10,7 @@ PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its 
 
 *Figure. Conceptual PaperEval overview from the methods manuscript. The displayed score values and report examples are illustrative. Runtime validation is detailed in Section 7; calibration and reliability analysis is a separate post-run step described in Section 8.*
 
-The core processing chain is:
-
-```mermaid
-flowchart LR
-    subgraph inputs[Research inputs]
-        PDF[Research paper PDF]
-        Rules[Domain rule profile]
-        Config[Runtime configuration]
-    end
-
-    subgraph preparation[Paper parsing and evidence preparation]
-        Parser[PDF parser and diagnostics]
-        Context[Paper profile, section map, and evidence index]
-        Router[Rule-specific evidence routing]
-        Claim[Claim extraction]
-        Retrieval[Optional prior-work retrieval]
-    end
-
-    subgraph review[Rule-level review]
-        Pack[Evidence packages with page, section, and evidence IDs]
-        Reviewers[A-F dimension reviewers]
-        Judgments[Judgments, rationales, and evidence references]
-    end
-
-    subgraph harness[Harness]
-        Checks[Schema, evidence-reference, and consistency checks]
-        Retry[Uncertain-item evidence retry]
-        Scoring[Deterministic rule mapping and score aggregation]
-    end
-
-    subgraph outputs[Research outputs]
-        Scores[Rule, dimension, and total scores]
-        Reports[Reports and run trace]
-        Reliability[Optional repeatability and reliability diagnosis]
-    end
-
-    PDF --> Parser --> Context
-    Rules --> Router
-    Context --> Router --> Pack
-    Context --> Claim --> Retrieval --> Pack
-    Pack --> Reviewers --> Judgments --> Checks
-    Config --> Parser
-    Config --> Retrieval
-    Config --> Reviewers
-    Checks --> Retry
-    Retry --> Reviewers
-    Checks --> Scoring --> Scores --> Reports --> Reliability
-```
-
-**Architecture figure.** Redrawn in English from the system figure in the technical manuscript. Prior-work retrieval and reliability diagnosis are optional paths.
+The workflow proceeds from PDF parsing and profile construction through rule-specific evidence routing, reviewer judgments, deterministic validation, and report generation. Claim-led retrieval and reliability diagnosis are optional paths described below.
 
 The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
 
@@ -106,24 +57,7 @@ Candidate records are normalized and deduplicated, filtered against the target p
 
 ![Claim-led retrieval workflow from the methods manuscript](.assets/claim-led-retrieval-overview.png)
 
-*Figure. Claim-led retrieval illustration from the methods manuscript. The displayed candidate counts and example paper entries are schematic; the current multi-provider path is shown below.*
-
-```mermaid
-flowchart LR
-    C[Paper claims] --> Q[Claim-derived queries]
-    Q --> X[Crossref]
-    Q --> O[OpenAlex]
-    Q --> S[Semantic Scholar]
-    X --> N[Normalize and deduplicate]
-    O --> N
-    S --> N
-    N --> F[Publication-time and metadata filters]
-    F --> R[Relevance reranking]
-    R --> E[External evidence records with source IDs]
-    E --> J[Comparison-dependent judgments]
-```
-
-This diagram describes the current multi-provider retrieval path. Provider availability and retrieval settings depend on the run configuration.
+*Figure. Claim-led retrieval illustration from the methods manuscript. The displayed candidate counts and example paper entries are schematic; the current multi-provider implementation is described above.*
 
 Social-relevance grounding is a separate optional evidence input. When enabled, issue-grounding passages are added to the shared evidence collection for the F dimension. External literature and issue-grounding records enter through the same evidence interface as paper passages; they do not create additional scoring dimensions or independent final scores.
 
@@ -154,26 +88,6 @@ The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/e
 ![Harness validation and aggregation from the methods manuscript](.assets/harness-validation-aggregation.png)
 
 *Figure. Harness validation and aggregation sketch from the methods manuscript. The calibration panel refers to optional post-run calibration sensitivity analysis; it is not a runtime gate that changes judgments.*
-
-The validation and scoring path can be summarized as follows:
-
-```mermaid
-flowchart LR
-    J[Reviewer judgments] --> S[Schema validation]
-    E[Internal and optional external evidence] --> R[Evidence reference and external-evidence checks]
-    P[Active rule profile] --> G[Evidence gate and review flags]
-    S --> G
-    R --> G
-    G --> U{Uncertain items?}
-    U -- Yes --> T[Second evidence pass]
-    T --> S
-    U -- No --> C[Deterministic score aggregation]
-    P --> C
-    C --> O[Dimension scores, total score, completeness, and run record]
-    O -. Optional post-run analysis .-> L[Repeatability and reliability diagnosis]
-```
-
-The source methods document also contains a Harness diagram. The flow above reflects the current implementation: calibration sensitivity is handled by optional post-run reliability analysis, rather than as a gate that changes every judgment.
 
 ## 8. Reports, run records, and reliability analysis
 
