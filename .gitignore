@@ -6,6 +6,8 @@
 __pycache__/
 *.py[cod]
 *.pdf
+!04-data/scored-papers/
+!04-data/scored-papers/*.pdf
 runs/
 data/
 retrieval_index/

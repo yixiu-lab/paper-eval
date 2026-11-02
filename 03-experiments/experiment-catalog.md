@@ -2,7 +2,7 @@
 
 ## Corpus size and experimental scope
 
-The corpus audit reports completed scores for **144 papers**. The other analyses revisit papers through different models, runs, workflow conditions, and evidence procedures. They are linked study records within the same evaluation program, not additive paper totals.
+The primary corpus audit reports completed scores for **144 papers**, with two additional papers blocked before scoring by PDF parsing. A further **54 distinct papers** were scored in focused journal, working-paper, and stratified samples using the same model and calibrated criteria. The released paper-level table therefore covers **198 scored papers** across the two non-overlapping groups; the primary audit and supplementary results remain separately summarized.
 
 The research archive contains trace records, run-level diagnostics, and claim-level retrieval slices. This catalog summarizes the main study families and links to the underlying records.
 
@@ -10,7 +10,7 @@ The research archive contains trace records, run-level diagnostics, and claim-le
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| Corpus and journal/source score profile | 144 papers scored | Two additional papers were blocked before scoring; source composition and dimension summaries | [Data overview and title-free outcomes](../04-data/README.md#corpus-results) |
+| Corpus and journal/source score profile | 144 primary-audit papers + 54 supplementary papers | 198 scored papers across two cohorts; the primary audit also has two parse-blocked papers | [Data overview, source index, and title-free outcomes](../04-data/README.md#scored-paper-counts) |
 | Cross-model exploratory comparison | Three shared papers × five models × two recorded runs (30 scores) | Model means range from 77.91 to 89.99; evidence was not fixed between runs, so results are descriptive | [Five-model comparison](cross-model-results.md) |
 | Reviewer structure comparison | Five papers, four evaluation structures | Full PaperEval, unified Reviewer, Reviewer-only, and direct scoring conditions are summarized descriptively | [Module ablations](module-ablation.md) |
 | Harness fault injection | 180 injected faulty outputs and 40 clean controls across nine fault types | Deterministic checks detected all injected faults; 88.9% were automatically contained and 11.1% routed for review | [Robustness experiments](robustness-experiments.md) |
@@ -32,4 +32,8 @@ The completed comparison reports the five models with two recorded runs on each 
 
 ## Data release boundary
 
-This repository publishes study designs, aggregate outcomes, and title-free scores. The local archive also contains PDFs, paper-linked traces, excerpts, API logs, and caches. Those raw materials are not part of this public release.
+This repository publishes study designs, aggregate outcomes, and title-free scores. The [data section](../04-data/README.md) includes 29 primary-corpus PDFs and 20 supplementary PDFs whose source copies state a Creative Commons license. The supplementary index retains metadata and scores for the other 34 papers without distributing their PDF copies.
+
+## Executable analysis material
+
+The experiment section includes [the deterministic Harness fault-injection script](code/run_harness_fault_injection.py) and [the paper-outcome summary script](code/summarize_paper_outcomes.py). The first exercises the released validator and evidence gate on synthetic cases; the second recomputes descriptive statistics from the public title-free score table.

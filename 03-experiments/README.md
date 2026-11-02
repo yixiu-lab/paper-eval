@@ -16,7 +16,21 @@ This directory organizes the PaperEval experiments in the order used by the curr
 
 PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
 
-The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [outcome table](../04-data/paper-outcomes.csv); corpus counts and the aggregate score summary are in the [data overview](../04-data/README.md#corpus-results). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same broader evaluation program.
+The released paper-level record also includes **54 additional distinct papers** scored with the same model and calibrated criteria. Together with the primary audit, this gives **198 scored papers** across the project record; the 144-paper primary-audit statistics above remain a separate result. The supplementary set has a mean of **77.00** (SD 10.72), a median of **78.18**, and a range of **53.87–93.53**. Its source samples and journal metadata are indexed in the [supplementary paper index](../04-data/supplementary-paper-index.csv).
+
+| Supplementary sample source | Scored papers |
+|---|---:|
+| Multi-journal expansion study | 25 |
+| Journal comparison study | 19 (10 Journal of Business Research; 9 Management Science) |
+| Management and AI working-paper sample | 4 |
+| Theory-focused repeat sample | 3 |
+| Theory-focused verification sample | 2 |
+| Stratified sample | 1 |
+| **Total additional papers** | **54** |
+
+Across the supplementary set, journal metadata identifies 13 Management Science papers and 10 Journal of Business Research papers, alongside papers from other journals. Six records have no venue identified in the available source materials; see the index for paper-level DOI and venue fields.
+
+The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [outcome table](../04-data/paper-outcomes.csv); corpus counts and the aggregate score summary are in the [data overview](../04-data/README.md#scored-paper-counts). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same broader evaluation program.
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|
@@ -83,8 +97,26 @@ See [two-run repeatability results](robustness-experiments.md#two-run-repeatabil
 
 ## 7. Experiment summary and paper-level outcomes
 
-The [experiment catalog](experiment-catalog.md) maps the study families and links to detailed records. The [data index](../04-data/README.md) links the corpus audit and title-free outcomes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-data/paper-outcomes.csv), which omits paper titles and source text.
+The [experiment catalog](experiment-catalog.md) maps the study families and links to detailed records. The [data index](../04-data/README.md) links the primary audit, supplementary score set, and title-free outcomes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-data/paper-outcomes.csv), which omits paper titles and source text.
+
+## Supplementary scored papers
+
+The 54 additional papers are distinct by source-PDF SHA-256 hash and do not duplicate the primary corpus files. The [supplementary index](../04-data/supplementary-paper-index.csv) maps each record to its study source, journal and DOI when available, score, and PDF release status. Twenty PDFs with an explicit Creative Commons license are included in [`04-data/scored-papers/`](../04-data/scored-papers/); the remaining 34 records provide scores and metadata without a PDF copy.
 
 ## Additional archived studies
 
 The repository also records historical scoring, batch, journal/source, evidence-budget, threshold, retrieval, and trace-based analyses that complement the numbered manuscript sections. These records revisit papers from the evaluation program and preserve run-level and evidence-level detail. The [experiment catalog](experiment-catalog.md) provides the thematic index; see [historical experiment evidence](experiment-evidence.md) and [retrieval evaluation](retrieval-evaluation.md) for study-specific methods and findings.
+
+## Experiment code
+
+The [`code/`](code/) folder contains executable material for two analyses represented in this section:
+
+- [`run_harness_fault_injection.py`](code/run_harness_fault_injection.py) builds synthetic faulty and clean outputs and runs the released schema validator and evidence gate. It does not call an external model.
+- [`summarize_paper_outcomes.py`](code/summarize_paper_outcomes.py) recomputes the score counts and descriptive statistics from the released outcome table.
+
+Run both from the repository root after installing the system dependencies:
+
+```bash
+python 03-experiments/code/run_harness_fault_injection.py
+python 03-experiments/code/summarize_paper_outcomes.py
+```

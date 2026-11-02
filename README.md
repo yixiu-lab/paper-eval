@@ -38,7 +38,7 @@ The result is a report and run record that connect criteria, evidence, judgments
 
 ## Empirical scope
 
-The current manuscript reports completed scores for **144 papers** and focused studies of five-model variation, reviewer structure, repeated-run stability, evidence-boundary instructions, and Harness fault handling. Each study uses its own sample and comparison. The results and supporting records are summarized in the [experimental evidence section](#experimental-evidence) and organized by study in the [experiment README](03-experiments/README.md).
+The current manuscript reports completed scores for **144 papers** and focused studies of five-model variation, reviewer structure, repeated-run stability, evidence-boundary instructions, and Harness fault handling. The released data also includes **54 additional papers** scored with the same model and calibrated criteria, for 198 distinct scored-paper records across the primary audit and supplementary samples. Each study retains its own sample and comparison. The results and supporting records are summarized in the [experimental evidence section](#experimental-evidence) and organized by study in the [experiment README](03-experiments/README.md).
 
 ## System and technical approach
 
@@ -56,7 +56,7 @@ See the [system and technical approach](02-system/README.md) for the architectur
 
 The current experiment manuscript presents the studies in the sequence below. Each study has its own sample and comparison; samples overlap and must not be added to estimate a project-wide count of unique papers. The [experiment README](03-experiments/README.md) provides the detailed ordered index.
 
-1. **Corpus and journal/source score profile.** PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. Six-dimension summaries and title-free paper outcomes are in the [data overview](04-data/README.md#corpus-results) and [outcome table](04-data/paper-outcomes.csv).
+1. **Corpus and journal/source score profile.** PaperEval completed scoring for **144 primary-audit papers**. Two additional papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. The released paper-level record adds **54 distinct papers** from focused journal and related samples, for **198 scored papers** overall. Six-dimension summaries, cohort labels, and title-free outcomes are in the [data overview](04-data/README.md#scored-paper-counts) and [outcome table](04-data/paper-outcomes.csv).
 
 2. **Exploratory model comparison.** The current manuscript compares five models on three shared papers with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Because evidence was re-extracted and retrieval rerun, the comparison is descriptive and combines model and evidence variation. See the [five-model comparison](03-experiments/cross-model-results.md).
 
@@ -68,14 +68,14 @@ The current experiment manuscript presents the studies in the sequence below. Ea
 
 6. **Repeated-run stability.** Twenty papers were scored independently twice, yielding **40 complete reports**. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. See the [two-run results](03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
 
-Across the broader experimental program, the same paper corpus is revisited through model comparisons, repeated runs, workflow and scoring analyses, evidence-handling studies, retrieval analyses, and trace-based diagnostics. These analyses reuse papers and generate multiple run, judgment, and evidence records; they are linked to the completed-score corpus rather than added as separate paper totals. The main corpus comprises **144 papers with completed scores**. Study-specific designs and results are available in the [experiment catalog](03-experiments/experiment-catalog.md), [historical experiment evidence](03-experiments/experiment-evidence.md), and [retrieval record](03-experiments/retrieval-evaluation.md).
+Across the broader experimental program, papers are revisited through model comparisons, repeated runs, workflow and scoring analyses, evidence-handling studies, retrieval analyses, and trace-based diagnostics. These analyses generate multiple run, judgment, and evidence records. The released paper-level score table combines **144 primary-audit papers** and **54 additional distinct papers** from focused studies; repeated runs do not add new paper records. Study-specific designs and results are available in the [experiment catalog](03-experiments/experiment-catalog.md), [historical experiment evidence](03-experiments/experiment-evidence.md), and [retrieval record](03-experiments/retrieval-evaluation.md).
 
 ## Reading path
 
 1. [Research rationale and study design](01-proposal/README.md)
 2. [System architecture and implementation](02-system/README.md)
 3. [Experiment catalog and study summaries](03-experiments/README.md)
-4. [Data and experimental materials](04-data/README.md) — audit data, sample index, and redistributable sample PDFs.
+4. [Data and experimental materials](04-data/README.md) — paper-level outcomes, cohort/source indexes, and PDFs with explicit redistribution licenses.
 
 ## Run the command-line workflow
 
