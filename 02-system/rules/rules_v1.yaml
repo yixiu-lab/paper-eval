@@ -1,235 +1,196 @@
-﻿rule_profile_id: MGMT-LIT-EVAL-V1
-rule_profile_name: 管理学文献质量评价首版规则
+rule_profile_id: MGMT-LIT-EVAL-V1
+rule_profile_name: Management Paper Evaluation Rules
 version: current
 status: active
 scoring_scale: 100
-# 两池标尺：基准池是「达到发表水准」的基准分，加分池是超过合格才拿得到的分数。两者相加 = scoring_scale。
-# 基准池 60：各方面都合格的论文正好 60 分，与「60 分及格」的直观一致；超出合格的部分放进加分池。
-# 原因：scorer 的维度满分是摊分出来的（pool × 该维规则权重 / 池总权重），不是直接取维度权重；
-# 只有每维 6:4 时摊分结果才等于声明的维度权重。V12 下 B 满分 25.26/声明 20、D 21.95/25 就是这个缺口。
 scoring_pools:
   baseline: 60
   bonus: 40
-# 证据预算随规则库版本化：分数绝对值依赖每条规则的证据条数（实测 10→20 段整体上移约 7 分），
-# 不能悄悄改，否则历史分数与专家标注的可比性会静默失效。
-# 每规则 retrieval_terms + 可选检索层），条数不变但分数会变——预算治理必须同时盯「条数」与「选择逻辑」。
 evidence_budget:
   max_evidence_per_rule: 10
-judgement_policy: Agent 只输出档位与证据；权重、分值映射和全部算术由 Harness 按规则库声明确定性执行。 总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分。 权重分三层且逐层精确求和：Σ维度权重 = Σ构念权重 = Σ规则份额；加不平由 validate_rule_profile 拒绝。 维度满分由两池摊分得出（基准池 60 × 该维基准规则权重 / Σ基准规则权重 + 加分池 40 × 该维加分规则权重 / Σ加分规则权重），因此每个维度必须满足 基准:加分 = 6:4，此时维度满分才等于声明的维度权重。 每条规则的 role 决定它是基准项还是加分项（一个构念不跨角色）：基准项衡量「够不够发表水准」，**合格即满分**——mostly 与 partial 同记 1.0，只有 weak 0.5 / not_satisfied 0.0 扣分，且不设 satisfied；加分项衡量「有没有超出合格」，只有 satisfied 记 1.0（mostly 0.5 / partial 0.25 / weak·not_satisfied 0.0），只加分不扣分。 每条规则另有 retrieval_terms（英文检索词），供证据选择使用：规则锚点是中文、被评论文是英文，拿中文搜英文正文恒不命中。 score_mapping 是唯一的档位分值真源。 标尺由规则库声明的 score_mapping 确定；无法判断不进分子也不进分母（宽松口径）。
+judgement_policy: >-
+  Review agents return judgment tiers and evidence references. The Harness applies the declared weights and score mappings deterministically. The total score is the 60-point baseline pool multiplied by baseline attainment plus the 40-point bonus pool multiplied by bonus attainment. Dimension, construct, and rule weights must sum consistently. Each dimension uses a 60:40 baseline-to-bonus allocation so its maximum equals its declared weight. Baseline rules assess minimum publication readiness: mostly and partial each map to 1.0, weak to 0.5, and not_satisfied to 0.0; satisfied is not used for baseline rules. Bonus rules assess performance beyond the baseline: satisfied maps to 1.0, mostly to 0.5, partial to 0.25, and weak or not_satisfied to 0.0. Uncertain judgments are excluded from both numerator and denominator. The rule-level score_mapping is the source of truth.
 dimensions:
 - dimension_id: A
-  dimension_name: 选题价值与问题定位
+  dimension_name: "Topic selection value and problem positioning"
   weight: 15
-  description: 评价论文是否提出值得研究、清楚定位、能进入有效学术对话的问题。
+  description: "Evaluate whether the paper raises issues worthy of research, clearly positioned, and capable of entering into effective academic dialogue."
 - dimension_id: B
-  dimension_name: 理论贡献与创新性
+  dimension_name: "Theoretical contribution and innovation"
   weight: 20.0
-  description: 评价论文是否改变、挑战、整合或推进既有理论对话。
+  description: "Evaluate whether the paper changes, challenges, integrates, or advances existing theoretical dialogue."
 - dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
+  dimension_name: "Theoretical rigor and hypothetical logic"
   weight: 20.0
-  description: 评价概念、逻辑前提、推理链条、假设或命题构建是否严密。
+  description: "Evaluate whether concepts, logical premises, reasoning chains, assumptions or propositions are well constructed."
 - dimension_id: D
-  dimension_name: 研究设计与方法质量
+  dimension_name: "Study design and methodological quality"
   weight: 25
-  description: 评价研究设计、数据、测量、模型、识别和方法执行是否支撑研究问题。
+  description: "Evaluate whether the research design, data, measurements, models, identification, and method execution support the research questions."
 - dimension_id: E
-  dimension_name: 证据、结果与结论可信度
+  dimension_name: "Credibility of evidence, results and conclusions"
   weight: 15.0
-  description: 评价结果呈现、分析充分性、证据链和结论边界是否可信。
+  description: "Evaluate whether the presentation of results, adequacy of analysis, evidence chain and conclusion boundaries are credible."
 - dimension_id: F
-  dimension_name: 透明度、边界与实践意义
+  dimension_name: "Transparency, Boundaries and Practical Significance"
   weight: 5
-  description: 评价可复制性、透明度、外部效度、局限讨论和实践/社会意义。
+  description: "evaluates replicability, transparency, external validity, discussion of limitations, and practical/social implications."
 constructs:
 - construct_id: A-TOPIC
-  construct_name: 选题后果可见性
+  construct_name: "Visibility of topic selection consequences"
   dimension_id: A
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: A-GAP
-  construct_name: 研究缺口与谜题
+  construct_name: "Research gaps and puzzles"
   dimension_id: A
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: A-QUESTION
-  construct_name: 研究问题可检验性
+  construct_name: "Research Question Testability"
   dimension_id: A
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: A-LIT
-  construct_name: 文献对话定位
+  construct_name: "Document dialogue positioning"
   dimension_id: A
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: A-SCOPE
-  construct_name: 问题范围与可操作性
+  construct_name: "Problem scope and operability"
   dimension_id: A
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: B-DIALOGUE
-  construct_name: 理论对话推进与质疑
+  construct_name: "Theoretical dialogue promotion and questioning"
   dimension_id: B
   weight: 6.461539
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: B-INTEGRATION
-  construct_name: 跨理论或跨学科整合
+  construct_name: "Cross-theoretical or cross-disciplinary integration"
   dimension_id: B
   weight: 4.444444
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: B-NOVELTY
-  construct_name: 新概念、新机制或测量创新
+  construct_name: "New concept, new mechanism or measurement innovation"
   dimension_id: B
   weight: 5.538461
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: B-INTERESTING
-  construct_name: 有趣性与反直觉发现
+  construct_name: "Interesting and counter-intuitive findings"
   dimension_id: B
   weight: 3.555556
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-CONCEPT
-  construct_name: 概念定义与命名清晰
+  construct_name: "Concept definition and naming are clear"
   dimension_id: C
   weight: 4.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-PREMISE
-  construct_name: 逻辑前提恰当
+  construct_name: "The logical premise is appropriate"
   dimension_id: C
   weight: 2.666667
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-REASONING
-  construct_name: 推理过程严密
+  construct_name: "The reasoning process is rigorous"
   dimension_id: C
   weight: 4.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-HYPOTHESIS
-  construct_name: 假设或命题扎根
+  construct_name: "hypothesis or proposition takes root"
   dimension_id: C
   weight: 4.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-BOUNDARY
-  construct_name: 理论边界条件
+  construct_name: "theoretical boundary conditions"
   dimension_id: C
   weight: 2.666667
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-ALTERNATIVE
-  construct_name: 替代解释处理
+  construct_name: "alternative interpretation processing"
   dimension_id: C
   weight: 2.666666
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: C-WRITING
-  construct_name: 语言表达与写作清晰度（不计分）
+  construct_name: "Language expression and writing clarity (not scored)"
   dimension_id: C
   weight: 0.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-DESIGN
-  construct_name: 研究设计匹配研究问题
+  construct_name: "Research Design Matching Research Question"
   dimension_id: D
   weight: 6.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-DATA
-  construct_name: 数据来源与样本
+  construct_name: "Data source and sample"
   dimension_id: D
   weight: 4.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-MEASUREMENT
-  construct_name: 测量与构念效度
+  construct_name: "Measurement and construct validity"
   dimension_id: D
   weight: 5.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-MODEL
-  construct_name: 模型设定与识别策略
+  construct_name: "model setting and identification strategy"
   dimension_id: D
   weight: 5.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-EXECUTION
-  construct_name: 方法执行规范
+  construct_name: "method execution specification"
   dimension_id: D
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: D-QUAL
-  construct_name: 质性研究范式匹配
+  construct_name: "Qualitative research paradigm matching"
   dimension_id: D
   weight: 2.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-COMPLETENESS
-  construct_name: 结果呈现完整规范
+  construct_name: "results present complete specification"
   dimension_id: E
   weight: 1.8
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-ALIGNMENT
-  construct_name: 结果与问题对应
+  construct_name: "Result corresponds to the problem"
   dimension_id: E
   weight: 3.6
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-ROBUSTNESS
-  construct_name: 稳健性与补充分析
+  construct_name: "Robustness and Supplementary Analysis"
   dimension_id: E
   weight: 1.5
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-STRENGTH
-  construct_name: 证据支持强度
+  construct_name: "Strength of evidence support"
   dimension_id: E
   weight: 3.6
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-CONCLUSION
-  construct_name: 结论解释与边界
+  construct_name: "Conclusion explanation and boundaries"
   dimension_id: E
   weight: 1.5
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: E-DISCUSSION
-  construct_name: 讨论综合与提升
+  construct_name: "Discussion on synthesis and improvement"
   dimension_id: E
   weight: 3.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-REPRO-TRANSPARENCY
-  construct_name: 可复现与透明
+  construct_name: "Reproducible and transparent"
   dimension_id: F
   weight: 2.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-LIMITATIONS
-  construct_name: 局限讨论
+  construct_name: "Limitations Discussion"
   dimension_id: F
   weight: 1.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-EXTERNAL
-  construct_name: 外部效度与适用范围
+  construct_name: "External validity and scope of application"
   dimension_id: F
   weight: 1.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-PRACTICAL
-  construct_name: 实践启示
+  construct_name: "Practical Enlightenment"
   dimension_id: F
   weight: 1.0
-  note: 权重为 v0 方案，待专家标注校准
 - construct_id: F-SOCIAL
-  construct_name: 长期与社会影响
+  construct_name: "Long-term and social impact"
   dimension_id: F
   weight: 0.0
-  note: 不计分观察项：测的是选题是否自带社会议题，与写作质量无关，实测无区分度
 rules:
 - rule_id: A-TOPIC-SIGNIFICANCE-V1
   version: V1
   dimension_id: A
-  dimension_name: 选题价值与问题定位
-  indicator_name: 研究问题重要性
-  definition: 判断论文是否说明研究问题在理论、实践或社会层面具有重要性，而非只是小范围补缺。
-  required_evidence: 需要能定位到论文说明该问题为何重要、为何值得研究的原文片段。
+  dimension_name: "Topic selection value and problem positioning"
+  indicator_name: "Importance of research question"
+  definition: "Determine whether the paper demonstrates that the research question is important at a theoretical, practical or social level, rather than just filling in a small gap."
+  required_evidence: "You need to be able to locate the original text fragment of the paper that explains why the issue is important and worthy of study."
   evidence_location:
   - Abstract
   - Introduction
   - Motivation
   observation_points:
-  - 是否指向重要理论问题或现实问题
-  - 是否说明问题影响的对象和范围
-  - 是否避免只以“较少研究”为主要理由
-  - 是否体现 rigor 与 relevance 的结合
+  - "point to important theoretical issues or practical issues?"
+  - "Does it state the objects and scope affected by the problem?"
+  - "Whether to rely only on a lack of prior research as the main justification."
+  - "reflect the combination of rigor and relevance?"
   judgement_values:
-    mostly: 指出该问题不被解决会在理论或实践上产生什么可辨认的后果，读者能据此看出受影响的对象与量级，而不是只被告诉这个问题重要
-    partial: 说明了问题重要，也点到受影响的对象，但后果只说到关系到某领域发展这类程度，读者勉强看出价值，损失内容仍未被交代
-    weak: 只以研究热度、政策提法或文献数量说明重要，读者找不到不解决的后果与受影响对象，问题价值靠题材分量支撑，结论据此难以被认真对待
-    not_satisfied: 该要素缺失：论文没有对问题重要性作实质定位，或把重要性等同于相关研究较少这类与价值无关的理由
-    uncertain: 解析缺失、候选证据过窄，或研究范式不以重要性陈述进入问题，使这一项缺少可依据的文本
+    mostly: "Point out what identifiable consequences the problem will have in theory or practice if it is not solved. Readers can see the objects and magnitude of the impact, rather than just being told that the problem is important."
+    partial: "explains the importance of the issue and points out the affected objects, but the consequences are only mentioned to the extent that they are related to the development of a certain field. Readers can barely see the value, and the loss content has not been explained."
+    weak: "Only uses research intensity, policy formulation or the number of documents to indicate importance. Readers cannot find unsolved consequences and affected objects. The value of the problem is supported by the weight of the subject matter. It is difficult to take the conclusion seriously based on this."
+    not_satisfied: "This element is missing: the paper does not substantively position the importance of the problem, or equates the importance with the lack of relevant research and other reasons that have nothing to do with value."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm does not enter the problem with a statement of importance, so this item lacks text to rely on."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -238,7 +199,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
   - Grant & Pollock 2011
@@ -258,31 +219,31 @@ rules:
   - research gap
   - motivation
   - this study addresses
-  rationale: 区分重要性表态与后果交代。合格线是读者能指认后果与受影响对象；仅表态重要落 partial，只靠热度或提法支撑落 weak；不谈价值或只以研究少为由落缺失。顶刊级重大议题由 top_journal_gate 承担。
-  threshold: 摘要或引言有原文说明该问题不被解决所造成的具体后果，读者能指认受影响对象以及损失落在哪一环。
-  mostly_threshold: 摘要或引言中有一句话交代该问题不被解决会造成何种后果，读者能指认受影响的对象。
+  rationale: "Distinguish between statements of importance and explanations of consequences. The qualifying line is that readers can identify the consequences and affected objects; only stating an important position is partial, relying only on popularity or mentioning to support it, which is weak; not talking about value or only citing lack of research as an excuse. Top journal-level major issues are handled by top_journal_gate."
+  threshold: "The abstract or introduction contains the original text explaining the specific consequences of not solving the problem. Readers can identify the affected objects and where the losses fall."
+  mostly_threshold: "There is a sentence in the abstract or introduction that explains the consequences of not solving the problem, and the reader can identify the affected objects."
 - rule_id: A-GAP-PUZZLE-V1
   version: V1
   dimension_id: A
-  dimension_name: 选题价值与问题定位
-  indicator_name: Research Gap / Puzzle 清晰性
-  definition: 判断论文是否明确指出现有研究不足、理论矛盾、经验异常、puzzle 或重要未解问题。
-  required_evidence: 需要引用关于 gap、puzzle、paradox、breakdown、inadequacy 或研究空白的原文证据。
+  dimension_name: "Topic selection value and problem positioning"
+  indicator_name: "Research Gap / Puzzle Clarity"
+  definition: "Determine whether the paper clearly points out existing research deficiencies, theoretical contradictions, empirical anomalies, puzzles, or important unanswered questions."
+  required_evidence: "Requires citation of original textual evidence regarding gaps, puzzles, paradoxes, breakdowns, inadequacy, or research gaps."
   evidence_location:
   - Introduction
   - Literature Review
   observation_points:
-  - 是否说明既有研究知道什么
-  - 是否指出不知道什么或解释不了什么
-  - gap 是否与研究问题直接相关
-  - 是否避免泛泛声称“尚无研究”
+  - "Does it explain what is known from existing research?"
+  - "Does it point out what you don't know or what you can't explain?\nIs"
+  - "gap directly related to the research question?"
+  - "Whether to avoid general claims that \"there is no research yet\""
   judgement_values:
-    satisfied: 缺口收窄到能被本文条件直接回应的具体未解项，读者能看出本文补上的是哪一步，这一步补上后哪类解释随之失效
-    mostly: 指出既有研究解释不了或尚未处理的具体内容，缺口范围收到本文能正面回应的程度，读者能看出本文接的是哪一段对话
-    partial: 提到了文献空白或结论矛盾，缺口边界偏宽，同题材论文都能声称在填补，读者能看出回应方向，落点却仍不确定
-    weak: 缺口以此类研究尚少一类说法出现，读者看不出既有研究究竟缺了什么，本文与理论对话的关系悬空，推进主张随之站不住
-    not_satisfied: 该要素缺失：引言没有指明既有研究缺什么或解释不了什么，或把缺口等同于此类研究尚少而与理论对话无关
-    uncertain: 解析缺失、候选证据过窄，或研究范式不以缺口定位问题，使这一项缺少可依据的文本
+    satisfied: "The gap has narrowed to a specific unsolved item that can be directly responded to by the conditions of this article. Readers can see which step this article has added, and what kind of explanation will become invalid after this step is completed."
+    mostly: "Point out the specific content that cannot be explained or has not been dealt with by existing research. The scope of the gap can be positively responded to by this article. Readers can tell which conversation this article is connected to."
+    partial: "mentioned gaps in the literature or contradictory conclusions. The boundaries of the gaps are wide. Papers on the same topic can all claim to be filling them. Readers can see the direction of the response, but the landing point is still uncertain."
+    weak: "The gap appears as the saying that there are still few such studies. Readers cannot see what is missing in the existing research. The relationship between this article and the theoretical dialogue is suspended, and the proposition of advancement is untenable."
+    not_satisfied: "This element is missing: the introduction does not indicate what the existing research lacks or cannot explain, or equates the gap with the lack of such research and is irrelevant to the theoretical dialogue."
+    uncertain: "There is a lack of analysis, the candidate evidence is too narrow, or the research paradigm does not use gaps to locate the problem, so this item lacks text that can be relied upon."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -292,7 +253,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Grant & Pollock 2011
   - Hollenbeck 2008
@@ -311,30 +272,30 @@ rules:
   - has not been examined
   - prior research
   - extend prior work
-  rationale: 区分提到空白与界定缺口。合格线是缺口窄到本文条件足以回应；边界偏宽落 partial，只称研究尚少落 weak；没有缺口落缺失。悖论级 puzzle 由 top_journal_gate 承担。
-  threshold: 引言有一段说明既有研究已知什么、仍未解决什么，该未解决项能被本文的数据或论证直接回应。
-  mostly_threshold: 引言点出一处既有研究未处理或解释不了的内容，读者能指认本文接续的是哪一项。
+  rationale: "distinguishes between mentioned gaps and defined gaps. The qualifying line is that the gap is narrow enough to respond to the conditions of this article; the boundary is wide and partial, which means there is little research and weak; there is no missing gap. The paradox-level puzzle is handled by top_journal_gate."
+  threshold: "There is a paragraph in the introduction that explains what existing research already knows and what remains unresolved. The unresolved issues can be directly responded to by the data or arguments in this article."
+  mostly_threshold: "The introduction points out a content that has not been dealt with or cannot be explained by existing research. The reader can identify which item this article continues."
 - rule_id: A-QUESTION-CLARITY-V1
   version: V1
   dimension_id: A
-  dimension_name: 选题价值与问题定位
-  indicator_name: 研究对象与研究问题明确
-  definition: 判断论文是否清楚说明研究对象、核心问题、研究目标或假设检验对象。
-  required_evidence: 需要能定位到研究对象、研究问题、研究目标或核心假设的原文片段。
+  dimension_name: "Topic selection value and problem positioning"
+  indicator_name: "Research objects and research questions are clear"
+  definition: "Determine whether the paper clearly states the research object, core questions, research objectives or hypothesis testing objects."
+  required_evidence: "Original text fragments that can locate the research object, research questions, research objectives or core hypotheses are required."
   evidence_location:
   - Abstract
   - Introduction
   observation_points:
-  - 研究对象是否可识别
-  - 研究问题是否具体
-  - 研究目标是否可执行
-  - 问题、对象、目标是否相互对应
+  - "Whether the research object is identifiable"
+  - "Is the research question specific?"
+  - "Is the research goal executable?"
+  - "Whether the problem, object, and goal correspond to each other?"
   judgement_values:
-    mostly: 研究问题落到具体的对象、关系或过程上，读者能说出什么结果支持它、什么结果推翻它，问题边界因此可辨认
-    partial: 研究方向清楚，对象也可指认，检验条件仍不明确，多种结果都可算作回答，读者无法确定本文要证成什么，推导缺少落点
-    weak: 只给出研究主题或研究对象，读者看不出要检验哪种关系，问题在后续推导中始终没有收窄，结论回到泛泛陈述
-    not_satisfied: 该要素缺失：全文找不到可辨认的研究问题，或问题表述与论文实际执行的分析内容相互矛盾，读者无法确定本文在回答什么
-    uncertain: 解析缺失、候选证据过窄，或研究范式不以可检验问题组织全文，使这一项缺少可依据的文本
+    mostly: "The research question falls on a specific object, relationship or process. Readers can tell what results support it and what results overturn it. The problem boundary is therefore identifiable."
+    partial: "The research direction is clear, the objects can be identified, the test conditions are still unclear, and various results can be counted as answers. The reader cannot be sure what this article is trying to prove, and the derivation lacks a landing point."
+    weak: "Only the research topic or research object is given. The reader cannot see which relationship is to be tested. The problem is never narrowed in the subsequent derivation, and the conclusion returns to a general statement."
+    not_satisfied: "This element is missing: no identifiable research question can be found in the full text, or the statement of the question is inconsistent with the analysis content actually performed in the paper, and the reader cannot be sure what the article is answering."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm does not organize the full text with testable questions, so this item lacks text that can be relied upon."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -343,9 +304,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Bono & McNamara 2011
   - Grant & Pollock 2011
   status: active
@@ -362,32 +323,32 @@ rules:
   - focal construct
   - dependent variable
   - theoretical model
-  rationale: A 维度恢复区分度的关键：把问题清楚升级为问题可证伪。合格线是读者能预设证伪条件；对象具体而检验条件不明落 partial，只剩主题落 weak；无可辨认问题落缺失。
-  threshold: 摘要或引言给出的研究问题含具体对象与关系，读者能设想一个会否定它的观察结果。
-  mostly_threshold: 摘要或引言能指认研究对象与所问关系，读者能说出该问题打算证成什么。
+  rationale: "The key to restoring distinction in the A dimension: clearly upgrade the problem to a question that can be falsified. The qualifying line is that the reader can preset the falsification conditions; the object is specific but the test conditions are unclear, partial, leaving only the theme weak; no identifiable problems are missing."
+  threshold: "The research question given in the abstract or introduction contains specific objects and relationships, and the reader can imagine an observation that would deny it."
+  mostly_threshold: "The abstract or introduction can identify the relationship between the research object and the question asked, and the reader can tell what the question intends to prove."
 - rule_id: A-LITERATURE-POSITIONING-V1
   version: V1
   dimension_id: A
-  dimension_name: 选题价值与问题定位
-  indicator_name: 文献对话定位
-  definition: 判断论文是否把研究放入清楚的学术对话中，说明与已有理论、发现或争议的关系。
-  required_evidence: 需要引用论文对已有文献、理论路线、争议或共识的定位说明。
+  dimension_name: "Topic selection value and problem positioning"
+  indicator_name: "Document dialogue positioning"
+  definition: "Determine whether the paper places the research into a clear academic dialogue and explains its relationship to existing theories, findings, or controversies."
+  required_evidence: "It is necessary to cite the paper's positioning description of existing literature, theoretical lines, controversies or consensus."
   evidence_location:
   - Introduction
   - Literature Review
   - Theory
   observation_points:
-  - 是否说明相关理论视角
-  - 是否解释与已有发现的关系
-  - 是否避免只堆砌引用
-  - 是否为后续贡献铺垫清楚
+  - "Does it explain the relevant theoretical perspective?"
+  - "Whether to explain the relationship with existing findings"
+  - "Whether to avoid stacking references only"
+  - "Is it clear to pave the way for subsequent contributions?"
   judgement_values:
-    satisfied: 把本文放进一场仍在进行的争论，点明双方各持什么、本文站在哪一侧，读者能看出若不接这一步哪条既有解释会随之失效
-    mostly: 说明本文接的是哪一条理论路线或哪一场争论，读者能看出本文与既有结论处于延续、限定还是改写的关系
-    partial: 综述覆盖了相关文献，站位只到研究领域一层，读者能看出对话范围，却认不出本文站在哪条路线或哪一侧，贡献难以对位
-    weak: 文献按主题成段出现，读者看不出本文与任何既有结论之间存在取舍关系，对话对象始终虚化，贡献主张缺少可比照的参照系
-    not_satisfied: 该要素缺失：文献仅以罗列方式出现，读者看不出本文与任何既有理论路线的关系，或论文没有把自己放进既有对话
-    uncertain: 解析缺失、候选证据过窄，或论文属新兴议题而既有对话尚未成形，使这一项缺少可依据的文本
+    satisfied: "Put this article into an ongoing debate, point out what each side holds, and which side the article is on. Readers can see which existing explanations will become invalid if they do not take this step."
+    mostly: "Explain which theoretical line or debate this article follows. Readers can see whether this article is a continuation, limitation or rewriting of the existing conclusions."
+    partial: "The review covers relevant literature, but only goes to the research field level. Readers can see the scope of the conversation, but cannot recognize which route or side this article is on, making it difficult to align its contributions."
+    weak: "Documents appear in sections according to topics. Readers cannot see the trade-off relationship between this article and any existing conclusions. The dialogue objects are always blurred, and the contribution claims lack a comparable frame of reference."
+    not_satisfied: "This element is missing: the literature only appears in the form of a list, the reader cannot see the relationship between this article and any existing theoretical line, or the paper does not put itself into the existing dialogue"
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the paper is an emerging topic and the existing dialogue has not yet taken shape, so this item lacks text to base on."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -397,7 +358,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
   - Grant & Pollock 2011
@@ -416,31 +377,31 @@ rules:
   - extends the literature
   - research tradition
   - seminal work
-  rationale: 与 A-GAP 分工：这条问对话对象与站位，gap 那条问未知项在哪。合格线是指认所属路线或争论；只到领域一层落 partial，仅按主题罗列落 weak；没有对话落缺失。
-  threshold: 引言或理论部分点明本文所属的理论路线或所加入的争论，读者能说出对话的另一方是谁。
-  mostly_threshold: 引言或理论部分出现一句把本文与某条既有理论路线或某场争论相连的表述。
+  rationale: "and A-GAP: this one asks about the conversation partner and position, and the gap one asks where the unknown item is. The qualifying line refers to identifying the route or debate; only going to the field level is partial, and only listing by topic is weak; there is no dialogue missing."
+  threshold: "The introduction or theoretical part points out the theoretical line to which this article belongs or the debate it joins, and the reader can tell who is the other party in the dialogue."
+  mostly_threshold: "A statement appears in the introduction or theory section that connects this article to an existing theoretical line or a debate."
 - rule_id: A-SCOPE-ACTIONABILITY-V1
   version: V1
   dimension_id: A
-  dimension_name: 选题价值与问题定位
-  indicator_name: 问题范围与可操作性
-  definition: 判断研究范围是否足够支撑有意义贡献，同时问题设定是否可研究、可分析、可落地。
-  required_evidence: 需要定位到论文对研究范围、构念边界、研究场景或可操作研究路径的说明。
+  dimension_name: "Topic selection value and problem positioning"
+  indicator_name: "Problem scope and operability"
+  definition: "Determine whether the research scope is sufficient to support meaningful contributions, and whether the problem setting is researchable, analyzable, and implementable."
+  required_evidence: "It is necessary to locate the paper's description of the research scope, construct boundaries, research scenarios or operational research paths.\nIs the"
   evidence_location:
   - Introduction
   - Theory
   - Methods
   observation_points:
-  - 范围是否过窄或数据切片过薄
-  - 是否覆盖关键构念、机制或情境
-  - 是否能被研究设计回应
-  - 是否能产生具体实践或理论洞见
+  - "range too narrow or the data slices too thin?"
+  - "Whether key constructs, mechanisms or situations are covered\nCan"
+  - "be responded to by the research design?"
+  - "Whether it can generate concrete practical or theoretical insights"
   judgement_values:
-    mostly: 研究范围收到能被本文数据与设计完整回应的程度，范围之外的问题被明确排除，读者不会期待本文回答它没有条件回答的问题
-    partial: 范围交代清楚，仍留有超出设计能力的期待，读者能看出本文大致能答什么，宣称覆盖的构念或情境是否被数据触及仍不确定
-    weak: 范围宽到任何单一研究都答不完，设计尺度与所宣称范围明显错位，读者无法判断哪部分结论有数据支撑，可信度因而下降
-    not_satisfied: 该要素缺失：范围宽泛到无法由任何单一研究回应，或论文宣称覆盖的内容与其数据实际能覆盖的范围相悖
-    uncertain: 解析缺失、候选证据过窄，或论文体裁不声明可操作范围，使这一项缺少可依据的文本
+    mostly: "The research scope is to the extent that it can be fully responded to by the data and design of this article. Questions outside the scope are clearly excluded. Readers will not expect this article to answer questions that it is not qualified to answer."
+    partial: "The scope is clearly explained, but there are still expectations beyond the design capabilities. Readers can roughly see what this article can answer. It is still uncertain whether the constructs or situations claimed to be covered have been touched by the data."
+    weak: "The scope is so wide that no single study can answer all the questions. The design scale is obviously misaligned with the declared scope. Readers cannot judge which part of the conclusions are supported by data, thus reducing credibility."
+    not_satisfied: "This element is missing: the scope is too broad to be responded to by any single study, or the content claimed to be covered by the paper is inconsistent with the scope that its data can actually cover."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the paper genre does not declare the operable scope, so this item lacks text to rely on.\nDivision of work between"
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -449,7 +410,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
   - Tihanyi 2020
@@ -467,32 +428,32 @@ rules:
   - empirical setting
   - research design
   - limitations
-  rationale: 与 A-QUESTION 分工：这条问范围能否被本文答完，不问问题能否被证伪。合格线是范围与设计能力对齐；留有溢出期待落 partial，范围与数据错位落 weak；宣称与事实相悖落缺失。
-  threshold: 方法或引言交代研究范围与数据边界，读者能指认哪些相关问题被本文明确排除在外。
-  mostly_threshold: 方法或引言说明研究范围与数据边界，读者能看出该范围与其设计能力大体对齐。
+  rationale: "and A-QUESTION: whether the scope of this question can be answered by this article, and whether the question can be falsified. The qualification line is that the scope is aligned with the design capabilities; there is overflow left to be partial, the scope and data are misaligned and weak; claims that are contrary to the facts are missing."
+  threshold: "The method or introduction explains the scope of the research and the boundaries of the data. Readers can identify relevant issues that are explicitly excluded from this article."
+  mostly_threshold: "The method or introduction describes the scope of the study and the boundaries of the data, and the reader can see that the scope is generally aligned with its design capabilities."
 - rule_id: B-THEORY-INTEGRATION-V1
   version: V1
   dimension_id: B
-  dimension_name: 理论贡献与创新性
-  indicator_name: 跨理论或跨学科整合
-  definition: 判断论文是否把两个以上理论视角接到同一现象上。实证类论文通常以单一框架立论，本规则对其不适用。
-  required_evidence: 需要引用理论来源、假设差异、整合方式、兼容性或理论交汇点的说明。
+  dimension_name: "Theoretical contribution and innovation"
+  indicator_name: "Cross-theoretical or cross-disciplinary integration"
+  definition: "Determine whether the paper connects two or more theoretical perspectives to the same phenomenon. Empirical papers are usually based on a single framework, and this rule does not apply to them."
+  required_evidence: "An explanation of theoretical sources, differences in assumptions, means of integration, compatibility, or theoretical intersections is required."
   evidence_location:
   - Theory
   - Literature Review
   - Discussion
   observation_points:
-  - 是否说明为何需要多理论
-  - 是否明确理论假设差异
-  - 是否处理认识论/层级/人性假设兼容
-  - 是否不是简单拼接理论
+  - "Do you explain why multiple theories are needed?"
+  - "Is the difference in theoretical assumptions clear?"
+  - "Is the treatment of epistemology/hierarchy/human nature assumptions compatible?\nIs"
+  - "not a simple splicing theory?"
   judgement_values:
-    satisfied: 整合的分工写到可核对的程度：读者能直接指出两个视角各自承担哪一部分解释，以及整合后新增的解释是什么，无需自行拼接
-    mostly: 把不同理论视角接到同一现象上，说明各自负责解释哪一部分，读者能看出整合后得到单一视角给不出的解释
-    partial: 分别使用多个理论视角，各自解释不同片段，读者能看出它们被放进同一篇论文，却看不出交汇发生在哪一处，多出什么说不清
-    weak: 多个视角只作为背景或变量来源被先后引用，彼此不构成解释关系，理论部分更像多视角综述，贡献主张缺少整合支撑
-    not_satisfied: 该要素缺失：只用单一理论视角，或多个视角只被先后引用，彼此之间没有形成任何解释关系
-    uncertain: 解析缺失、候选证据过窄，或论文以单一视角立论而不涉及整合，使这一项缺少可依据的文本
+    satisfied: "The division of labor in the integration is written to a verifiable level: readers can directly point out which part of the explanation the two perspectives are responsible for, and what new explanations are added after the integration, without the need to splice them together by themselves."
+    mostly: "Connect different theoretical perspectives to the same phenomenon and explain which part each is responsible for explaining. Readers can see that after integration, explanations cannot be given by a single perspective."
+    partial: "uses multiple theoretical perspectives to explain different fragments. Readers can see that they are put into the same paper, but they cannot see where the intersection occurs. It is unclear what is extra."
+    weak: "Multiple perspectives are cited one after another only as background or source of variables, and do not constitute an explanatory relationship with each other. The theoretical part is more like a multi-perspective review, and the contribution claims lack integrated support."
+    not_satisfied: "This element is missing: only a single theoretical perspective is used, or multiple perspectives are only cited one after another without any explanatory relationship between them."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the paper is based on a single perspective without integration, so this item lacks text to rely on."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -502,7 +463,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 4.444444
-  applicable_type: 理论/综述/混合
+  applicable_type: "Theory/Review/Hybrid"
   source_reference:
   - Shaw et al. 2018
   - Sparrowe & Mayer 2011
@@ -521,31 +482,31 @@ rules:
   - combines
   - theoretical lens
   - interdisciplinary
-  rationale: 合格线是两个视角在同一现象上有可辨认的解释分工，不要求处理认识论兼容。各自使用无交汇落 partial，仅作背景引用落 weak；单视角落缺失。跨学科深度整合由 top_journal_gate 承担。
-  threshold: 理论部分出现两个或以上视角，至少有一句说明它们在同一现象上如何分工，读者能指认交汇点。
-  mostly_threshold: 理论部分出现两个视角，读者能说出它们各自解释该现象的哪一部分。
+  rationale: "The qualifying line is when two perspectives have a discernible division of explanatory labor on the same phenomenon, and does not require epistemological compatibility of treatments. Each uses a non-intersecting partial, which is only used as a background reference and is weak; the single-view angle is missing. Deep interdisciplinary integration is undertaken by top_journal_gate."
+  threshold: "Two or more perspectives appear in the theoretical part. At least one sentence explains how they divide work on the same phenomenon, and readers can identify the intersection."
+  mostly_threshold: "Two perspectives appear in the theoretical section, and the reader can tell which part of the phenomenon they each explain."
 - rule_id: B-CONCEPT-MECHANISM-NOVELTY-V1
   version: V1
   dimension_id: B
-  dimension_name: 理论贡献与创新性
-  indicator_name: 新概念、新机制或理论命题
-  definition: 判断论文是否提出新的概念结构、机制解释、理论命题或因果结构，而不是仅报告经验关系。
-  required_evidence: 需要定位到新概念、机制、模型、命题或理论结构的原文证据。
+  dimension_name: "Theoretical contribution and innovation"
+  indicator_name: "New concepts, new mechanisms or theoretical propositions"
+  definition: "Determine whether the paper proposes new conceptual structures, mechanistic explanations, theoretical propositions, or causal structures, rather than merely reporting empirical relationships."
+  required_evidence: "Need to locate original text evidence of new concepts, mechanisms, models, propositions or theoretical structures."
   evidence_location:
   - Theory
   - Findings
   - Discussion
   observation_points:
-  - 是否从现象上升到概念
-  - 是否提出可解释机制
-  - 是否构建新的因果或过程结构
-  - 是否避免停留于描述性发现
+  - "Whether it rises from phenomenon to concept"
+  - "Does it propose an interpretable mechanism?"
+  - "Whether to construct new causal or process structures"
+  - "Whether to avoid stopping at descriptive findings"
   judgement_values:
-    mostly: 提出一个可指认的新机制、新构念或新测量路径，给出能把这项新内容与既有解释区分开的证据或论证
-    partial: 有新提法或新测量，区分于既有解释的说明只到更细致、更贴合情境这类程度，改动的实质仍不清
-    weak: 新提法基本是既有构念换了名称，读者按原有解释即可读懂所得结果，新增内容无法被指认，创新主张因此站不住
-    not_satisfied: 该要素缺失：论文沿用既有构念与既有机制，或新提法只是换了名称，没有带来可辨认的解释差异
-    uncertain: 解析缺失、候选证据过窄，或论文属复制检验一类不以新机制为目标的体裁，使这一项缺少可依据的文本
+    mostly: "Propose an identifiable new mechanism, new construct or new measurement method, and provide evidence or arguments that can distinguish this new content from existing explanations"
+    partial: "There is a new formulation or new measurement. The explanation is different from the existing explanation only to the extent that it is more detailed and more suitable for the situation. The essence of the change is still unclear."
+    weak: "The new formulation basically changes the name of the existing construct. Readers can understand the results according to the original explanation. The new content cannot be identified, so the innovative claim is untenable."
+    not_satisfied: "This element is missing: the paper follows the existing constructs and mechanisms, or the new formulation just changes the name without any identifiable explanation difference."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the paper belongs to a genre such as replication testing that does not target new mechanisms, so this item lacks text to base on.\nAfter"
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -554,11 +515,11 @@ rules:
     uncertain: null
   role: baseline
   weight: 5.538461
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Nadkarni et al. 2018
   - Bansal et al. 2018
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: B-NOVELTY
   retrieval_terms:
@@ -573,32 +534,32 @@ rules:
   - theory building
   - extends theory
   - proposition
-  rationale: 校准后这条认测量路径与机制细化，不要求完整理论体系，覆盖方法型与 AI 应用型论文的常见贡献形态。区分说不清落 partial，换名落 weak；沿用既有落缺失。
-  threshold: 理论或讨论部分给出一个新机制、新构念或新测量路径，至少有一处说明它与既有解释的差别。
-  mostly_threshold: 理论或讨论部分提出一个新机制、新构念或新测量路径，读者能说出它与既有解释的不同。
+  rationale: "calibration, this identification and measurement path and mechanism are refined. It does not require a complete theoretical system and covers common contribution forms of method-based and AI application-based papers. The difference is unclear and partial, and the name is changed to weak; the existing one is used."
+  threshold: "The theory or discussion section presents a new mechanism, new construct or new measurement path, and at least one explanation of its difference from existing explanations."
+  mostly_threshold: "The theory or discussion section proposes a new mechanism, new construct or new measurement approach, and readers can tell how it is different from existing explanations."
 - rule_id: B-INTERESTINGNESS-V1
   version: V1
   dimension_id: B
-  dimension_name: 理论贡献与创新性
-  indicator_name: 有趣性与反直觉洞见
-  definition: 判断论文是否提供反直觉、重新看待现象或揭示隐藏关系的洞见，并避免为了有趣牺牲可靠性。
-  required_evidence: 需要引用论文如何否定、反转、重释或揭示既有认知的原文证据。
+  dimension_name: "Theoretical contribution and innovation"
+  indicator_name: "Interesting and counter-intuitive insights"
+  definition: "Determine whether the paper provides insights that are counterintuitive, re-see phenomena, or reveal hidden relationships, and avoid sacrificing reliability for the sake of interest."
+  required_evidence: "It is necessary to cite the original evidence of how the paper refutes, reverses, reinterprets or reveals the existing knowledge."
   evidence_location:
   - Introduction
   - Theory
   - Discussion
   observation_points:
-  - 是否呈现看似 X 实为非 X 的洞见
-  - 是否揭示意外关系或机制
-  - 是否与重要问题相连
-  - 是否避免 HARKing 或脆弱复杂模型
+  - "Does it present insights that appear to be X but are not X?\nDoes"
+  - "reveal unexpected relationships or mechanisms?\nIs"
+  - "connected to important issues?"
+  - "Whether to avoid HARKing or fragile complex models"
   judgement_values:
-    satisfied: 张力来源与原有解释失效的原因写得具体：读者能直接指出是哪一个被忽略的机制在起作用，以及原有解释在哪一步不成立
-    mostly: 呈现一处与直觉或既有结论方向不同的发现，说明张力来自什么，读者能看出原有解释为何不成立
-    partial: 结果有新意，方向仍落在既有预期范围内，读者能看出本文想给出意外感，张力来源与原有解释是否被推翻都还说不清
-    weak: 结果与既有预期方向一致，讨论却以反直觉为卖点，读者看不到支撑该说法的证据，有趣性主张反而削弱结论可信度
-    not_satisfied: 该要素缺失：结果与既有预期方向一致，或论文以反直觉为卖点却拿不出与预期相左的证据支撑
-    uncertain: 解析缺失、候选证据过窄，或论文属复制或方法检验一类不以意外发现为目标的体裁，使这一项缺少可依据的文本
+    satisfied: "The source of tension and the reasons for the failure of the original explanation are written in detail: the reader can directly point out which ignored mechanism is at work, and at which step the original explanation does not hold."
+    mostly: "presents a discovery that is different from intuition or existing conclusions, explaining where the tension comes from, and readers can see why the original explanation does not hold."
+    partial: "The results are novel, and the direction still falls within the existing expected range. Readers can see that this article wants to give a sense of surprise. It is still unclear whether the source of tension and the original explanation have been overturned."
+    weak: "The results are consistent with the expected direction, but the discussion uses counterintuition as a selling point. Readers cannot see the evidence to support the statement, and the interesting claim weakens the credibility of the conclusion."
+    not_satisfied: "This element is missing: the results are in the same direction as the existing expectations, or the paper uses counterintuition as a selling point but cannot provide evidence that is contrary to the expectations."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the paper is in a genre such as replication or method testing that does not aim at unexpected discoveries, so this item lacks text to base on."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -608,7 +569,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 3.555556
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Davis 1971
   - Tihanyi 2020
@@ -627,31 +588,31 @@ rules:
   - interesting
   - intriguing
   - reverses
-  rationale: 合格线是一处有证据支撑、与既有预期方向不同的发现，不要求颠覆认知。有新意但顺预期落 partial，与预期一致仍喊反直觉落 weak；无意外发现落缺失。颠覆性洞见由 top_journal_gate 承担。
-  threshold: 结果或讨论中有一处发现偏离既有预期，该发现配有对应的系数、模式或案例证据。
-  mostly_threshold: 结果或讨论中有一处发现与既有预期方向不同，或作者明确指出该发现为何不显然，读者能说出它偏离了什么。
-  mostly_note: 不要求颠覆性结论；论文自己说清了'为何这个发现值得注意'即可。
+  rationale: "The qualifying line is a discovery supported by evidence that is different from the existing expected direction, and does not require subversion of cognition. There are novel ideas but the implementation is partial as expected, and it is consistent with expectations but still counter-intuitive and weak; no unexpected implementation is found. Disruptive insights are owned by top_journal_gate."
+  threshold: "There is a finding in the results or discussion that deviates from the existing expectations. The finding is accompanied by a corresponding coefficient, pattern or case evidence."
+  mostly_threshold: "There is a finding in the results or discussion that is different from the existing expected direction, or the author clearly points out why the finding is not obvious, and the reader can tell how it deviates."
+  mostly_note: "does not require subversive conclusions; the paper itself can clearly explain 'why this finding is noteworthy'."
 - rule_id: B-DIALOGUE-ADVANCE-V1
   version: V1
   dimension_id: B
-  dimension_name: 理论贡献与创新性
-  indicator_name: 对既有认知的质疑、整合与推进
-  definition: 判断论文是否通过质疑一处前提、整合文献分歧或指出相对既有理解的增量，说清本文推进了什么。三条路径任一走通即成立。
-  required_evidence: 需要定位到论文关于 change、challenge、advance、new direction 或 research agenda 的说明。
+  dimension_name: "Theoretical contribution and innovation"
+  indicator_name: "Questioning, integrating and advancing existing cognitions"
+  definition: "Determine whether the paper makes it clear what the paper advances by questioning a premise, integrating disagreements in the literature, or pointing out an increase relative to existing understanding. It is established if any one of the three paths is passed."
+  required_evidence: "needs to locate the paper's description of change, challenge, advance, new direction or research agenda."
   evidence_location:
   - Introduction
   - Theory
   - Discussion
   observation_points:
-  - 是否点名一处可疑前提
-  - 是否给出分歧来源的取向
-  - 是否指出相对既有理解的具体增量
+  - "Did you name a questionable premise?"
+  - "Whether to give the direction of the source of disagreement"
+  - "Does it indicate specific increments relative to existing understanding?"
   judgement_values:
-    mostly: 走通上述任一路径：点名一处可疑前提、给出分歧来源的取向，或指出本文相对既有理解多出什么，读者能指认推进落在哪里
-    partial: 与文献有往来，但推进只以丰富了相关研究一类说法带过，读者能看出本文想推进，却说不出推进落在哪一处
-    weak: 结论复述既有理解的要点，读者看不出本文相对文献多出什么，贡献主张缺少可指认的落点
-    not_satisfied: 该要素缺失：全文未对既有认知提出质疑，未处理结论分歧，也未把本文认识与既有理解作对照
-    uncertain: 解析缺失、候选证据过窄，或论文体裁不以相对既有理解的推进组织论证，使这一项缺少可依据的文本
+    mostly: "Take any of the above paths: name a questionable premise, give the direction of the source of disagreement, or point out what is more in this article than the existing understanding, and readers can point out where the advancement lies."
+    partial: "has contacts with the literature, but the advancement is only mentioned as enriching relevant research. Readers can see that this article wants to advance, but cannot tell where the advancement falls."
+    weak: "The conclusion reiterates the main points of existing understanding. The reader cannot see what is more in this article compared to the literature, and the contribution claims lack an identifiable landing point."
+    not_satisfied: "This element is missing: the full text does not question the existing understanding, does not deal with the differences in conclusions, and does not compare the understanding of this article with the existing understanding."
+    uncertain: "There is a lack of analysis, the candidate evidence is too narrow, or the style of the paper does not organize the argument in a way that advances the existing understanding, so this item lacks a text to base on."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -660,7 +621,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 6.461539
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
   - Grant & Pollock 2011
@@ -679,31 +640,31 @@ rules:
   - conversation
   - shifts the debate
   - adds to the literature
-  rationale: 原先把'质疑前提''整合分歧''指出增量'拆成三条并取平均，导致只走通其中一条路径的论文被其余两条拖低。现合并为一条：三条路径任一走通即达到 mostly，全部展开且有证据支撑为 satisfied。该构念总权重仍为 6 分，与合并前一致。
-  threshold: 三条路径中至少一条被展开且有正文证据支撑，读者能指认该推进改变了哪个判断。
-  mostly_threshold: 三条路径中至少一条走通：点名可疑前提、给出分歧取向，或指出相对既有理解的增量。
+  rationale: "Originally, 'Questioning premises', 'Integrating differences' and 'Pointing out increments' were split into three and averaged. As a result, papers that only followed one of the paths were dragged down by the other two. Now merged into one: any one of the three paths will reach mostly, all of them are expanded and supported by evidence to be satisfied. The total weight of the construct remains 6 points, the same as before the merger."
+  threshold: "At least one of the three paths is expanded and supported by textual evidence, and the reader can identify which judgment has been changed by this advancement."
+  mostly_threshold: "At least one of the three paths is feasible: naming questionable premises, giving divergent directions, or pointing out the increment relative to the existing understanding."
 - rule_id: C-CONCEPT-CLARITY-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 概念定义与命名清晰
-  definition: 判断核心概念是否定义清楚、命名恰当，并与理论逻辑和研究对象相匹配。
-  required_evidence: 需要定位到核心概念定义、构念说明、命名依据或测量对应关系的原文片段。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "Concept definition and naming are clear"
+  definition: "Determine whether the core concepts are clearly defined, appropriately named, and match the theoretical logic and research objects."
+  required_evidence: "It is necessary to locate the original text fragment of the core concept definition, construct description, naming basis or measurement correspondence."
   evidence_location:
   - Theory
   - Literature Review
   - Methods
   observation_points:
-  - 概念定义是否明确
-  - 新概念或重定义是否有理论依据
-  - 是否避免 jingle/jangle 问题
-  - 概念与研究问题是否匹配
+  - "Is the concept clearly defined?"
+  - "Does the new concept or redefinition have a theoretical basis?"
+  - "Whether to avoid jingle/jangle problems"
+  - "Does the concept match the research question?"
   judgement_values:
-    mostly: 大部分核心概念清楚界定涵盖与排除的现象范围，少数与相邻构念的界限仍需读者从上下文推出
-    partial: 概念有定义，但界定偏宽或与相邻构念界限模糊，读者需要依靠上下文才能大致确定它所指的现象范围
-    weak: 概念界定只点出部分特征，与相邻构念的交界处读者仍拿不准，据此操作容易与近邻构念混同
-    not_satisfied: 核心概念只被提及而未被界定，或与相邻构念混用，读者无法确定该概念到底指向现实中的哪一类现象
-    uncertain: 解析缺失或候选证据过窄，或论文属纯评论体裁而无需自行界定概念，使该判断缺少可依据的文本
+    mostly: "Most of the core concepts clearly define the scope of covered and excluded phenomena. The boundaries between a few and adjacent constructs still need to be deduced by the reader from the context."
+    partial: "The concept is defined, but the definition is too broad or the boundaries with adjacent constructs are blurred. Readers need to rely on the context to roughly determine the scope of the phenomenon it refers to."
+    weak: "The concept definition only points out some features, and readers are still not sure about the junction with adjacent constructs. Based on this operation, it is easy to confuse it with neighboring constructs."
+    not_satisfied: "The core concept is only mentioned but not defined, or is mixed with adjacent constructs. Readers cannot determine which type of phenomenon in reality the concept refers to."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is purely a review style without defining the concept by itself, so there is no text to base the judgment on."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -712,9 +673,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 4.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Shaw et al. 2018
   - Zhang & Shaw 2012
   status: active
@@ -731,30 +692,30 @@ rules:
   - operationalize
   - related but distinct
   - domain of the construct
-  rationale: 概念界定是后续推理的前提。五档是界定清晰度的阶梯：可辨认现象范围即算够，界定漂移但可推断尚可，读者需靠上下文定所指已是硬伤，只提及未界定则不够。
-  threshold: 正文给出概念内涵界定，并说明它为何与最接近的相邻构念不重合，而非只划定涵盖范围。
-  mostly_threshold: 正文至少一处给出核心概念的内涵界定，读者据此能判断该现象涵盖与排除的范围。
+  rationale: "Concept definition is the prerequisite for subsequent reasoning. The fifth level is a ladder of definitional clarity: the scope of the identifiable phenomenon is enough, the definition drifts but can be inferred is acceptable, the reader needs to rely on the context to determine the referent, which is a flaw, and just mentioning the undefined is not enough."
+  threshold: "The main text defines the connotation of the concept and explains why it does not overlap with the closest adjacent construct, rather than just delineating the scope of coverage."
+  mostly_threshold: "The text defines the connotation of the core concept in at least one place, so that readers can judge the scope of coverage and exclusion of the phenomenon."
 - rule_id: C-LOGIC-PREMISE-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 逻辑前提恰当
-  definition: 判断理论推导依赖的事实前提、语义前提和适用前提是否清楚且合理。
-  required_evidence: 需要引用论文理论推导中关键前提、假设或适用条件的说明。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "The logical premise is appropriate"
+  definition: "Determine whether the factual premises, semantic premises and applicable premises on which the theoretical derivation relies are clear and reasonable."
+  required_evidence: "It is necessary to cite the key premises, assumptions or applicable conditions in the theoretical derivation of the paper."
   evidence_location:
   - Theory
   - Literature Review
   observation_points:
-  - 前提是否符合事实
-  - 语义是否清晰自洽
-  - 前提是否适用于研究问题
+  - "Is the premise consistent with the facts?"
+  - "Is the semantics clear and consistent?"
+  - "Whether the premise applies to the research question"
   judgement_values:
-    satisfied: 关键前提逐条给出依据与适用条件，读者无需代为接受任何一条即可跟随推导，主线之外的替代前提也被交代为何不取
-    mostly: 关键前提多数可被识别，个别前提的依据或适用范围需读者代为接受，推导主线仍站得住
-    partial: 关键前提部分被交代，个别前提依据不足或适用范围含糊，读者对其成立仍存疑问，但不致阻断后续推导
-    weak: 关键前提虽能指出，但作者未说明它为何在此情境成立，读者代入本领域事实后会对其可靠性起疑
-    not_satisfied: 推导所依赖的前提未被识别，或前提与研究现象明显不相称，使后续理论主张从一开始就失去支撑
-    uncertain: 解析缺失或候选证据过窄，或论文体裁不依赖可指认的显式前提，使该判断缺少可依据的文本
+    satisfied: "The key premises provide the basis and applicable conditions one by one. The reader does not need to accept any of them to follow the derivation. Alternative premises outside the main line are also explained why they are not adopted."
+    mostly: "Most of the key premises can be identified. The basis or scope of application of individual premises needs to be accepted by the reader. The main line of derivation is still tenable."
+    partial: "The key premises are partially explained. Some premises have insufficient basis or vague scope of application. Readers still have doubts about their establishment, but this does not block subsequent derivation."
+    weak: "Although the key premise can be pointed out, the author does not explain why it is true in this situation. Readers will doubt its reliability after considering the facts in this field."
+    not_satisfied: "The premise on which the derivation relies has not been identified, or the premise is obviously not commensurate with the research phenomenon, causing subsequent theoretical claims to lose support from the beginning."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the style of the paper does not rely on identifiable explicit premises, so there is no text to base the judgment on."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -764,9 +725,9 @@ rules:
     uncertain: null
   role: bonus
   weight: 2.666667
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Sparrowe & Mayer 2011
   status: active
   cluster: C-PREMISE
@@ -782,30 +743,30 @@ rules:
   - we argue
   - theoretical foundation
   - established theory
-  rationale: 前提是理论链的地基。五档按前提可辩护程度递减：能指认又与情境相称即算够，个别前提需读者代为接受尚可，依据不明或与事实冲突即不够。
-  threshold: 正文可指认关键前提及其依据，并交代该前提为何在本研究情境下成立，而非只列出前提。
-  mostly_threshold: 正文能指认出至少一个关键前提，该前提与研究情境相称，未被文中其他事实否定。
+  rationale: "The premise is the foundation of the theoretical chain. The five grades are based on the decreasing degree of defensibleness of the premises: it is sufficient if it can be identified and is commensurate with the situation, it is acceptable for individual premises to be accepted by the reader, and it is not enough if the basis is unclear or conflicts with the facts."
+  threshold: "The main text can identify the key premises and their basis, and explain why the premise is true in this research situation, rather than just listing the premises."
+  mostly_threshold: "The text can identify at least one key premise that is commensurate with the research situation and is not contradicted by other facts in the text."
 - rule_id: C-REASONING-RIGOR-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 推理过程严密
-  definition: 判断论文从理论、文献或数据到命题/假设/发现的推理链条是否完整、清楚、无明显跳跃。
-  required_evidence: 需要定位到核心推理段落、命题推导、归纳发现解释或理论模型说明。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "The reasoning process is rigorous"
+  definition: "Determine whether the reasoning chain of the paper from theory, literature or data to propositions/hypotheses/findings is complete, clear, and without obvious jumps."
+  required_evidence: "needs to locate the core reasoning paragraph, proposition derivation, inductive discovery explanation or theoretical model explanation."
   evidence_location:
   - Theory
   - Findings
   observation_points:
-  - 演绎推理是否清楚完整
-  - 归纳推理是否与数据契合
-  - 是否存在明显反例未处理
-  - 结论是否由前文自然推出
+  - "Is the deductive reasoning clear and complete?"
+  - "Is the inductive reasoning consistent with the data?"
+  - "Whether there are obvious counterexamples that have not been processed"
+  - "Is the conclusion naturally derived from the previous article?"
   judgement_values:
-    mostly: 推理主线可循，个别环节依赖未言明的假定或出现跳跃，读者需要自行补一步才能接上后面的结论
-    partial: 推理主线能顺着读下来，但关键处缺少交代，读者得替作者补上一个理由才能让结论落地
-    weak: 从前提到结论的若干环节只有断言而无理由，读者按文中论证推不出结论，只能当作作者的主张接受
-    not_satisfied: 推理链存在明显断点，或结论不是由前文前提推出，读者依据文中论证无法复现该结论的得出过程
-    uncertain: 解析缺失或候选证据过窄，或论文以叙述方式呈现而不展开完整推理过程，使该判断无法稳定作出
+    mostly: "The main line of reasoning can be followed, but some links rely on unstated assumptions or make jumps. Readers need to make up one step by themselves to reach the following conclusion."
+    partial: "The main line of reasoning can be read along, but the key points are missing. The reader has to provide a reason for the author to make the conclusion come true."
+    weak: "Several links from the premise to the conclusion contain only assertions without reasons. Readers cannot draw conclusions based on the arguments in the text and can only accept them as the author's claims."
+    not_satisfied: "There is an obvious breakpoint in the reasoning chain, or the conclusion is not derived from the previous premises, and the reader cannot reproduce the process of reaching the conclusion based on the arguments in the text."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is presented in a narrative manner without a complete reasoning process, making the judgment unable to be stably made."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -814,9 +775,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 4.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Sparrowe & Mayer 2011
   - Bansal et al. 2018
   status: active
@@ -833,31 +794,31 @@ rules:
   - reasoning
   - derive
   - theoretical model
-  rationale: 推理链是理论与假设之间的桥。五档按可复核程度递减：照文中步骤能推出结论即算够，需自行补步尚可，链条断裂或结论非由前提推出即不够。
-  threshold: 从前提到核心命题的推导在文中可复核，且最易断裂的环节有作者明确交代。
-  mostly_threshold: 推理主线完整可循，个别环节需读者自行补一步，或最易断裂处未主动处理，但结论仍能从文中论证推出。
-  mostly_note: 不要求作者处理每一个潜在断裂点；只有读者按文中论证推不出结论时才降到 partial 以下。
+  rationale: "The chain of reasoning is the bridge between theory and hypothesis. The five levels decrease according to the degree of reviewability: it is enough to be able to draw the conclusion according to the steps in the text, it is still enough to need to make up the steps on your own, and it is not enough if the chain is broken or the conclusion cannot be derived from the premises."
+  threshold: "The derivation from the premise to the core proposition can be reviewed in the text, and the most easily broken links are clearly explained by the author."
+  mostly_threshold: "The main line of reasoning is complete and can be followed. Some links require the reader to make up a step by themselves, or the most easily broken points are not actively dealt with, but the conclusion can still be deduced from the argument in the text."
+  mostly_note: "The author is not required to address every potential breaking point; it falls below partial only if the reader cannot draw a conclusion based on the arguments in the text."
 - rule_id: C-HYPOTHESIS-GROUNDING-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 假设或命题扎根充分
-  definition: 判断假设、命题或理论主张是否扎根于相关文献与理论叙事，而不是仅靠引用堆砌。
-  required_evidence: 需要引用假设/命题之前的理论论证和相关文献对话。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "The hypothesis or proposition is well-grounded"
+  definition: "Determine whether hypotheses, propositions or theoretical claims are rooted in relevant literature and theoretical narratives, rather than just relying on quotations."
+  required_evidence: "It is necessary to cite the theoretical argument and relevant literature dialogue before the hypothesis/proposition."
   evidence_location:
   - Theory
   - Hypotheses
   observation_points:
-  - 假设与相关研究关系是否清楚
-  - 是否超越实证结果罗列
-  - 读者到达假设时是否能预期
-  - 是否解释构念为何相关
+  - "Is the relationship between the hypothesis and related research clear?\nDoes"
+  - "exceed the list of empirical results?"
+  - "Can the reader anticipate when arriving at the hypothesis?"
+  - "Does it explain why the constructs are related?"
   judgement_values:
-    mostly: 多数核心假设在提出之前有理论理由支撑，只有个别假设仅靠引用标记交代来源，读者仍能预期方向
-    partial: 假设方向有理论依托，但依托停留在相关文献的罗列，读者仍难以看出这条关系为何应当被预期
-    weak: 假设只与个别文献的结论挂上关系，缺少说明该关系为何在此情境中成立，方向像是从数据反推而来
-    not_satisfied: 假设或命题与既有理论对话脱节，接近凭空提出，读者无法从文中找到任何应当预期该关系的理由
-    uncertain: 解析缺失、候选证据过窄，或本文类型不产生假设与命题，使该规则缺乏可判断对象而无法稳定判断
+    mostly: "Most of the core assumptions are supported by theoretical reasons before they are put forward. Only a few assumptions rely only on reference marks to indicate the source, and readers can still predict the direction."
+    partial: "The hypothesis direction has theoretical support, but the support is limited to the list of relevant literature. It is still difficult for readers to see why this relationship should be expected."
+    weak: "The hypothesis is only related to the conclusion of a certain literature. It lacks explanation of why the relationship holds in this situation. The direction seems to be inferred from the data."
+    not_satisfied: "The hypothesis or proposition is out of touch with the existing theoretical dialogue and is almost proposed out of thin air. The reader cannot find any reason to expect this relationship from the text."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the type of article does not generate assumptions and propositions, making the rule lack of judgeable objects and unable to make stable judgments."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -866,7 +827,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 4.0
-  applicable_type: 定量/理论/混合
+  applicable_type: "Quantitative/Theoretical/Mixed"
   source_reference:
   - Sparrowe & Mayer 2011
   - Grant & Pollock 2011
@@ -884,32 +845,32 @@ rules:
   - propositions
   - mediating
   - moderating
-  rationale: 该规则区分假设有理论来源与靠常识、数据先行落地的论文。五档按假设从理论中长出的程度递减，读者读到假设前是否已被说服，决定它落在哪一档。
-  threshold: 过半核心假设在提出前有理论理由支撑其方向，且至少一条说明该关系为何在此情境成立。
-  mostly_threshold: 过半核心假设在其论证段前能找到支撑该关系方向的理论理由，而非只出现引用标记。
+  rationale: "This rule distinguishes between papers that assume a theoretical source and papers that rely on common sense and data first. The five levels decrease according to the degree to which the hypothesis grows out of the theory. Whether the reader is convinced before reading the hypothesis determines which level it falls on."
+  threshold: "More than half of the core hypotheses have theoretical reasons to support their direction before they are proposed, and at least one explains why the relationship holds in this situation."
+  mostly_threshold: "More than half of the core hypotheses can find theoretical reasons supporting the direction of the relationship before their argument paragraphs, rather than just appearing with reference marks."
 - rule_id: C-BOUNDARY-CONDITIONS-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 理论边界条件清楚
-  definition: 判断论文是否说明理论或发现适用的情境、层级、时间、行业、文化或方法边界。
-  required_evidence: 需要定位到边界条件、适用范围、情境限制或理论限制的原文说明。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "The theoretical boundary conditions are clear"
+  definition: "Determine whether the paper illustrates the context, level, time, industry, culture, or methodological boundaries within which the theory or findings apply."
+  required_evidence: "It is necessary to locate the original description of boundary conditions, scope of application, situational limitations or theoretical limitations."
   evidence_location:
   - Theory
   - Methods
   - Discussion
   observation_points:
-  - 是否说明适用情境
-  - 是否说明分析层级
-  - 是否处理跨层级边界
-  - 是否避免无限泛化
+  - "Whether to explain the applicable situation"
+  - "Whether to specify the analysis level"
+  - "Whether to handle cross-level boundaries"
+  - "Whether to avoid infinite generalization"
   judgement_values:
-    satisfied: 适用情境、层级与时间条件分别写明并与理论机制挂钩，读者能指认边界之外主张失效的机制原因，无需自行补齐限定语
-    mostly: 文中交代了主张成立的适用范围，个别限定语的具体所指需读者自行从上下文补齐，仍可大致圈定
-    partial: 文中承认主张存在适用条件，但条件内容含糊，读者仍无法判断它在哪种情境或层级下能够成立
-    weak: 只在结尾补一句适用范围，未与理论机制挂钩，读者据此仍分不清边界之外的主张为何失效
-    not_satisfied: 理论主张被无条件地陈述，文中未交代其成立的适用范围，读者按字面理解会得到被过度推广的结论
-    uncertain: 解析缺失或候选证据过窄，或论文属描述性体裁而不提出需限定范围的主张，使该判断难以稳定作出
+    satisfied: "Applicable situations, levels and time conditions are clearly stated and linked to the theoretical mechanism. Readers can identify the mechanism reasons for the failure of claims outside the boundary without completing the qualifiers by themselves."
+    mostly: "The article explains the scope of application of the claim. The specific reference of individual qualifiers needs to be completed by the reader from the context. It can still be roughly delineated."
+    partial: "The article acknowledges that there are applicable conditions for the claim, but the conditions are vague and the reader is still unable to judge under which situation or level it can be established."
+    weak: "only adds a sentence about the scope of application at the end, which is not linked to the theoretical mechanism. Based on this, readers still cannot tell why the claims outside the boundary are invalid."
+    not_satisfied: "The theoretical proposition is stated unconditionally, and the scope of its establishment is not explained in the article. Readers who interpret it literally will get over-generated conclusions."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is descriptive in nature and does not make claims that need to be limited in scope, making it difficult to make a stable judgment."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -919,11 +880,11 @@ rules:
     uncertain: null
   role: bonus
   weight: 2.666667
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
   - Shaw et al. 2018
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: C-BOUNDARY
   retrieval_terms:
@@ -938,33 +899,33 @@ rules:
   - we focus on
   - theoretical scope
   - moderating role
-  rationale: 边界决定主张能被用到哪里。五档按适用范围可推断的程度递减：条件可指认又解释得清即算够，仅承认有边界而说不清即不够，无条件陈述属过度推广。
-  threshold: 至少一处说明命题成立的情境或层级条件，并交代该条件之外主张为何不再成立。
-  mostly_threshold: 正文至少一处说明命题或结论成立所需的情境、层级或时间条件，而非只出现“存在边界”一类说法。
+  rationale: "Boundaries determine where claims can be used. The fifth level decreases according to the extent to which the scope of application can be inferred: it is sufficient if the conditions can be identified and explained clearly, it is not enough to only admit that there are boundaries but cannot explain clearly, and unconditional statements are over-generalization."
+  threshold: "Explain at least one situation or level condition under which the proposition is true, and explain why the proposition is no longer true outside of these conditions."
+  mostly_threshold: "At least one place in the text should explain the situation, level or time conditions required for the proposition or conclusion to be established, rather than just saying \"there is a boundary\"."
 - rule_id: C-ALTERNATIVE-EXPLANATIONS-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 替代解释处理
-  definition: 判断论文是否识别并处理可能的替代机制、竞争理论、反向因果或混淆解释。
-  required_evidence: 需要引用论文对替代解释、竞争假设、控制策略或稳健性解释的说明。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "alternative interpretation processing"
+  definition: "Judge whether the paper identifies and addresses possible alternative mechanisms, competing theories, reverse causation, or confounding explanations."
+  required_evidence: "A citation is required for the paper's description of alternative explanations, competing hypotheses, control strategies, or robustness explanations.\nDoes"
   evidence_location:
   - Theory
   - Methods
   - Results
   - Discussion
   observation_points:
-  - 是否提出 plausible alternative mechanisms
-  - 是否通过理论或方法排除替代解释
-  - 是否讨论反向因果或遗漏变量
-  - 是否诚实说明仍无法排除的解释
+  - "propose plausible alternative mechanisms?"
+  - "Whether alternative explanations are excluded by theory or method"
+  - "Whether to discuss reverse causation or omitted variables"
+  - "Whether the explanation is honest or not is still an explanation that cannot be ruled out."
   judgement_values:
-    satisfied: 对核心主张构成威胁的替代机制被识别，文中用理论或方法给出排除理由，该威胁不再动摇核心结论
-    mostly: 文中指出主要替代机制并说明它为何被排除，读者读完仍会追问残余威胁有多大、会不会翻盘
-    partial: 文中以控制变量或附加设定间接回应替代解释，未直接说明它为何不成立，该威胁仍可被读者质疑
-    weak: 只承认可能存在别的解释，未把它与本文核心主张对照说明，读者仍可用同一批材料给出另一种解释
-    not_satisfied: 文中未识别与核心主张竞争的替代解释，读者可依据同一批材料提出另一种同样合理的解释来替代它
-    uncertain: 解析缺失或候选证据过窄，或论文体裁不涉及因果或机制上的竞争解释，使该判断难以稳定作出
+    satisfied: "Alternative mechanisms that pose a threat to the core claim are identified. Reasons for exclusion are given in the paper using theories or methods. The threat no longer shakes the core conclusion."
+    mostly: "The article points out the main alternative mechanism and explains why it was excluded. After reading the article, readers will still ask how big the remaining threat is and whether there will be a comeback."
+    partial: "The article indirectly responds to the alternative explanation by using control variables or additional settings, without directly explaining why it does not hold. This threat can still be questioned by readers."
+    weak: "only acknowledges that there may be other explanations and does not compare it with the core proposition of this article. Readers can still use the same batch of materials to give another explanation."
+    not_satisfied: "The article does not identify alternative explanations that compete with the core claim. Readers can propose another equally reasonable explanation to replace it based on the same batch of materials."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the style of the paper does not involve competing explanations of cause and effect or mechanism, making it difficult to make a stable judgment."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -974,7 +935,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 2.666666
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
   - Bono & McNamara 2011
@@ -993,16 +954,16 @@ rules:
   - endogeneity
   - selection bias
   - common method bias
-  rationale: 替代解释是理论主张最易被攻击处。五档按排除程度递减：威胁被指名又给出理由即算够，只靠控制变量应付即不够，中间看残余威胁是否足以翻盘。
-  threshold: 至少指名一个主要竞争解释，给出排除理由，并说明残余威胁不至于改变核心结论。
-  mostly_threshold: 正文至少指名一个与核心主张竞争的替代解释，给出理论或方法上的排除理由。
+  rationale: "Alternative explanations are where theoretical claims are most vulnerable. The fifth level is in descending order of exclusion: it is enough if the threat is named and a reason is given, it is not enough to deal with it only by controlling variables, and it depends on whether the remaining threat is enough to turn the tables."
+  threshold: "Name at least one major competing explanation, give reasons for exclusion, and explain that residual threats do not alter the core conclusion."
+  mostly_threshold: "The main text names at least one alternative explanation that competes with the core claim and gives theoretical or methodological reasons for its exclusion."
 - rule_id: C-WRITING-QUALITY-V1
   version: V1
   dimension_id: C
-  dimension_name: 理论严谨性与假设逻辑
-  indicator_name: 语言表达与写作清晰度
-  definition: 判断论文的表达是否让读者能用最小阅读成本抓住论证结构：句子简洁、段落有主题句、逻辑连接承担真实推理关系、术语前后一致、图表与正文互相指路。
-  required_evidence: 需要正文（非摘要）的段落级证据，覆盖引言/理论、方法、结果三类章节中的至少两类，用于判断表达简洁度与逻辑顺畅度。
+  dimension_name: "Theoretical rigor and hypothetical logic"
+  indicator_name: "Language expression and writing clarity"
+  definition: "Determine whether the expression of the paper allows readers to grasp the argument structure with minimal reading cost: sentences are concise, paragraphs have topic sentences, logical connections bear real reasoning relationships, terminology is consistent, and diagrams and text guide each other."
+  required_evidence: "requires paragraph-level evidence of the main text (not the abstract), covering at least two categories of the three categories of introduction/theory, methods, and results, to judge the simplicity of expression and smoothness of logic."
   evidence_location:
   - Introduction
   - Theory
@@ -1010,17 +971,17 @@ rules:
   - Results
   - Discussion
   observation_points:
-  - 句子与段落是否简洁，能否一眼看出主题句
-  - 段落之间、假设之间的逻辑连接是否顺畅，是否存在跳跃
-  - 关键术语与构念命名是否前后一致
-  - 图表是否被正文引用并解释
-  - 是否存在因表达含混而无法复核论证的段落
+  - "Are sentences and paragraphs concise? Can the topic sentence be seen at a glance?"
+  - "Whether the logical connections between paragraphs and assumptions are smooth and whether there are jumps"
+  - "Are key terms and construct naming consistent?"
+  - "Whether the chart is quoted and explained in the text"
+  - "Are there any passages where the argument cannot be reviewed due to vague expression?"
   judgement_values:
-    mostly: 表达整体基本清楚，局部存在冗长、术语漂移或连接跳跃，增加了阅读成本但不影响论证能否成立
-    partial: 表达大致可读，但有相当篇幅需要回读才能确定论证走向，核心论证那几段仍能读懂
-    weak: 多处表达含混或术语前后不一，读者需要反复回读，仍难以辨认核心构念究竟指什么
-    not_satisfied: 表达妨碍论证复核，读者无论怎样回读都无法复述该部分在推什么，论证因此无法被检验
-    uncertain: 正文证据不足，或论文属非标准写作范式、语言风格差异较大，在不误伤作者的前提下无法作出判断
+    mostly: "The overall expression is basically clear, but there are partial verbosity, terminology drift or connection jumps, which increases the reading cost but does not affect whether the argument can be established."
+    partial: "The expression is generally readable, but a considerable amount of it needs to be read back to determine the direction of the argument. The core argument paragraphs are still understandable."
+    weak: "There are many places where the expressions are vague or the terminology is inconsistent. Readers need to read it back again and again, and it is still difficult to figure out what the core constructs refer to."
+    not_satisfied: "The expression hinders the review of the argument. No matter how the reader reads it back, he cannot restate what is being argued in this part, and the argument cannot be tested."
+    uncertain: "There is insufficient evidence in the text, or the paper is in a non-standard writing paradigm and the language style is quite different, making it impossible to make a judgment without accidentally injuring the author."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1029,10 +990,10 @@ rules:
     uncertain: null
   role: baseline
   weight: 0.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 'Colquitt & George 2011（AMJ Part 3: Setting the hook）'
-  - 章凯等 2023
+  - 'Colquitt & George 2011 (AMJ Part 3: Setting the hook) '
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: C-WRITING
   retrieval_terms:
@@ -1047,31 +1008,31 @@ rules:
   - therefore
   - we label
   - terminology
-  rationale: 该规则不计分，只记录表达是否妨碍论证复核，不替代概念与推理判断。五档按阅读成本递减：顺畅可跟读算够，需局部回读尚可，无法复述论证即不够。
-  threshold: 引言或理论、方法、结果中至少两类章节有明确主题句，读者不回读即可复述其论证结构。
-  mostly_threshold: 正文的三类章节中至少两类能找到主题明确的段落，读者据此能复述该部分论证结构。
+  rationale: "This rule does not count points. It only records whether the expression hinders argument review and does not replace concepts and reasoning judgments. The five levels are in descending order of reading cost: smooth reading is enough, partial rereading is acceptable, and inability to retell the argument is not enough."
+  threshold: "At least two types of chapters in the introduction or theory, methods, and results have clear topic sentences, and readers can retell the argument structure without reading back."
+  mostly_threshold: "Paragraphs with clear themes can be found in at least two of the three types of chapters in the main text, so that readers can restate the argument structure of this part."
 - rule_id: D-DESIGN-FIT-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 研究设计匹配研究问题
-  definition: 判断研究设计是否能够回答论文提出的问题，尤其是因果、变化或过程问题是否使用匹配设计。
-  required_evidence: 需要定位到研究设计、研究问题类型、样本/时间结构或识别策略的说明。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "Research Design Matching Research Question"
+  definition: "Determine whether the research design can answer the questions raised by the paper, especially whether a matching design is used for causal, change, or process questions."
+  required_evidence: "A description of the study design, type of research question, sample/time structure, or identification strategy is required."
   evidence_location:
   - Methods
   - Research Design
   observation_points:
-  - 因果问题是否避免单纯截面设计
-  - 变化问题是否有时间维度
-  - 过程问题是否有过程数据
-  - 设计是否被数据可得性过度主导
+  - "Should simple cross-sectional design be avoided for causal issues?"
+  - "Does the change problem have a time dimension?"
+  - "Does the process problem have process data?"
+  - "Is design overly dominated by data availability?"
   judgement_values:
-    satisfied: 除结构相符外，还交代该设计排除了哪一类替代解释、以及该预期模式为何只有这种设计能检验，读者能看出换一种设计哪类结论会失衡
-    mostly: 设计类别与问题的推断类型相符，只有在结论强度上存在小缺口，问题的回答对象未被改变
-    partial: 设计在推断类型上存在明显短板，读者能看出所得结论只在附加假定之下才回应论文提出的问题
-    weak: 设计难以支撑该推断，核心结论只能当作相关描述接受，算不上对研究问题的正面回答，差距已伤及可信度
-    not_satisfied: 设计类型与研究问题不匹配，例如以横断面材料回答因果问题，所得结论无法回应论文提出的问题
-    uncertain: 解析缺失或候选证据过窄，或论文未交代设计类型而无法从文本中判定，使该判断无法稳定地作出
+    satisfied: "In addition to structural consistency, it also explains which alternative explanations the design excludes and why only this design can test the expected pattern. Readers can see which types of conclusions would be unbalanced if another design were used."
+    mostly: "The design category matches the inference type of the question, with only a small gap in the strength of the conclusion, and the answer to the question has not changed.\nThe"
+    partial: "design has obvious shortcomings in the type of inference. Readers can see that the conclusions obtained only respond to the questions raised by the paper under additional assumptions."
+    weak: "The design cannot support this inference. The core conclusion can only be accepted as a relevant description, which is not a positive answer to the research question. The gap has damaged the credibility."
+    not_satisfied: "The design type does not match the research question. For example, cross-sectional materials are used to answer causal questions, and the conclusions obtained cannot respond to the questions raised by the paper."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper does not explain the design type and cannot be determined from the text, making the judgment unable to be made stably."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1081,10 +1042,10 @@ rules:
     uncertain: null
   role: bonus
   weight: 6.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Bono & McNamara 2011
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Bansal et al. 2018
   status: active
   cluster: D-DESIGN
@@ -1101,32 +1062,32 @@ rules:
   - field experiment
   - survey design
   - archival data
-  rationale: 设计错配时后续执行再规范也答不了问题。五档按设计与推断类型的贴合度递减：结构能支撑该推断即算够，结论只在附加假定下成立已是硬伤。
-  threshold: 正文可指认设计类型及其时间层次结构，并说明该结构为何足以回应所提推断类型。
-  mostly_threshold: 正文能指认设计类型及其时间与层次结构，该结构足以回应论文提出的推断类型。
+  rationale: "When the design is mismatched, subsequent execution cannot answer the question no matter how standardized it is. The fifth level decreases according to the degree of fit between the design and the type of inference: it is enough if the structure can support the inference, and it is a flaw that the conclusion is only true under additional assumptions."
+  threshold: "The text identifies the design type and its temporal hierarchy, and explains why this structure is sufficient to respond to the proposed inferred type."
+  mostly_threshold: "The text can identify the design type and its temporal and hierarchical structure, which is sufficient to respond to the type of inference proposed by the paper."
 - rule_id: D-DATA-SAMPLE-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 数据来源与样本合理
-  definition: 判断数据来源、样本选择、样本规模、时间范围和场景是否适合研究问题。
-  required_evidence: 需要引用数据来源、样本获取、样本特征、时间范围或纳入排除标准。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "The data source and sample are reasonable"
+  definition: "Determine whether data sources, sample selection, sample size, time frame, and scenarios are appropriate for the research question."
+  required_evidence: "Data sources, sample acquisition, sample characteristics, time range, or inclusion and exclusion criteria need to be cited."
   evidence_location:
   - Methods
   - Data
   - Sample
   observation_points:
-  - 数据来源是否清楚
-  - 样本是否匹配研究对象
-  - 样本规模是否支持分析
-  - 是否说明数据获取过程和限制
+  - "Is the data source clear?"
+  - "Whether the sample matches the research object"
+  - "Does the sample size support analysis?"
+  - "Does it explain the data acquisition process and restrictions?"
   judgement_values:
-    satisfied: 除交代来源与规模外，还给出代表性能被检验的依据（与目标总体的对比、纳入排除标准或样本流失分析），读者能判断代表性偏差会把结论拉向哪一边
-    mostly: 数据来源与规模交代清楚，取样方式与关键特征说明偏薄，代表性大致可信但读者仍存疑问
-    partial: 来源与规模有交代，抽样方式或样本特征的说明不足，读者难以判断样本对目标总体的代表程度
-    weak: 样本只在某一方面可用，而这一局限恰好覆盖论文的核心推断，结论只能收缩到更小的范围
-    not_satisfied: 数据来源或样本规模缺失，或样本与研究总体明显错位，使论文的主要分析建立在不成立的样本之上
-    uncertain: 解析缺失或候选证据过窄，或论文属理论、质性一类不以统计样本回答问题的体裁，使该判断难以作出
+    satisfied: "In addition to explaining the source and scale, it also provides the basis for testing the representative performance (comparison with the target population, inclusion and exclusion criteria, or sample loss analysis). Readers can judge which side the representative bias will pull the conclusion."
+    mostly: "The data source and scale are clearly explained, and the sampling method and key characteristics are thinly explained. The representativeness is generally credible, but readers still have questions."
+    partial: "The source and scale are explained, and the sampling method or sample characteristics are not explained enough. It is difficult for readers to judge the degree of representativeness of the sample to the target population.\nThe"
+    weak: "sample is only available in one aspect, and this limitation happens to cover the core inference of the paper, and the conclusion can only be reduced to a smaller scope."
+    not_satisfied: "The data source or sample size is missing, or the sample is obviously misaligned with the research population, making the main analysis of the paper based on untenable samples."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is in a theoretical or qualitative genre that does not use statistical samples to answer questions, making this judgment difficult to make."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1136,11 +1097,11 @@ rules:
     uncertain: null
   role: bonus
   weight: 4.0
-  applicable_type: 实证
+  applicable_type: "Evidence"
   source_reference:
   - Zhang & Shaw 2012
   - Bono & McNamara 2011
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: D-DATA
   retrieval_terms:
@@ -1155,31 +1116,31 @@ rules:
   - recruitment
   - firm-level data
   - representativeness
-  rationale: 样本决定结论能覆盖谁。五档按样本可辩护程度递减：读者能判断代表性即算够，抽样说明偏薄尚可，样本错位或来源缺失则结论无处落地。
-  threshold: 正文说明来源与抽样方式、样本规模，并给出代表性能被检验的依据，而非只描述样本构成。
-  mostly_threshold: 正文说明数据来源与样本规模，样本特征足以让读者判断其与目标总体的对应关系。
+  rationale: "The sample determines who the conclusion can cover. The five levels are in descending order according to the degree of defensibleness of the sample: it is enough if the reader can judge the representativeness, the sampling explanation is acceptable, and the sample is misplaced or the source is missing, the conclusion has no way to land."
+  threshold: "The main text explains the source, sampling method, sample size, and gives the basis for the representative performance to be tested, rather than just describing the sample composition."
+  mostly_threshold: "The main text explains the data source and sample size, and the sample characteristics are sufficient for readers to judge its correspondence with the target population."
 - rule_id: D-MEASUREMENT-VALIDITY-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 构念测量与操作化有效
-  definition: 判断变量、构念、编码或质性分类是否准确捕捉理论概念，并提供足够效度说明。
-  required_evidence: 需要定位到测量来源、量表改编、编码规则、构念操作化或效度检验说明。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "Construct measurement and operationalization are effective"
+  definition: "Determine whether variables, constructs, coding, or qualitative classifications accurately capture theoretical concepts and provide sufficient validity explanations."
+  required_evidence: "Need to locate the measurement source, scale adaptation, coding rules, construct operationalization or validity test instructions."
   evidence_location:
   - Methods
   - Measures
   - Coding
   observation_points:
-  - 测量是否对应构念本质
-  - 是否说明量表/条目来源
-  - 改编是否有理由和效度证据
-  - 编码和聚合决策是否清楚
+  - "Whether the measurement corresponds to the essence of the construct"
+  - "Whether to indicate the source of the scale/item"
+  - "Is the adaptation justified and evidence of validity?"
+  - "Are encoding and aggregation decisions clear?"
   judgement_values:
-    mostly: 测量方案基本对应构念，效度理由偏薄或改编依据不明，读者对两者是否等价仍会保留疑问
-    partial: 测量或编码与构念大体对应，但效度依据偏薄，读者对操作化是否捕捉到构念本质仍存疑问
-    weak: 操作化只覆盖构念的部分内涵，依据本身站得住，但所得结果对该构念的代表性已被实质削弱
-    not_satisfied: 测量或编码与构念内涵错位，或操作化方式与研究问题相悖，所得变量无法代表所要检验的概念
-    uncertain: 解析缺失或候选证据过窄，或论文属理论、模拟一类不产生测量操作的体裁，使该判断难以稳定作出
+    mostly: "The measurement scheme basically corresponds to the construct, but the validity reason is weak or the basis for adaptation is unclear. Readers still have doubts about whether the two are equivalent."
+    partial: "The measurement or coding generally corresponds to the construct, but the validity basis is thin. Readers still have questions about whether the operationalization captures the essence of the construct."
+    weak: "The operationalization only covers part of the connotation of the construct and is tenable on its own. However, the representativeness of the obtained results for the construct has been substantially weakened."
+    not_satisfied: "The measurement or coding is misaligned with the connotation of the construct, or the operationalization method is contrary to the research question, and the obtained variables cannot represent the concept to be tested."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is in a genre such as theory or simulation that does not produce measurement operations, making it difficult to make a stable judgment."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1188,11 +1149,11 @@ rules:
     uncertain: null
   role: baseline
   weight: 5.0
-  applicable_type: 实证
+  applicable_type: "Evidence"
   source_reference:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: D-MEASUREMENT
   retrieval_terms:
@@ -1207,32 +1168,32 @@ rules:
   - validated scale
   - discriminant validity
   - coding scheme
-  rationale: 操作化错位会让结果与理论主张失去连接。五档按操作化与构念的等价程度递减：依据能支撑操作化即算够，只覆盖部分内涵属中间地带。
-  threshold: 正文能指认测量或编码与构念的对应，并给出效度或改编依据使读者接受该操作化。
-  mostly_threshold: 测量或编码方案与构念对得上，读者能接受该操作化；信度或效度检验不完整、改编依据未逐项交代不影响本档。
-  mostly_note: 不要求报告全部信效度指标（如同时给出 α、CR、AVE）；只要操作化与构念的对应关系可辨认即可。
+  rationale: "Misaligned operationalization can cause results to lose connection with theoretical claims. The fifth level is in descending order according to the degree of equivalence between operationalization and construct: it is considered sufficient if the basis can support operationalization, and it is a middle ground that only covers part of the connotation."
+  threshold: "The main text can identify the correspondence between measurement or coding and constructs, and provide validity or adaptation basis to enable readers to accept the operationalization."
+  mostly_threshold: "The measurement or coding scheme is consistent with the construct, and readers can accept the operationalization; incomplete reliability or validity testing, and failure to explain the basis for adaptation item by item will not affect this document."
+  mostly_note: "does not require reporting of all reliability and validity indicators (such as α, CR, and AVE given at the same time); as long as the correspondence between operationalization and constructs is identifiable."
 - rule_id: D-MODEL-IDENTIFICATION-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 模型设定与识别策略合理
-  definition: 判断模型设定、控制变量、识别策略或分析框架是否合理，能否降低偏误并支持推断。
-  required_evidence: 需要引用模型设定、控制变量、识别策略、估计方法或分析框架的原文说明。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "model setting and identification strategy are reasonable"
+  definition: "Determine whether the model settings, control variables, identification strategies or analysis frameworks are reasonable and can reduce bias and support inference."
+  required_evidence: "It is necessary to cite the original description of the model specification, control variables, identification strategy, estimation method or analysis framework."
   evidence_location:
   - Methods
   - Analysis
   - Results
   observation_points:
-  - 模型是否与理论问题匹配
-  - 控制变量是否有理论依据
-  - 是否处理共同方法偏差
-  - 是否考虑内生性或选择偏差
+  - "Does the model match the theoretical problem?"
+  - "Does the control variable have a theoretical basis?"
+  - "Whether to deal with common method deviation"
+  - "Whether to consider endogeneity or selection bias\nThe"
   judgement_values:
-    mostly: 模型与识别策略针对该推断的主要威胁作出安排，读者能看出该威胁已被排除到不影响结论的程度
-    partial: 识别安排只覆盖部分威胁，另有同样能解释所得结果的机制未被处理，推断强度因此受到限制
-    weak: 识别安排多属例行程式，主要替代解释在文中得不到处理，因果口吻超出证据能支持的范围
-    not_satisfied: 模型设定或识别依据缺失，主要替代解释未被排除，所得估计最终无法支撑论文所提出的因果主张
-    uncertain: 解析缺失或候选证据过窄，或论文属质性、理论一类不使用统计模型的体裁，使该判断难以稳定作出
+    mostly: "model and identification strategy are arranged for the main threats of this inference. Readers can see that the threats have been eliminated to the extent that they do not affect the conclusion."
+    partial: "The identification arrangement only covers part of the threats, and other mechanisms that can also explain the obtained results have not been processed, so the inference strength is limited."
+    weak: "The identification arrangements are mostly routine, the main alternative explanations are not dealt with in the text, and the causal tone is beyond the scope of what the evidence can support."
+    not_satisfied: "The basis for model setting or identification is missing, the main alternative explanations have not been ruled out, and the resulting estimates ultimately cannot support the causal claims made in the paper."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper is of a qualitative or theoretical nature that does not use statistical models, making it difficult to make a stable judgment."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1241,11 +1202,11 @@ rules:
     uncertain: null
   role: baseline
   weight: 5.0
-  applicable_type: 定量/混合
+  applicable_type: "Quantification/Mixing"
   source_reference:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: D-MODEL
   retrieval_terms:
@@ -1260,31 +1221,31 @@ rules:
   - selection bias
   - omitted variable
   - common method bias
-  rationale: 识别安排能否排除替代解释决定因果主张是否成立，这是设计质量的核心。五档按威胁被排除的程度递减，未处理主要威胁时估计撑不起因果口吻。
-  threshold: 正文说明识别安排如何排除主要替代解释，并交代该威胁被排除到何种程度。
-  mostly_threshold: 正文说明模型设定与针对主要替代解释的识别安排，或说明该设计为何不产生识别问题。
+  rationale: "Identifying whether an arrangement can rule out alternative explanations determines whether a causal claim is valid and is at the heart of design quality. The fifth level decreases according to the degree to which the threat is eliminated. If the main threat is not dealt with, it may not be able to support the tone of cause and effect."
+  threshold: "The main text explains how the identification arrangement eliminates major alternative explanations and explains to what extent the threat is eliminated."
+  mostly_threshold: "The main text explains the model setting and the identification arrangements for the main alternative explanations, or explains why the design does not cause identification problems."
 - rule_id: D-METHOD-EXECUTION-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 方法执行规范
-  definition: 判断定量、质性或混合方法的执行、分析和报告是否符合相应研究体裁规范。
-  required_evidence: 需要引用数据收集、分析流程、编码过程、统计流程或方法执行细节。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "method execution specification"
+  definition: "Determine whether the execution, analysis, and reporting of quantitative, qualitative, or mixed methods conform to appropriate research genre specifications."
+  required_evidence: "Requires citation of data collection, analysis process, coding process, statistical process, or method execution details."
   evidence_location:
   - Methods
   - Findings
   - Appendix
   observation_points:
-  - 研究程序是否规范化
-  - 执行步骤是否完整
-  - 分析流程是否透明
-  - 是否如实报告关键方法决策
+  - "Whether the research procedures are standardized"
+  - "Are the execution steps complete?"
+  - "Is the analysis process transparent?"
+  - "Whether key methodological decisions are truthfully reported"
   judgement_values:
-    mostly: 主要步骤有交代，个别影响复核的细节缺失或前后说法不一致，读者需猜测某一步究竟如何处理
-    partial: 主要步骤有交代，个别影响复核的环节存在缺口或前后说法不一致，读者需自行猜测该步如何处理
-    weak: 执行步骤多处含糊，主要分析的处理顺序无法从文中重建，读者只能凭作者的报告接受结果
-    not_satisfied: 关键分析步骤缺失，或执行方式违背该体裁的基本规范，读者无法复核论文所报告的主要分析结果
-    uncertain: 解析缺失或候选证据过窄，或论文属理论、评论一类不以数据执行体现方法的体裁，无法稳定判断
+    mostly: "The main steps are explained. Some details that affect the review are missing or inconsistent. Readers need to guess how to handle a certain step."
+    partial: "The main steps are explained. There are gaps or inconsistent statements in some links that affect the review. Readers need to guess how to handle this step."
+    weak: "There are many ambiguities in the execution steps. The processing sequence of the main analysis cannot be reconstructed from the text. Readers can only accept the results based on the author's report."
+    not_satisfied: "Key analysis steps are missing, or the execution method violates the basic norms of the genre, and readers cannot review the main analysis results reported in the paper."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper belongs to a genre such as theory or commentary that does not use data to implement methods, and it is impossible to make a stable judgment."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1293,9 +1254,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Zhang & Shaw 2012
   - Bansal et al. 2018
   status: active
@@ -1312,31 +1273,31 @@ rules:
   - estimation
   - appendix
   - steps
-  rationale: 执行规范决定结果能否被追溯。五档按流程可重建的程度递减：读者能照描述重走主要分析即算够，个别环节需猜测尚可，关键步骤缺失即无法复核。
-  threshold: 至少两类主要分析章节交代收集与分析步骤，读者照描述能重建其处理顺序。
-  mostly_threshold: 正文交代数据收集与分析的主要步骤，读者据此能复现核心分析的处理顺序。
+  rationale: "The execution specification determines whether the results can be traced. The five levels are in descending order according to the degree to which the process can be reconstructed: it is sufficient if the reader can re-walk the main analysis as described, it is acceptable if some links require guessing, and it is impossible to review if key steps are missing."
+  threshold: "At least two major analysis chapters explain the collection and analysis steps, and the reader can reconstruct the processing sequence according to the description."
+  mostly_threshold: "The main text explains the main steps of data collection and analysis, so that readers can reproduce the processing sequence of the core analysis."
 - rule_id: D-QUAL-GENRE-FIT-V1
   version: V1
   dimension_id: D
-  dimension_name: 研究设计与方法质量
-  indicator_name: 质性研究体裁适配
-  definition: 针对质性论文，判断其体裁、认识论、数据、分析和写作结构是否相互匹配。
-  required_evidence: 需要定位到质性体裁、认识论立场、数据类型、分析过程或研究者反思说明。
+  dimension_name: "Study design and methodological quality"
+  indicator_name: "Qualitative research genre adaptation"
+  definition: "For qualitative papers, determine whether the genre, epistemology, data, analysis, and writing structure match each other."
+  required_evidence: "Need to locate the qualitative genre, epistemological stance, data type, analysis process or researcher's reflection statement."
   evidence_location:
   - Methods
   - Findings
   - Theory
   observation_points:
-  - 是否说明本体/认识论假设
-  - 问题-数据-分析是否一致
-  - 是否避免模板生搬
-  - 发现呈现是否符合体裁逻辑
+  - "Whether to state the ontological/epistemological assumptions"
+  - "Question-data-analysis is consistent"
+  - "Whether to avoid template copying"
+  - "Discover whether the presentation complies with genre logic"
   judgement_values:
-    mostly: 质性方法整体基本成立，认识论立场或分析程序交代偏薄，在体裁、分析与呈现之间出现局部的张力
-    partial: 质性方法基本成立，立场或分析程序交代偏薄，但读者仍能看出数据如何得出所报告的主题
-    weak: 质性程序多处借自其他范式，立场与呈现之间的落差让所报告的发现难以被接受为对该问题的回答
-    not_satisfied: 质性设计与所声明的立场或问题相悖，或用模板化流程套用不适配的体裁，发现呈现与该方法逻辑不符
-    uncertain: 解析缺失或候选证据过窄，或论文不属质性体裁而使本规则不适用，无法稳定判断其适配的程度
+    mostly: "The overall qualitative method is basically established, the epistemological stance or analysis procedures are poorly explained, and there is a local tension between genre, analysis and presentation."
+    partial: "The qualitative method is basically established, and the explanation of stance or analysis procedures is thin, but readers can still see how the data leads to the reported theme."
+    weak: "Many qualitative procedures are borrowed from other paradigms, and the gap between stance and presentation makes it difficult for the reported findings to be accepted as an answer to the question."
+    not_satisfied: "Qualitative design is contrary to the stated position or problem, or a templated process is used to apply an inappropriate genre, and the presentation is found to be inconsistent with the logic of the method."
+    uncertain: "The analysis is missing or the candidate evidence is too narrow, or the paper does not belong to a qualitative genre, making this rule inapplicable, and the degree of adaptation cannot be stably judged."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1345,7 +1306,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 2.0
-  applicable_type: 质性
+  applicable_type: "Qualitative"
   source_reference:
   - Bansal et al. 2018
   - Bono & McNamara 2012
@@ -1364,32 +1325,32 @@ rules:
   - triangulation
   - informants
   - field notes
-  rationale: 质性质量不看指标而看范式内部自洽。五档按立场、数据、呈现相互贴合的程度递减，借用量化模板或立场与分析相悖即不够。
-  threshold: 正文说明质性立场、数据类型与分析程序，并说明该搭配为何适合所研究的问题。
-  mostly_threshold: 正文说明质性立场或分析程序，其呈现方式与该立场、数据来源相符。
+  rationale: "Qualitative quality does not look at indicators but at the internal self-consistency of the paradigm. The five levels are arranged in descending order according to the degree to which the position, data, and presentation are consistent with each other. It is not enough to borrow a quantitative template or a position that is inconsistent with the analysis."
+  threshold: "The main text explains the qualitative stance, data types, and analytical procedures, and explains why the combination is appropriate for the research question."
+  mostly_threshold: "The text describes the qualitative position or analytical procedure and presents it in a manner consistent with the position and the data source."
 - rule_id: E-RESULTS-COMPLETENESS-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 结果呈现完整规范
-  definition: 判断结果是否完整呈现核心分析、关键指标、统计/编码结果和必要的表格图示。
-  required_evidence: 需要引用结果段落、表格、图或发现呈现中支持核心结论的信息。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "results present complete specification"
+  definition: "Determine whether the results completely present core analysis, key indicators, statistical/coding results and necessary table illustrations."
+  required_evidence: "Information in the results paragraph, table, figure, or presentation of findings that supports the core conclusion needs to be cited."
   evidence_location:
   - Results
   - Findings
   - Tables
   - Figures
   observation_points:
-  - 结果是否覆盖所有核心问题/假设
-  - 统计或编码报告是否规范
-  - 表格图示是否支持理解
-  - 是否报告关键缺失或异常
+  - "Do the results cover all core questions/hypotheses?"
+  - "Are statistical or coding reports standardized?"
+  - "Does the table icon support understanding?"
+  - "Whether to report key missing or abnormal"
   judgement_values:
-    mostly: 每个核心问题在正文或表格里各有可读的数值与检验统计量，读者不必自己换算或推算就能核对结论
-    partial: 核心问题的关键数值已报出，个别分析只给方向性描述或散落在多处，读者把几处对起来仍能核对结论
-    weak: 关键分析只给显著性与方向，样本量、效应量或编码频次缺失，读者无从核对结论是否由这些结果得来
-    not_satisfied: 多项结论在结果部分找不到对应数值或编码呈现，读者只能接受作者说法而无从核对
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "Each core question has readable numerical values and test statistics in the text or tables. Readers can check the conclusions without having to convert or calculate by themselves."
+    partial: "The key values of the core issues have been reported. Some analyzes only give directional descriptions or are scattered in many places. Readers can still check the conclusions by matching several points."
+    weak: "Key analysis only gives significance and direction. The sample size, effect size or coding frequency are missing. Readers have no way to check whether the conclusion is derived from these results."
+    not_satisfied: "Multiple conclusions cannot be found in the results section with corresponding values or codes. Readers can only accept the author's statement without any way to check."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1398,10 +1359,10 @@ rules:
     uncertain: null
   role: baseline
   weight: 1.8
-  applicable_type: 实证
+  applicable_type: "Evidence"
   source_reference:
   - Zhang & Shaw 2012
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: E-COMPLETENESS
   retrieval_terms:
@@ -1417,32 +1378,32 @@ rules:
   - regression results
   - p-value
   - confidence interval
-  rationale: 结果可查是E维度后续判断的前提。五档按可核对程度下降：有分岔处理依据、可核对、需对照、不可核对、无可核对对象，缺失结果会让整条可信度链失效。
-  threshold: 围绕每个核心问题都能定位到关键数值或编码结果，其呈现方式使读者无需自行推算即可核对。
-  mostly_threshold: 每个核心问题至少一处关键结果见诸正文或表格，个别分析只给出方向或指向他表，读者对照后仍能核对结论。
-  mostly_note: 不要求逐个报告系数与标准误；个别分析呈现简略但不妨碍核对结论即可。
+  rationale: "results is the prerequisite for subsequent judgments in the E dimension. The five levels decrease according to the degree of verifiability: there is a basis for bifurcation processing, verifiable, need to be compared, unverifiable, and no verifiable object. Missing results will invalidate the entire credibility chain."
+  threshold: "Key values ​​or coding results can be located around each core question, and the presentation is presented in a way that readers can check without having to make their own calculations."
+  mostly_threshold: "At least one key result of each core question is shown in the text or a table. Individual analyzes only give directions or point to other tables, and readers can still check the conclusions after comparison."
+  mostly_note: "It is not required to report coefficients and standard errors one by one; individual analyzes can be presented briefly but do not hinder the verification of conclusions."
 - rule_id: E-RESULTS-ALIGNMENT-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 结果与问题/假设对应
-  definition: 判断结果呈现是否直接回应研究问题、假设、命题或理论模型。
-  required_evidence: 需要定位到结果如何对应研究问题、假设或理论主张的原文证据。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "Results correspond to questions/hypotheses"
+  definition: "Determine whether the results presented directly respond to the research question, hypothesis, proposition or theoretical model."
+  required_evidence: "It is necessary to locate the original evidence of how the results correspond to the research questions, hypotheses or theoretical claims."
   evidence_location:
   - Results
   - Findings
   - Discussion
   observation_points:
-  - 每个核心问题是否有结果回应
-  - 假设检验是否逐项对应
-  - 发现是否回到理论模型
-  - 是否存在结果与主张脱节
+  - "Whether there is a result response for each core question"
+  - "Does the hypothesis test correspond item by item?"
+  - "Discover whether to return to the theoretical model"
+  - "Is there a disconnect between the results and the claims?"
   judgement_values:
-    mostly: 任取一个核心问题或假设，都能指出直接回应它的结果，问题与结果的对应关系在文中可辨
-    partial: 多数问题有结果回应，个别问题只被侧面涉及，这一处由读者自己接上问题与结果的对应关系
-    weak: 部分问题所对应的结果只是擦边涉及，读者需自行判断该结果算不算回答，回应关系因此不稳
-    not_satisfied: 问题提出后在结果中找不到对应回应，或以另一问题的结果顶替，读者无法确认该问题是否被回答
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "If you take any core question or hypothesis, you can point out the results that directly respond to it. The corresponding relationship between the questions and the results can be discerned in the text."
+    partial: "Most of the questions have results and responses, and some questions are only covered side by side. Here, it is up to the readers to connect the corresponding relationship between the questions and the results."
+    weak: "The results corresponding to some questions are only marginally related. Readers need to judge whether the results are considered answers. The response relationship is therefore unstable."
+    not_satisfied: "After the question is raised, the corresponding response cannot be found in the results, or the result of another question is replaced, and the reader cannot confirm whether the question has been answered."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1451,7 +1412,7 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.6
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Zhang & Shaw 2012
   - Geletkanycz & Tepper 2012
@@ -1468,32 +1429,32 @@ rules:
   - moderation analysis
   - in support of
   - theoretical model
-  rationale: 只判问题与结果是否闭合，不判证据强弱。五档按回应直接性递降：逐条对应、个别需接、仅擦边、无回应，越往下结论越难追回问题。
-  threshold: 任取一个核心问题或假设，都能指向至少一组直接回应它的结果，回应关系在文中明确可辨。
-  mostly_threshold: 多数核心问题各有直接对应的结果回应，个别问题只侧面涉及，该处的对应关系由读者自己接上。
+  rationale: "only determines whether the question and the result are closed, not the strength of the evidence. The five levels are in descending order of response directness: correspondence one by one, individual responses, only marginalia, and no response. The further down the line, the more difficult it is to recover the problem."
+  threshold: "Any core question or hypothesis can point to at least one set of results that directly respond to it, and the response relationship is clearly identifiable in the text."
+  mostly_threshold: "Most of the core questions have direct corresponding results and responses. Some questions are only covered side by side. The corresponding relationship here is provided by the readers themselves."
 - rule_id: E-ROBUSTNESS-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 稳健性与补充分析
-  definition: 判断论文是否通过稳健性检验、补充分析、替代模型、消融或三角验证增强结果可信度。
-  required_evidence: 需要引用稳健性检验、替代模型、补充分析、消融或三角验证的原文片段。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "Robustness and Supplementary Analysis"
+  definition: "Determine whether the paper enhances the credibility of the results through robustness checks, supplementary analyses, alternative models, ablation or triangulation."
+  required_evidence: "Original text fragments need to be cited for robustness tests, alternative models, supplementary analyses, ablation, or triangulation."
   evidence_location:
   - Results
   - Robustness Checks
   - Appendix
   observation_points:
-  - 是否使用替代测量或模型
-  - 是否检查关键结果稳定性
-  - 是否有补充或敏感性分析
-  - 是否解释不稳健结果
+  - "Whether to use alternative measurements or models"
+  - "Whether to check the stability of key results\nIs there any supplementary or sensitivity analysis for"
+  - "?"
+  - "Whether to explain the unstable results"
   judgement_values:
-    satisfied: 文中点名自己最弱的一处，说明何种结果会推翻主结论，该检验的设定、结果与结论是否改变都在正文里可指认
-    mostly: 有一项稳健性或补充分析落在结论的要害环节，检验结果在文中报告，读者能看出该处威胁已按作者的说明被处理
-    partial: 所做的稳健性或补充分析针对的是次要环节，最脆弱处未受检验，读者对该处是否成立仍存疑问
-    weak: 只做了替代测量、换样本一类常规动作，没有针对结论脆弱处设计检验，读者不知威胁下结论是否成立
-    not_satisfied: 全文找不到对结论脆弱环节的检验，或所设检验与主结论无关，主要质疑自始未被回应
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "Name your weakest point in the article and explain what kind of results will overturn the main conclusion. Whether the test settings, results and conclusions have changed can be identified in the text."
+    mostly: "There is a robustness or supplementary analysis that falls on the key link of the conclusion. The test results are reported in the text. The reader can see that the threat has been dealt with according to the author's instructions.\nThe robustness or supplementary analysis done by"
+    partial: "focuses on secondary links, and the most vulnerable points have not been tested. Readers still have doubts about whether this point is established."
+    weak: "only performed routine actions such as alternative measurements and sample changes, and did not design tests for the weak points of the conclusion. The reader does not know whether the conclusion is valid or not."
+    not_satisfied: "There is no test for the weak link in the conclusion in the full text, or the test is irrelevant to the main conclusion, and the main question has not been answered from the beginning."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1503,11 +1464,11 @@ rules:
     uncertain: null
   role: bonus
   weight: 1.5
-  applicable_type: 实证
+  applicable_type: "Evidence"
   source_reference:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: E-ROBUSTNESS
   retrieval_terms:
@@ -1522,33 +1483,33 @@ rules:
   - control variables
   - placebo
   - results hold
-  rationale: 判检验是否落在结论最脆弱的一环，不数检验数量。五档按着力点递降：自认弱点受检、要害受检、次要处受检、常规动作、未受检，越靠上结论越经得起主要质疑。
-  threshold: 能指出一项检验直接针对作者自己承认的最弱环节，该检验的设定与结果都可指认，作者据此说明主结论是否改变。
-  mostly_threshold: 至少有一项稳健性或补充分析落在结论的关键环节，结果已在文中报告，读者能看出该处威胁已按作者说明被处理。
-  mostly_note: 不要求为每个核心关系都做检验；检验落在关键环节即可，其余次要关系可略。
+  rationale: "To determine whether the test falls on the weakest link of the conclusion, the number of tests is not counted. The five levels are descending according to the focus: self-perceived weaknesses are tested, key points are tested, minor points are tested, routine actions are not tested, and the higher the conclusion, the more it can withstand the main challenges."
+  threshold: "can point out that a test directly targets the weakest link recognized by the author himself. The settings and results of the test can be identified, and the author can use this to explain whether the main conclusion has changed."
+  mostly_threshold: "At least one robustness or supplementary analysis falls on a critical link in the conclusion, and the results are reported in the text. Readers can see that the threat has been addressed according to the author's instructions."
+  mostly_note: "It is not required to test every core relationship; the test only needs to fall on key links, and other secondary relationships can be omitted."
 - rule_id: E-EVIDENCE-STRENGTH-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 证据支撑强度
-  definition: 判断论文使用的数据、分析和理论证据是否足以支撑核心主张。
-  required_evidence: 需要定位核心主张及其对应证据，判断证据是否直接、充分、一致。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "Strength of evidence support"
+  definition: "Determine whether the data, analysis, and theoretical evidence used in the paper are sufficient to support the core claims."
+  required_evidence: "It is necessary to locate the core claim and its corresponding evidence, and determine whether the evidence is direct, sufficient, and consistent."
   evidence_location:
   - Methods
   - Results
   - Findings
   - Discussion
   observation_points:
-  - 证据是否直接支持主张
-  - 是否有多处一致证据
-  - 证据是否来自正确章节
-  - 是否存在相反证据未处理
+  - "Whether the evidence directly supports the claim"
+  - "Is there multiple consistent evidences?"
+  - "Is the evidence from the correct chapter?"
+  - "Whether there is contrary evidence has not been processed"
   judgement_values:
-    mostly: 主要主张在结果部分各有自己的估计值或检验统计量，文中没有留下未作说明却与主张相反的证据
-    partial: 主要主张有直接证据，个别处证据仅间接相关或方向略有出入，作者已作说明，结论仍可接受
-    weak: 主要主张中有一部分在结果部分找不到直接对应的分析，靠推理或邻近结果接上，读者对手头证据能否撑住结论存疑
-    not_satisfied: 主要主张在结果部分找不到直接证据，或找到的证据方向与主张相反，结论实质悬空
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "mainly claims that each has its own estimated value or test statistic in the results section, and the article does not leave any unexplained evidence that is contrary to the claim."
+    partial: "There is direct evidence for the main claim, but some evidence is only indirectly related or has slightly different directions. The author has explained it, and the conclusion is still acceptable."
+    weak: "Some of the main claims cannot find direct corresponding analysis in the results section, and are connected by inference or nearby results. The reader has doubts about whether the evidence at hand can support the conclusion."
+    not_satisfied: "The main claim is that no direct evidence can be found in the results section, or the evidence found is in the opposite direction to the claim, and the conclusion is essentially empty."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1557,9 +1518,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 3.6
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Bansal et al. 2018
   - Geletkanycz & Tepper 2012
   status: active
@@ -1577,32 +1538,32 @@ rules:
   - path coefficient
   - hypothesis testing
   - direct evidence
-  rationale: 判证据是否指向主张，与稳健性分工：那条问威胁是否受检，这条问证据指向何处。五档按证据与主张的贴合度递降，证据来自相邻结果与证据方向相反分别落在两级。
-  threshold: 每条主要主张都能指回结果部分属于自己的估计值或检验统计量，文中没有方向相反却未作说明的证据。
-  mostly_threshold: 每条主要主张至少有一处来自结果部分的直接证据，个别处证据间接或方向略有出入但作者已交代。
-  mostly_note: 不要求跨方法或多子样本的相互印证；直接证据足以指回主张即可，该方法级印证留给其他规则。
+  rationale: "Judgment of whether the evidence points to the claim is divided from robustness: one asks whether the threat has been tested, and the other asks where the evidence points. The five levels are in descending order according to the degree of fit between the evidence and the claim. Evidence from adjacent results and evidence in the opposite direction fall into two levels respectively."
+  threshold: "Each of the main claims can refer back to its own estimate or test statistic, and there is no unexplained evidence in the opposite direction in the article."
+  mostly_threshold: "Each main claim has at least one direct evidence from the results section. Some of the evidence is indirect or slightly different in direction, but the author has explained it."
+  mostly_note: "does not require mutual corroboration across methods or multiple subsamples; direct evidence is sufficient to back up the claim, and this method-level corroboration is left to other rules."
 - rule_id: E-CONCLUSION-VALIDITY-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 结论解释不过度外推
-  definition: 判断结论是否基于结果合理解释，不夸大因果、范围、普遍性或实践含义。
-  required_evidence: 需要引用论文对结论、解释、限制或推广范围的说明。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "Conclusion explanation does not over extrapolate"
+  definition: "Judge whether the conclusion is based on a reasonable explanation of the results and does not exaggerate the cause and effect, scope, universality or practical implications."
+  required_evidence: "It is necessary to cite the paper's description of the conclusions, explanations, limitations or generalization scope."
   evidence_location:
   - Discussion
   - Conclusion
   observation_points:
-  - 结论是否回到证据
-  - 是否避免超过设计能力的因果表述
-  - 是否说明限制
-  - 是否避免把局部发现泛化为普遍结论
+  - "Does the conclusion return to the evidence?"
+  - "Whether to avoid causal statements that exceed design capabilities"
+  - "Do you specify restrictions?"
+  - "Whether to avoid generalizing local findings into general conclusions"
   judgement_values:
-    satisfied: 每条结论末了写明它站得住的限度，文中主动标出与它相冲突或未获证实的证据，读者引用时不必自行打折
-    mostly: 结论的方向与适用范围没有穿过设计能支持的界线，读者把每句结论指回哪一组结果时不会落空
-    partial: 结论大体有据，个别处用词强于证据，如以相关材料下因果判断，读者略作保留即可接受其方向
-    weak: 多处表述明显强于证据，或把单一样本内的发现说成普遍规律，读者须自行打折后才能使用该结论
-    not_satisfied: 结论与结果不一致，或把设计无法支持的主张作为结论提出，读者无法把结论回接到任一结果
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "The extent to which it is tenable is stated at the end of each conclusion. Evidence that conflicts with it or is unproven is automatically marked in the article. Readers do not have to discount it when citing it."
+    mostly: "The direction and scope of application of the conclusion do not cross the boundaries that the design can support. Readers will not be disappointed when pointing each conclusion back to which set of results."
+    partial: "The conclusion is generally well-founded, and the words used in some places are stronger than the evidence. If a cause-and-effect judgment is made based on relevant materials, readers can accept its direction with some reservations."
+    weak: "Many statements are clearly stronger than the evidence, or the findings within a single sample are described as universal rules. Readers must make their own discounts before using this conclusion."
+    not_satisfied: "The conclusion is inconsistent with the results, or a claim that cannot be supported by the design is put forward as a conclusion, and the reader cannot link the conclusion back to any result."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1612,9 +1573,9 @@ rules:
     uncertain: null
   role: bonus
   weight: 1.5
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Geletkanycz & Tepper 2012
   - Tihanyi 2020
   status: active
@@ -1632,30 +1593,30 @@ rules:
   - external validity
   - robustness
   - we cannot rule out
-  rationale: 只判结论是否超出证据限度，不问是否写了边界段落。五档按越界程度递降：自认张力、未越限、个别越界、多处越界、与结果相悖，越界会直接放大前面各处的证据不足。
-  threshold: 结论中每一处因果或推广表述都能指回结果部分同强度的支撑，文中另有对相冲突或未证实证据的主动交代。
-  mostly_threshold: 结论整体与结果相符，个别用词略强于证据，但不改变结论的方向与适用范围。
+  rationale: "Only determines whether the conclusion exceeds the limit of evidence, not whether a boundary paragraph has been written. The five grades are in descending order of the degree of transgression: self-confessed tension, no transgression, individual transgression, multiple transgression, and conflict with the results. Transgression will directly amplify the lack of evidence in the previous places."
+  threshold: "Every causal or generalized statement in the conclusion can refer back to the same strength of support in the result part, and there are also active explanations of conflicting or unconfirmed evidence in the text."
+  mostly_threshold: "The conclusion is consistent with the results as a whole, and some words are slightly stronger than the evidence, but it does not change the direction and scope of application of the conclusion."
 - rule_id: E-DISCUSSION-SYNTHESIS-V1
   version: V1
   dimension_id: E
-  dimension_name: 证据、结果与结论可信度
-  indicator_name: 讨论部分理论综合
-  definition: 判断讨论是否整合结果，回到最初理论动机，并形成清楚的理论推进。
-  required_evidence: 需要引用讨论中回归 theoretical puzzle、综合发现、说明 theoretical advance 的片段。
+  dimension_name: "Credibility of evidence, results and conclusions"
+  indicator_name: "Discussion part of theoretical synthesis"
+  definition: "Determine whether the discussion integrates the results, returns to the original theoretical motivation, and forms a clear theoretical advancement."
+  required_evidence: "It is necessary to cite the excerpts from the discussion that return to the theoretical puzzle, comprehensive findings, and explain the theoretical advance."
   evidence_location:
   - Discussion
   observation_points:
-  - 是否回到最初理论动机
-  - 是否回答 so what
-  - 是否把发现整合成统一叙事
-  - 是否说明对现有理论的改变
+  - "Whether to return to the original theoretical motivation"
+  - "whether to answer so what"
+  - "Whether to integrate findings into a unified narrative"
+  - "Does it explain the changes to the existing theory?"
   judgement_values:
-    satisfied: 讨论对本文主要结果给出机制或过程上的解释，说明结果为何以这种方式出现，读者能认出这一解释改写了既有说法中的哪一处
-    mostly: 讨论说清本文相对既有理解多出了什么，该说法由本文结果支撑，读者能复述这句话而不必自行归纳
-    partial: 讨论复述了结果也提到意义，但推进点说得含糊或与结果联系松弛，读者只能自己总结其理论增量
-    weak: 讨论罗列发现后附带感想式的意义陈述，未说明相对既有研究多出什么，理论与结果彼此脱节
-    not_satisfied: 没有实质讨论，或讨论内容与结果无关，发现停留在罗列而未形成任何判断
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "Discussion provides a mechanism or process explanation for the main results of this article, explaining why the results appear in this way. Readers can identify where this explanation rewrites the existing statement."
+    mostly: "Discuss and explain what is more in this article compared to the existing understanding. This statement is supported by the results of this article. Readers can repeat this sentence without having to generalize on their own."
+    partial: "The discussion retells the results and mentions the significance, but the advancement point is vague or loosely connected with the results. Readers can only summarize the theoretical increments themselves."
+    weak: "The discussion lists the findings followed by a statement of their significance, without explaining what is more than the existing research, and the theory and results are disconnected from each other."
+    not_satisfied: "There is no substantive discussion, or the content of the discussion is irrelevant to the results, and the discovery remains at a list without forming any judgment."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1665,7 +1626,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 3.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Geletkanycz & Tepper 2012
   - Grant & Pollock 2011
@@ -1682,32 +1643,32 @@ rules:
   - mechanism
   - in sum
   - advance
-  rationale: E维度唯一判知识增量的规则，看讨论把结果解释成什么，不问它是否重述了贡献。五档按解释与结果咬合的程度递降：机制解释、说清增量、含糊、脱节、无判断，缺此则全文只停在结果复述。
-  threshold: 讨论中能指认一处机制或过程的解释，该解释说明本文结果为何以这种方式出现，其依据可在正文中指认。
-  mostly_threshold: 讨论有一句由本文结果支撑的推进说法，说清本文相对既有理解多出了哪一点，读者可直接复述。
-  mostly_note: 不要求讨论开出新的研究议程；能说清一处推进点即可。
+  rationale: "The only rule for judging the increment of knowledge in the E dimension depends on how the discussion explains the results, regardless of whether it restates the contribution. The fifth level is in descending order of the degree of overlap between the explanation and the results: mechanism explanation, incremental explanation, vagueness, disjointedness, and lack of judgment. Without these, the whole text will just stop at reciting the results."
+  threshold: "An explanation that can identify a mechanism or process in the discussion. This explanation explains why the results of this article appear in this way. The basis can be identified in the text."
+  mostly_threshold: "There is a propulsive statement supported by the results of this article in the discussion. It clearly explains what is more than the existing understanding of this article, and readers can directly repeat it."
+  mostly_note: "does not require discussion to open up a new research agenda; it is enough to clearly explain a point of advancement."
 - rule_id: F-REPRODUCIBILITY-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 程序可复制性
-  definition: 判断论文是否提供足够信息，使他人能够理解并复现研究程序、数据处理和分析过程。
-  required_evidence: 需要引用研究流程、数据处理、分析步骤、参数、材料或附录说明。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "Program reproducibility"
+  definition: "Determine whether the paper provides sufficient information to enable others to understand and reproduce the research procedures, data processing, and analysis processes."
+  required_evidence: "It is necessary to cite the research procedures, data processing, analysis steps, parameters, materials or appendices."
   evidence_location:
   - Methods
   - Appendix
   - Supplementary Materials
   observation_points:
-  - 程序是否结构化
-  - 数据处理决策是否透明
-  - 分析步骤是否可跟随
-  - 是否提供必要参数或材料
+  - "Is the program structured?"
+  - "Are data processing decisions transparent?"
+  - "Whether the analysis steps can be followed"
+  - "Whether necessary parameters or materials are provided?"
   judgement_values:
-    mostly: 方法部分给出样本纳入、变量构造与分析步骤，读者照着能重走主要分析，途中不必自己决定任何一步
-    partial: 主要环节有描述，个别处如抽样方式或分析参数需要读者自己补一个决定才能接着往下做，重走时会出现分岔
-    weak: 只交代分析框架与变量名称，样本纳入与关键参数缺失，读者能看懂思路却无法照着完成同一分析
-    not_satisfied: 研究程序基本没有交代，或关键步骤与该体裁规范相悖，读者无法据此重走主要分析
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "The methods section provides sample inclusion, variable construction and analysis steps. Readers can follow the main analysis without having to decide any step by themselves."
+    partial: "The main links are described. Some aspects, such as sampling methods or analysis parameters, require readers to make their own decisions before proceeding. There will be bifurcations when re-starting."
+    weak: "only explains the analysis framework and variable names. Sample inclusion and key parameters are missing. Readers can understand the ideas but cannot follow them to complete the same analysis."
+    not_satisfied: "There is basically no explanation of the research procedure, or the key steps are contrary to the norms of the genre, and the reader cannot go back to the main analysis based on this"
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1716,9 +1677,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 1.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Zhang & Shaw 2012
   status: active
   cluster: F-REPRO-TRANSPARENCY
@@ -1733,33 +1694,33 @@ rules:
   - replication
   - estimation procedure
   - supplementary materials
-  rationale: 判按描述能否重走主要分析，替代原来的公开数据要求。五档按可照做程度递降：可照做、需自己补一步、仅有框架、无法重走。不公开数据不影响此条判定。
-  threshold: 仅凭方法部分就能写出等效的分析步骤与关键参数，中途没有需要读者自行补足的处理决策。
-  mostly_threshold: 方法部分交代样本纳入、变量构造与分析步骤，读者可照描述重走主要分析；个别参数或处理决策需推断。
-  mostly_note: 不要求公开数据或逐步脚本；流程写到读者能重走主要分析即可。
+  rationale: "Determine whether the main analysis can be repeated according to the description, replacing the original public data requirements. The five levels are in descending order of what can be done: you can do it, you need to make up one step yourself, you only have the framework, and you can't repeat it. Non-disclosure of data does not affect this judgment."
+  threshold: "The equivalent analysis steps and key parameters can be written in the method section alone, and there are no processing decisions that the reader needs to make up in the middle."
+  mostly_threshold: "The method section explains the sample inclusion, variable construction and analysis steps. Readers can follow the description to repeat the main analysis; individual parameters or processing decisions need to be inferred."
+  mostly_note: "does not require public data or step-by-step scripts; the process is written so that readers can re-walk the main analysis."
 - rule_id: F-DATA-CODE-TRANSPARENCY-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 数据、代码与材料透明
-  definition: 判断论文是否说明数据、代码、量表、访谈材料、编码本或补充材料的可获得性。
-  required_evidence: 需要定位到数据可得性、代码链接、材料说明、附录或公开仓库信息。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "Data, code and material transparency"
+  definition: "Determine whether the paper addresses the availability of data, codes, scales, interview materials, codebooks, or supplementary materials."
+  required_evidence: "needs to locate data availability, code links, material descriptions, appendices, or public repository information."
   evidence_location:
   - Methods
   - Data Availability
   - Appendix
   - Supplementary Materials
   observation_points:
-  - 是否说明数据是否公开
-  - 是否提供代码或分析材料
-  - 是否提供量表/访谈提纲/编码本
-  - 不公开时是否说明原因
+  - "Does it indicate whether the data is public?"
+  - "Whether code or analysis materials are provided?"
+  - "Do you provide scales/interview outlines/codebooks?"
+  - "Whether to explain the reason when not making it public"
   judgement_values:
-    mostly: 文中有一句说明核心数据、代码或材料如何取得，读者据此能真的拿到，或明确交代不能共享的约束
-    partial: 提供了量表条目、任务材料或附录中的部分内容，核心数据或代码的获取状态仍未说明，读者只能取得外围材料
-    weak: 仅提到数据来自某机构或某平台，未说明能否再取得，读者不知该材料是否对外可用
-    not_satisfied: 全文未提及数据、代码或材料的可获取性，读者无从判断能否取得，也无从据以复核
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "There is a sentence in the article that explains how to obtain the core data, code or materials, so that readers can actually get it, or clearly explains the constraints that cannot be shared."
+    partial: "provides scale entries, task materials or part of the appendices. The acquisition status of core data or codes has not yet been explained. Readers can only obtain peripheral materials."
+    weak: "only mentions that the data comes from a certain institution or a certain platform, but does not explain whether it can be obtained again. Readers do not know whether the material is available to the outside world."
+    not_satisfied: "The full text does not mention the availability of data, code or materials. Readers have no way to judge whether they can obtain it or to review it."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1768,9 +1729,9 @@ rules:
     uncertain: null
   role: baseline
   weight: 1.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Zhang & Shaw 2012
   status: active
   cluster: F-REPRO-TRANSPARENCY
@@ -1785,32 +1746,32 @@ rules:
   - survey instrument
   - coding scheme
   - ethical approval
-  rationale: 与可复现分工：那条看流程写得够不够细，这条看材料能否拿到。五档按可取得程度递降：可到手、仅外围、仅来源、未提及，不以是否真正公开为尺度。
-  threshold: 正文至少有一处说明核心数据、代码或材料的获取状态，含不公开时的原因或申请途径。
-  mostly_threshold: 正文说明了核心数据或代码能否获取、获取途径是什么，或交代了不能共享的约束与可替代材料。
-  mostly_note: 不要求数据真正公开；说明获取状态（含不公开的原因或申请途径）即可。
+  rationale: "and reproducible division of labor: The one depends on whether the process is detailed enough, and the other depends on whether the materials can be obtained. The five levels are in descending order of availability: available, peripheral only, source only, not mentioned, and not based on whether it is truly open to the public."
+  threshold: "There should be at least one place in the text describing the acquisition status of core data, code or materials, including the reasons for non-disclosure or application methods."
+  mostly_threshold: "The main text explains whether the core data or code can be obtained and how to obtain it, or explains the constraints and alternative materials that cannot be shared."
+  mostly_note: "does not require the data to be truly disclosed; just state the acquisition status (including reasons for non-disclosure or application methods)."
 - rule_id: F-LIMITATIONS-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 局限讨论诚实具体
-  definition: 判断论文是否诚实讨论研究限制，并将限制与设计、数据、方法或理论边界联系起来。
-  required_evidence: 需要引用论文关于研究限制、潜在弱点、未解决问题或未来研究的说明。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "Limitations Discussion Honest and Specific"
+  definition: "Judge whether the paper honestly discusses study limitations and relates the limitations to design, data, methods, or theoretical boundaries."
+  required_evidence: "A description of the study limitations, potential weaknesses, open questions, or future research of the cited paper is required."
   evidence_location:
   - Discussion
   - Limitations
   - Conclusion
   observation_points:
-  - 是否承认设计或数据弱点
-  - 是否说明限制对解释的影响
-  - 是否避免模板化局限
-  - 未来研究是否具体有价值
+  - "Whether design or data weaknesses are acknowledged"
+  - "Whether to explain the impact of restrictions on interpretation"
+  - "Whether to avoid the limitations of templates"
+  - "Is future research specifically valuable?"
   judgement_values:
-    mostly: 作者主动点出最影响结论的那处弱点，说明它限制哪类推断与适用范围，读者据此可用结论并留出折扣
-    partial: 有局限段落，条目偏次要或偏模板，最影响结论的弱点只被擦边提到，读者仍需自行估计其影响
-    weak: 局限段落只列举样本量、未来研究一类通用条目，未触及本文最关键弱点，读者看不出结论在何处最脆弱
-    not_satisfied: 全文未讨论自身弱点，读者只能自行推测结论在哪些方面可能不成立
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    mostly: "The author takes the initiative to point out the weakness that most affects the conclusion, and explains what kind of inference and scope of application it limits. Readers can draw conclusions based on this and leave discounts."
+    partial: "has limited paragraphs, and the entries are either minor or template-oriented. The weaknesses that most affect the conclusion are only mentioned briefly. Readers still need to estimate their impact by themselves."
+    weak: "The limited paragraph only lists general items such as sample size and future research. It does not touch on the most critical weakness of this article. The reader cannot see where the conclusion is most fragile."
+    not_satisfied: "does not discuss its own weaknesses in the full text. Readers can only speculate on the aspects in which the conclusion may not be valid."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     mostly: 1.0
     partial: 1.0
@@ -1819,11 +1780,11 @@ rules:
     uncertain: null
   role: baseline
   weight: 1.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Geletkanycz & Tepper 2012
   - Zhang & Shaw 2012
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   status: active
   cluster: F-LIMITATIONS
   retrieval_terms:
@@ -1838,33 +1799,33 @@ rules:
   - cannot rule out
   - avenues for future research
   - design limitations
-  rationale: 判作者是否自觉界定自家产出的可用范围，与结论规则互补：这条看作者自觉，那条看文本实际越界。五档按自觉程度递降，须触及最关键弱点方算够。
-  threshold: 局限段落点名一项具体弱点，并说明它限制哪一类结论或哪一类情境下的使用。
-  mostly_threshold: 局限段落点到最影响结论的那处弱点，说明它限制哪类结论或情境，读者据此可对结论打折使用。
-  mostly_note: 不要求穷尽所有弱点；触及最关键的一处并说明影响即可。
+  rationale: "determines whether the author consciously defines the usable scope of his own output, which is complementary to the conclusion rules: this one depends on the author's consciousness, and that one depends on the text actually crossing the boundary. The fifth level is in descending order of consciousness, and the most critical weakness must be touched before it is enough."
+  threshold: "The limitations paragraph names a specific weakness and explains which types of conclusions or types of situations it limits its use."
+  mostly_threshold: "The limitation paragraph points out the weakness that most affects the conclusion and explains what kind of conclusion or situation it limits. The reader can discount the conclusion accordingly."
+  mostly_note: "It is not required to exhaust all weaknesses; just touch on the most critical one and explain the impact."
 - rule_id: F-EXTERNAL-VALIDITY-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 外部效度与适用范围
-  definition: 判断研究结论推广到其他样本、时间、组织、行业、文化或情境的可信程度。
-  required_evidence: 需要引用样本边界、情境边界、推广范围或外部效度讨论。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "External validity and scope of application"
+  definition: "Determine the extent to which research conclusions can be generalized to other samples, time periods, organizations, industries, cultures, or contexts."
+  required_evidence: "requires reference to sample boundaries, situational boundaries, generalization scope, or external validity discussion."
   evidence_location:
   - Methods
   - Discussion
   - Conclusion
   observation_points:
-  - 是否说明样本和情境限制
-  - 是否讨论跨时间或跨场景适用性
-  - 是否有支持推广的证据
-  - 是否避免不当普遍化
+  - "Whether to explain the sample and situation restrictions?"
+  - "Whether to discuss cross-time or cross-scenario applicability"
+  - "Is there any evidence to support promotion?"
+  - "Whether to avoid undue generalization"
   judgement_values:
-    satisfied: 除给出适用边界外，还提供跨样本、跨情境或跨时间的可比照证据，读者能就自身场景中的差异项判断结论是否需要修正
-    mostly: 清楚交代结论适用于哪些对象、时间与情境，读者能判断在自身场景下能否沿用
-    partial: 交代了样本与情境信息，但未把信息落到结论的适用范围上，读者需自行推断结论能走多远
-    weak: 只描述样本构成而未指向结论适用范围，读者拿到样本特征仍不知可否搬到别的组织或时期
-    not_satisfied: 未交代研究对象与情境，结论以不受限的口吻呈现，读者无法判断在自身场景能否沿用
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "In addition to providing applicable boundaries, it also provides comparable evidence across samples, situations, or time. Readers can judge whether the conclusion needs to be revised based on the differences in their own scenarios."
+    mostly: "Clearly explain to which objects, time and situations the conclusion applies, so that readers can judge whether it can be applied in their own scenarios."
+    partial: "explains the sample and situation information, but does not put the information into the applicable scope of the conclusion. Readers need to infer how far the conclusion can go."
+    weak: "only describes the composition of the sample but does not indicate the applicable scope of the conclusion. Readers still don't know whether the sample characteristics can be transferred to other organizations or periods."
+    not_satisfied: "The research objects and situations are not explained, and the conclusions are presented in an unrestricted tone. Readers cannot judge whether they can be used in their own scenarios."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1874,9 +1835,9 @@ rules:
     uncertain: null
   role: bonus
   weight: 1.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
-  - 章凯等 2023
+  - "Zhang Kai et al. 2023"
   - Bono & McNamara 2011
   status: active
   cluster: F-EXTERNAL
@@ -1892,33 +1853,33 @@ rules:
   - industry
   - cross-cultural
   - single country
-  rationale: 判结论能否被读者搬到自己的场景。五档按可搬用程度递降：给出沿用前提、给出边界、有信息未落到边界、仅样本描述、无交代，与结论规则区别在这条看范围交代。
-  threshold: 正文能定位到对适用对象、情境或时间范围的限定，而非仅描述样本构成。
-  mostly_threshold: 正文有明确限定适用对象、情境或时间范围的表述，读者据此可判断能否在本场景沿用。
-  mostly_note: 不要求跨样本复证；给出可判断的适用边界即可。
+  rationale: "Determine whether the conclusion can be moved to the reader's own scene. The five levels are in descending order of transferability: the premise is given, the boundary is given, the information does not fall into the boundary, only the sample description, and no explanation. The difference from the conclusion rules is explained in this scope."
+  threshold: "The main text can limit the applicable objects, situations or time ranges, rather than just describing the composition of the sample."
+  mostly_threshold: "The main text has statements that clearly limit the applicable objects, situations or time ranges, and readers can judge whether it can be used in this scenario."
+  mostly_note: "does not require cross-sample re-certification; just provide a judgeable applicable boundary."
 - rule_id: F-PRACTICAL-IMPLICATIONS-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 实践启示具体
-  definition: 判断论文是否提供对管理者、组织、政策或实践者具体、有操作性的启示。
-  required_evidence: 需要定位到实践启示、管理启示、政策建议或组织实践建议的原文片段。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "Practical inspiration is concrete"
+  definition: "Determine whether the paper provides specific and practical implications for managers, organizations, policies or practitioners."
+  required_evidence: "It is necessary to locate the original text fragment of practical implications, management implications, policy suggestions or organizational practice suggestions.\nDoes"
   evidence_location:
   - Discussion
   - Practical Implications
   - Conclusion
   observation_points:
-  - 是否超越重复理论含义
-  - 是否说明具体行动对象
-  - 是否说明如何改善实践
-  - 是否与研究发现直接相关
+  - "transcend the theoretical meaning of repetition?"
+  - "Whether to specify the specific target of the action?"
+  - "Does it describe how to improve practice?\nIs"
+  - "directly related to the research findings?"
   judgement_values:
-    satisfied: 启示摆出可选做法之间的取舍，说明一种做法在什么条件下胜过另一种，实践者能据此在自身约束下选一条
-    mostly: 启示落到具体对象与条件，指出谁在什么情形下可据此调整做法，而非重述研究结论
-    partial: 提到实践意义但停在方向层面，未说明适用于谁或需要何种条件，读者难以把它转成行动判断
-    weak: 启示与本文结果关联松散，多为一般性管理劝告，实践者读后不知该改变哪一项做法
-    not_satisfied: 全文未涉及研究发现对实践者的含义，讨论止于理论层面
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "Enlightenment lays out the trade-offs between alternative approaches, explaining under what conditions one approach is better than another, so that practitioners can choose one under their own constraints"
+    mostly: "The inspiration falls on specific objects and conditions, pointing out who and under what circumstances can adjust their practices accordingly, rather than restating the research conclusions."
+    partial: "mentions practical significance but stops at the direction level. It does not explain who it applies to or what conditions are required. It is difficult for readers to turn it into action judgment."
+    weak: "Enlightenments are loosely related to the results of this article and are mostly general management advice. Practitioners do not know which practice to change after reading it."
+    not_satisfied: "The full text does not cover the implications of the research findings for practitioners, and the discussion is limited to the theoretical level."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1928,7 +1889,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 1.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Tihanyi 2020
   - Colquitt & George 2011
@@ -1947,32 +1908,32 @@ rules:
   - human resource
   - actionable
   - trade-offs
-  rationale: 判产出能否被实践方接手。五档按可接手程度递降：给出可比较选项、指明对象与条件、停在方向、关联松散、无涉及。管理学论文多数能点到对象，故中间档仍可分。
-  threshold: 启示段落指明受益方与适用条件，该做法与本文结果有明确指向关系，而非重述结论。
-  mostly_threshold: 启示段落指出谁在何种情形下可据此调整做法，该做法与本文结果有明确指向关系。
+  rationale: "determines whether the output can be taken over by the practical party. The fifth level is in descending order of acceptability: giving comparable options, specifying objects and conditions, stopping in the direction, loose connection, and no involvement. Most management papers can hit the target, so the middle grades can still be divided."
+  threshold: "The revelation paragraph specifies the beneficiary and applicable conditions. This approach has a clear relationship with the results of this article, rather than restating the conclusion."
+  mostly_threshold: "The revelation paragraph indicates who can adjust their practices accordingly under what circumstances, and this practice has a clear relationship with the results of this article."
 - rule_id: F-SOCIAL-LONGTERM-IMPACT-V1
   version: V1
   dimension_id: F
-  dimension_name: 透明度、边界与实践意义
-  indicator_name: 社会或长期影响
-  definition: 判断论文是否关注组织内外个体、群体、社会福利或长期负责任管理实践的影响。
-  required_evidence: 需要引用论文关于社会问题、长期影响、责任管理或社会福利的说明。
+  dimension_name: "Transparency, Boundaries and Practical Significance"
+  indicator_name: "Social or long-term impact"
+  definition: "Determine whether the paper focuses on the impact of individual, group, social welfare or long-term responsible management practices inside and outside the organization."
+  required_evidence: "The paper needs to be cited with a description of social issues, long-term impacts, responsible management or social welfare."
   evidence_location:
   - Introduction
   - Discussion
   - Conclusion
   observation_points:
-  - 是否回应重大社会问题
-  - 是否考虑长期社会福利
-  - 是否关注组织外部影响
-  - 是否避免只强调短期绩效
+  - "Whether to respond to major social issues"
+  - "Whether to consider long-term social welfare"
+  - "Are you concerned about the external impact of the organization?"
+  - "Whether to avoid emphasizing only short-term performance"
   judgement_values:
-    satisfied: 讨论到研究对象在长期或社会层面的后果，点明受影响的是哪类主体与何种时间尺度，该讨论接在本文证据上
-    mostly: 正文写出了长期或社会层面的后果，该后果以本文结果为依据，但受影响的主体与时间尺度读着笼统
-    partial: 只在引言或结尾顺带提及社会或长期影响，与本文证据没有连接，属修辞性表述
-    weak: 点到影响方向却未说明涉及哪类主体与何种时间尺度，读者无法据此形成对后果的实质判断
-    not_satisfied: 全文未涉及研究现象在长期或社会层面的后果，读者找不到可据以判断影响范围的内容
-    uncertain: 解析缺失、候选证据过窄，或研究范式不适用，无法稳定判断
+    satisfied: "discusses the long-term or social consequences of the research object, indicating which types of subjects are affected and at what time scale. This discussion continues from the evidence in this article."
+    mostly: "The main text describes the long-term or social-level consequences, which are based on the results of this article, but the affected subjects and time scales are read in general terms."
+    partial: "only mentions social or long-term impacts in the introduction or at the end, and has no connection with the evidence of this article. It is a rhetorical statement."
+    weak: "points to the direction of impact but does not explain which types of subjects are involved and what time scale is involved. Readers cannot form a substantive judgment on the consequences based on this."
+    not_satisfied: "The full text does not cover the long-term or social consequences of the research phenomenon, and readers cannot find content on which to judge the scope of the impact."
+    uncertain: "The analysis is missing, the candidate evidence is too narrow, or the research paradigm is not applicable and the judgment cannot be stable."
   score_mapping:
     satisfied: 1.0
     mostly: 0.5
@@ -1982,7 +1943,7 @@ rules:
     uncertain: null
   role: bonus
   weight: 0.0
-  applicable_type: 通用
+  applicable_type: "General"
   source_reference:
   - Tihanyi 2020
   - Colquitt & George 2011
@@ -2000,6 +1961,6 @@ rules:
   - sustainability
   - externalities
   - public interest
-  rationale: 该规则当前权重为0，不计分，仅为观察项。五档照写以便将来启用：按后果讨论与本文证据的连接程度递降，由对象与尺度俱全降至全无涉及。
-  threshold: 能定位到一处对长期或社会后果的具体说明，该说明引用了本文结果或情境证据。
-  mostly_threshold: 正文有一处关于长期或社会后果的说明与本文结果相连，而非仅顺带提及。
+  rationale: "The current weight of this rule is 0. It does not count and is only an observation item. Five levels of description for future use: the degree of connection between the consequence discussion and the evidence of this article decreases, from all objects and standards to no involvement at all."
+  threshold: "Locates a specific statement of long-term or social consequences that cites the results of this article or contextual evidence."
+  mostly_threshold: "There is a statement in the text about long-term or social consequences that is connected to the results of this article, rather than just mentioned in passing."

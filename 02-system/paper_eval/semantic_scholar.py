@@ -1,22 +1,8 @@
-"""Semantic Scholar 客户端：检索 / 批量检索 / 引用脉络 / 参考文献 / 详情 / 作者。
+"""Client for Semantic Scholar paper search and metadata endpoints.
 
-匿名（无 key）实测可用性（2026-09-27，本机与代理出口一致）：
-    /paper/search            429（共享池常年占满：退避 50 秒、6 轮重试 0/6 成功）
-    /paper/search/bulk       200 稳定（6/6 轮，1.4-2.6 秒）
-    /paper/{id} 详情          200（4/4 轮；偶发 429，重试即可）
-    /paper/{id}/citations    200
-    /paper/{id}/references   200
-    /author/{id}             200（4/4 轮）
-    /paper/search/match      时通时断
-所以：检索必须能自动降级到 bulk；只有 /paper/search 的相关性排序确实要 key
-（免费申请：https://www.semanticscholar.org/product/api#api-key-form），填了本模块所有请求都会自动带 key。
-`find_by_title()` 是免 key 的标题定位（走 bulk），拿来核对某篇论文的年份/期刊/被引/DOI 够用。
+Anonymous-access checks on 2026-09-27 found the relevance-ranked search endpoint consistently rate-limited, while bulk search, paper details, citations, references, and author lookup were available in the tested runs. Without an API key, the client uses bulk search. A key enables relevance-ranked search and is read from the configured environment variable.
 
-统一行为：
-- 磁盘缓存（`cache_dir`），键含端点与参数；失败不写缓存，所以重试一定走真实网络。
-- 429 / 5xx / 超时重试，尊重服务端 `Retry-After`；超过 `max_retry_after_seconds` 直接报出可操作原因。
-- 匿名节流：两次请求间隔至少 `min_interval_seconds`。
-- 失败抛 `S2Error`（原因可读），不吞异常；调用方决定是兜底还是致命。
+Requests can use a disk cache, retry transient errors while respecting Retry-After, and raise S2Error with an actionable message when retries are exhausted.
 """
 
 from __future__ import annotations
@@ -43,7 +29,7 @@ _LAST_CALL_AT = 0.0
 
 
 class S2Error(RuntimeError):
-    """外部检索失败。消息里带可操作原因（限流要等多久 / 要不要 key）。"""
+    'External retrieval failed. The message contains actionable reasons (how long to wait for current limiting/whether a key is required).'
 
 
 @dataclass(frozen=True)
@@ -62,7 +48,7 @@ class S2Config:
 
     @classmethod
     def from_external(cls, config: Any) -> "S2Config":
-        """从 ExternalRetrievalConfig 适配。重试与源间间隔交给管线自己的机制，这里不叠加。"""
+        "Adapts from ExternalRetrievalConfig. The retry and inter-source intervals are left to the pipeline's own mechanism and are not superimposed here."
         return cls(
             api_key_env=str(getattr(config, "api_key_env", cls.api_key_env)),
             timeout_seconds=int(getattr(config, "timeout_seconds", cls.timeout_seconds)),
@@ -101,7 +87,7 @@ def _retry_after_seconds(exc: Exception) -> float | None:
 
 
 def _http_get_json(url: str, timeout: int, api_key: str | None) -> dict:
-    """唯一的网络出口。自检会替换掉这个函数（见 selftest）。"""
+    'The only network exit. Self-test replaces this function (see selftest).'
     headers = {"Accept": "application/json", "User-Agent": "paper-eval/1.0"}
     if api_key:
         headers["x-api-key"] = api_key
@@ -123,7 +109,7 @@ def _get(url: str, cache_key: str, config: S2Config) -> dict:
         _throttle(config)
         try:
             payload = _http_get_json(url, config.timeout_seconds, os.environ.get(config.api_key_env))
-        except Exception as exc:  # noqa: BLE001 - 需要按错误文本与响应头判断是否可重试
+        except Exception as exc:  # noqa: BLE001 - You need to judge whether it can be retried based on the error text and response header.
             last_error = exc
             message = str(exc).lower()
             if not any(marker in message for marker in RETRIABLE_MARKERS):
@@ -131,20 +117,20 @@ def _get(url: str, cache_key: str, config: S2Config) -> dict:
             wait = _retry_after_seconds(exc)
             if wait is not None and wait > config.max_retry_after_seconds:
                 raise S2Error(
-                    f"{exc}（要求等待 {wait:.0f} 秒，超过上限 {config.max_retry_after_seconds:.0f} 秒："
-                    "匿名共享池限流，填 SEMANTIC_SCHOLAR_API_KEY 可解锁）"
+                    f"{exc} (required to wait {wait:.0f} seconds, exceeding the upper limit {config.max_retry_after_seconds:.0f} seconds:"
+                    'Anonymous shared pool current limit, fill in SEMANTIC_SCHOLAR_API_KEY to unlock)'
                 ) from exc
             if attempt + 1 >= attempts:
                 raise S2Error(
-                    f"{exc}（匿名共享池限流，实测 /paper/search 常年 429："
-                    "改用 bulk 端点，或填 SEMANTIC_SCHOLAR_API_KEY）"
+                    f"{exc} (anonymous shared pool current limit, measured /paper/search year-round 429:"
+                    'Use bulk endpoint instead, or fill in SEMANTIC_SCHOLAR_API_KEY)'
                 ) from exc
             time.sleep(wait if wait is not None else config.retry_backoff_seconds * (2 ** attempt))
         else:
             if cached:
                 cached.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
             return payload
-    raise S2Error(str(last_error or "未知失败"))
+    raise S2Error(str(last_error or 'Unknown failure'))
 
 
 def _year_param(year_from: int | None, year_to: int | None) -> str | None:
@@ -160,7 +146,7 @@ def search_relevance(
     year_from: int | None = None,
     year_to: int | None = None,
 ) -> list[dict[str, Any]]:
-    """相关性检索 /paper/search。匿名实测 0/6 成功（常年 429）—— 免 key 场景请用 search_bulk。"""
+    'Relevance search /paper/search. Anonymous actual measurement 0/6 successful (429 all year round) - please use search_bulk for key-free scenarios.'
     cfg = config or S2Config()
     params = {"query": query, "limit": str(limit), "fields": SEARCH_FIELDS}
     year = _year_param(year_from, year_to)
@@ -179,11 +165,7 @@ def search_bulk(
     year_to: int | None = None,
     sort: str = "citationCount:desc",
 ) -> list[dict[str, Any]]:
-    """批量检索 /paper/search/bulk（免 key 可用）。
-
-    ponytail: bulk 没有相关性排序，只能 sort=citationCount:desc，语义退化成
-    「命中最多的那批里被引最高的前 N 篇」。上限就在这里；拿到 key 后改用 search_relevance 即可。
-    """
+    'Batch search /paper/search/bulk (available without key).\n\n    ponytail: bulk does not have relevance sorting, it can only sort=citationCount:desc, and the semantics degenerate into\n    "The top N articles with the highest citations among the batch with the most hits." The upper limit is here; just use search_relevance instead after getting the key.'
     cfg = config or S2Config()
     params = {"query": query, "fields": SEARCH_FIELDS, "sort": sort}
     year = _year_param(year_from, year_to)
@@ -196,7 +178,7 @@ def search_bulk(
 
 
 def paper_detail(paper_id: str, config: S2Config | None = None) -> dict[str, Any]:
-    """论文详情 /paper/{id}。匿名实测 4/4 成功（偶发 429，靠重试兜）。DETAIL_FIELDS 比检索多带 TLDR/参考文献数。"""
+    'Paper details /paper/{id}. Anonymous actual test 4/4 successful (occasionally 429, relying on retrying). DETAIL_FIELDS has more TLDRs/references than the search.'
     cfg = config or S2Config()
     url = f"{GRAPH_BASE}/paper/{urllib.parse.quote(paper_id)}?" + urllib.parse.urlencode({"fields": DETAIL_FIELDS})
     return _get(url, f"detail|{url}", cfg)
@@ -207,7 +189,7 @@ def _normalized_title(text: str) -> str:
 
 
 def find_by_title(title: str, config: S2Config | None = None, year_from: int | None = None) -> dict[str, Any] | None:
-    """按标题定位论文（走 bulk，匿名可用）。返回最接近的一条，差太远返回 None。"""
+    'Locate papers by title (in bulk, anonymously available). Returns the closest one, returns None if the difference is too far.'
     cfg = config or S2Config()
     cleaned = _normalized_title(title)
     if len(cleaned) < 8:
@@ -240,7 +222,7 @@ def _nested_papers(payload: dict, key: str) -> list[dict[str, Any]]:
 
 
 def citations(paper_id: str, limit: int = 20, config: S2Config | None = None) -> list[dict[str, Any]]:
-    """被引脉络：谁引用了这篇（匿名可用）。paper_id 支持 DOI: / ARXIV: / CorpusId: / 裸 S2 id。"""
+    'Citation context: Who cited this article (anonymous available). paper_id supports DOI:/ARXIV:/CorpusId:/naked S2 id.'
     cfg = config or S2Config()
     url = f"{GRAPH_BASE}/paper/{urllib.parse.quote(paper_id)}/citations?" + urllib.parse.urlencode(
         {"fields": SEARCH_FIELDS, "limit": str(limit)}
@@ -249,7 +231,7 @@ def citations(paper_id: str, limit: int = 20, config: S2Config | None = None) ->
 
 
 def references(paper_id: str, limit: int = 20, config: S2Config | None = None) -> list[dict[str, Any]]:
-    """参考文献脉络：这篇引用了谁（匿名可用）。"""
+    'Reference context: Who is cited in this article (anonymous available).'
     cfg = config or S2Config()
     url = f"{GRAPH_BASE}/paper/{urllib.parse.quote(paper_id)}/references?" + urllib.parse.urlencode(
         {"fields": SEARCH_FIELDS, "limit": str(limit)}
@@ -258,7 +240,7 @@ def references(paper_id: str, limit: int = 20, config: S2Config | None = None) -
 
 
 def author(author_id: str, config: S2Config | None = None, papers_limit: int = 100) -> dict[str, Any]:
-    """作者信息 /author/{id}（论文列表 + h 指数）。匿名实测 4/4 成功。"""
+    'Author information /author/{id} (paper list + h index). Anonymous test 4/4 successful.'
     cfg = config or S2Config()
     fields = "name,hIndex,citationCount,paperCount,affiliations,papers.title,papers.year,papers.venue,papers.citationCount,papers.externalIds"
     url = f"{GRAPH_BASE}/author/{urllib.parse.quote(author_id)}?" + urllib.parse.urlencode(
@@ -268,7 +250,7 @@ def author(author_id: str, config: S2Config | None = None, papers_limit: int = 1
 
 
 def selftest() -> None:
-    """离线自检：替换唯一网络出口，验证解析、降级、缓存、错误提示。不打真实网络。"""
+    'Offline self-test: replace the only network outlet, verify parsing, downgrade, cache, and error prompts. No real network access.'
 
     def make_item(title: str, year: int, cites: int, doi: str) -> dict:
         return {"title": title, "year": year, "venue": "AMJ", "citationCount": cites, "externalIds": {"DOI": doi}, "abstract": "x"}
@@ -289,7 +271,7 @@ def selftest() -> None:
             return {"data": [{"citedPaper": make_item("Cited Paper", 1990, 900, "10.2/b")}]}
         if "/author/" in url:
             return {"name": "A. Scholar", "hIndex": 30, "papers": []}
-        raise AssertionError(f"未覆盖的 URL: {url}")
+        raise AssertionError(f"Uncovered URL: {url}")
 
     real = globals()["_http_get_json"]
     globals()["_http_get_json"] = fake
@@ -314,17 +296,17 @@ def selftest() -> None:
         except S2Error as exc:
             assert "429" in str(exc) and "SEMANTIC_SCHOLAR_API_KEY" in str(exc), str(exc)
         else:
-            raise AssertionError("相关性检索 429 应当抛 S2Error")
+            raise AssertionError('Relevance retrieval 429 should throw S2Error')
 
         before = len(calls)
         search_bulk("algorithmic management", limit=2, config=cfg)
-        assert len(calls) == before, "第二次相同检索应命中磁盘缓存，不再打网络"
+        assert len(calls) == before, 'The second time the same search should hit the disk cache, no more network calls'
     finally:
         globals()["_http_get_json"] = real
         for path in Path(cache_dir).glob("*.json"):
             path.unlink()
         Path(cache_dir).rmdir()
-    print("S2 客户端自检通过：bulk 截断 / 标题匹配 / 引用与参考文献解包 / 作者 / 429 提示 / 磁盘缓存")
+    print('S2 client self-test passed: bulk truncation / title matching / citation and reference unpacking / author / 429 prompt / disk cache')
 
 
 if __name__ == "__main__":

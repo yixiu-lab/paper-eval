@@ -102,7 +102,7 @@ def overview_item_from_report(report_path: Path) -> dict[str, Any]:
 
 
 def sort_overview(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    top_rank = {"高": 0, "中": 1, "低": 2, "NA": 3, None: 3}
+    top_rank = {'high': 0, 'Medium': 1, 'low': 2, "NA": 3, None: 3}
     return sorted(
         items,
         key=lambda item: (
@@ -177,7 +177,7 @@ def run_batch_evaluation(
     stop_reason: str | None = None
     for index, pdf in enumerate(pdfs, start=1):
         if progress_callback:
-            progress_callback(f"批量评价 {start_index + index}/{start_index + len(pdfs)}：{pdf.name}")
+            progress_callback(f"Batch evaluation {start_index + index}/{start_index + len(pdfs)}: {pdf.name}")
         started = time.monotonic()
         try:
             result = evaluate_pdf(

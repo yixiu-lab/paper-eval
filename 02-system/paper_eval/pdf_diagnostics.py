@@ -65,14 +65,14 @@ def diagnose_pdf_path(pdf_path: str | Path) -> dict[str, Any]:
 
 def parse_warning_message(warnings: list[str]) -> str:
     labels = {
-        "only_first_pages": "只识别到前两页或更少页码",
-        "low_evidence_count": "可用文本证据数量偏少",
-        "few_core_sections": "核心章节识别不足",
-        "missing_method_facet": "方法证据池为空",
-        "missing_results_facet": "结果证据池为空",
-        "missing_discussion_facet": "讨论证据池为空",
-        "missing_middle_body": "中后段正文证据池为空",
-        "parse_failed": "PDF 解析失败",
+        "only_first_pages": 'Only the first two pages or less are recognized',
+        "low_evidence_count": 'The amount of available text evidence is too small',
+        "few_core_sections": 'Insufficient identification of core chapters',
+        "missing_method_facet": 'method evidence pool is empty',
+        "missing_results_facet": 'The result evidence pool is empty',
+        "missing_discussion_facet": 'Discussion evidence pool is empty',
+        "missing_middle_body": 'The evidence pool in the middle and later paragraphs is empty.',
+        "parse_failed": 'PDF parsing failed',
     }
     return "；".join(labels.get(item, item) for item in warnings)
 

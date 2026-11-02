@@ -30,7 +30,7 @@ def run_novelty_agent(paper: Paper, index_path: str | Path | None, top_k: int = 
         return ExtendedAnalysis(
             agent_id="novelty_agent",
             analysis_type="novelty",
-            summary="未提供历史文献索引，创新性 Agent 暂不能做时间约束 Top-K 对比。",
+            summary='does not provide a historical document index, and innovative Agents cannot currently perform time-constrained Top-K comparisons.',
             matches=[],
             confidence=0.0,
             needs_review=True,
@@ -46,11 +46,11 @@ def run_novelty_agent(paper: Paper, index_path: str | Path | None, top_k: int = 
     rows.sort(key=lambda item: item["score"], reverse=True)
     matches = [_as_match(item) for item in rows[:top_k]]
     if matches:
-        summary = "已基于本地历史文献索引返回相似文献，用于后续人工或 LLM 判断创新性差异。"
+        summary = 'Similar documents have been returned based on the local historical document index for subsequent manual or LLM judgment of innovative differences.'
         confidence = min(0.8, 0.35 + matches[0].score)
         needs_review = True
     else:
-        summary = "未检索到有效相似文献，创新性判断需要补充文献库或检索策略。"
+        summary = 'No valid similar documents were retrieved. To judge the innovativeness, supplementary literature database or search strategy is required.'
         confidence = 0.2
         needs_review = True
     return ExtendedAnalysis("novelty_agent", "novelty", summary, matches, confidence, needs_review)
@@ -61,7 +61,7 @@ def run_relevance_agent(paper: Paper, user_topic: str | None, index_path: str | 
         return ExtendedAnalysis(
             agent_id="relevance_agent",
             analysis_type="relevance",
-            summary="未提供用户研究主题，相关性 Agent 暂不能判断主题/方法/数据匹配。",
+            summary='The user research topic is not provided, and the correlation agent cannot currently determine the topic/method/data matching.',
             matches=[],
             confidence=0.0,
             needs_review=True,
@@ -74,6 +74,6 @@ def run_relevance_agent(paper: Paper, user_topic: str | None, index_path: str | 
             rows.extend(search_top_k(docs, user_topic, facet=facet, k=top_k))
         rows.sort(key=lambda item: item["score"], reverse=True)
         matches = [_as_match(item) for item in rows[:top_k]]
-    summary = "已根据用户研究主题生成相关性检索参照；最终相关性应结合论文证据和用户主题人工复核。"
+    summary = 'Relevance search references have been generated based on user research topics; the final relevance should be manually reviewed based on paper evidence and user topics.'
     confidence = 0.45 if matches else 0.25
     return ExtendedAnalysis("relevance_agent", "relevance", summary, matches, confidence, True)

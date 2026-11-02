@@ -1,27 +1,4 @@
-"""确定性评分标尺：两池机制（基准分 + 加分项）。
-
-核心机制（V11 起，V12 起两池定为 60/40）：
-
-    总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分
-
-- **基准池 60 分**衡量「够不够发表水准」。已发表论文在基准项上默认合格，所以**合格即拿满**：
-  `mostly`（合格且无明显缺口）与 `partial`（合格但有可指出的缺口）都给 1.0；
-  只有 `weak`（未达发表水准，0.5）和 `not_satisfied`（严重缺陷，0.0）才扣基准分。
-  基准项不设 `satisfied`——基准项不判优秀。各方面都合格的论文正好 60 分，与「60 分及格」一致。
-- **加分池 40 分**衡量「有没有超出合格」：`satisfied` 1.0、`mostly` 0.5、`partial` 0.25、
-  `weak`/`not_satisfied` 0.0。加分项只加分、不扣分。加分池从 30 提到 40 后，
-  **B 维度（创新性与理论贡献）满分从 19.4 升到 25.9**——因为 B 全部由加分项组成。
-- `uncertain` 不进分子也不进分母（宽松口径）；适用范围外的构念整体剔除。
-
-为什么改成两池：五档等距标尺下实测 8 份报告 272 条判定，`partial` 占 55–61%，27/34 条规则
-从未拿到 `satisfied`，三篇方法差异极大的论文有 35% 的权重拿到完全相同的档位。根因不是模型偷懒，
-而是指令把 `partial` 定义成「达到最低可接受水准」（即合格），分数却把它记成 60/100——语义与算术矛盾，
-一篇各方面都合格的已发表论文只能算出 62–70 分。两池机制把「合格性判断」与「优劣判断」分开，
-让模型只在自己可靠的档位区间（合格 / 有缺口 / 不达标）上做基准项判断。
-
-分数绝对值依赖证据预算（实测每条规则 10→20 段会让总分整体上移约 7 分），所以证据预算随规则库
-一起版本化（`evidence_budget`），换预算必须升版。
-"""
+'Certainty scoring scale: two-pool mechanism (base score + bonus points).\n\nCore mechanism (starting from V11, starting from V12, the two pools are set to 60/40):\n\n    Total score = Benchmark pool × Benchmark achievement rate + Bonus point pool × Bonus points = 60 × Benchmark achievement rate + 40 × Bonus points\n\n- **Benchmark pool 60 points** measures "adequate publication level". Published papers are qualified by default on the benchmark items, so **passing means getting full**:\n  `mostly` (qualified with no obvious gaps) and `partial` (qualified with pointed gaps) are both given 1.0;\n  Baseline points are deducted only for `weak` (not reaching publication level, 0.5) and `not_satisfied` (serious defect, 0.0).\n  The benchmark items are not set `satisfied` - the benchmark items are not judged as excellent. A paper that is qualified in all aspects is exactly 60 points, which is consistent with "60 points passing".\n- **Extra point pool 40 points** measures "whether it exceeds the qualification": `satisfied` 1.0, `mostly` 0.5, `partial` 0.25,\n  `weak`/`not_satisfied` 0.0. Bonus points are only added, not deducted. After the bonus point pool was raised from 30 to 40,\n  **The full score of dimension B (innovation and theoretical contribution) increased from 19.4 to 25.9** - because B is composed entirely of bonus points.\n- `uncertain` does not enter the numerator or denominator (loose caliber); constructs outside the applicable scope are eliminated as a whole.\n\nWhy changed to two pools: 8 reports and 272 judgments under the five-speed isometric scale, `partial` accounts for 55–61%, 27/34 rules\nNever got `satisfied`, three papers with very different methods got exactly the same bracket with 35% weight. The root cause is not that the model is lazy.\nInstead, the instruction defines `partial` as "reaching the minimum acceptable level" (i.e., passing), but the score is recorded as 60/100 - a semantic and arithmetic contradiction,\nA published paper that is qualified in all respects can only count for 62–70 points. The two-pool mechanism separates "qualification judgment" and "merit and inferiority judgment".\nLet the model only make benchmark judgments within its own reliable range (passed/gap/not up to standard).\n\nThe absolute value of the score depends on the evidence budget (in actual testing, 10→20 paragraphs for each rule will move the total score up by about 7 points), so the evidence budget changes with the rule base\nVersioned together (`evidence_budget`), the version must be upgraded to change the budget.'
 
 from __future__ import annotations
 
@@ -32,22 +9,22 @@ from .models import AgentJudgement, Judgement, ScoreItem
 from .rules import RuleProfile
 
 
-# 基准池档位分值：合格即满分，只有明显不达标才扣。
+# Benchmark pool grade score: full score if qualified, and will be deducted only if the standard is obviously not met.
 BASELINE_MAPPING = {
-    Judgement.MOSTLY: 1.0,          # 合格且无明显缺口
-    Judgement.PARTIAL: 1.0,         # 合格但有可指出的缺口——仍然合格，不扣分
-    Judgement.WEAK: 0.5,            # 未达发表水准
-    Judgement.NOT_SATISFIED: 0.0,   # 严重缺陷
-    Judgement.SATISFIED: 1.0,       # 基准项本不该出现；防御性映射为满分
+    Judgement.MOSTLY: 1.0,          # qualified and no obvious gaps
+    Judgement.PARTIAL: 1.0,         # Qualified but with deficiencies that can be pointed out - still qualified, no points deducted
+    Judgement.WEAK: 0.5,            # Not up to publication level
+    Judgement.NOT_SATISFIED: 0.0,   # Serious defect
+    Judgement.SATISFIED: 1.0,       # Baseline item should not appear; defensive mapping is full score
     Judgement.UNCERTAIN: None,
 }
 
-# 加分池档位分值：只有超出合格才拿得到分。
+# Bonus point pool gear points: Only those who exceed the qualification level will get points.
 BONUS_MAPPING = {
-    Judgement.SATISFIED: 1.0,       # 明显超出
-    Judgement.MOSTLY: 0.5,          # 做到但不突出
-    Judgement.PARTIAL: 0.25,        # 只沾边
-    Judgement.WEAK: 0.0,            # 没有加分（不额外扣分）
+    Judgement.SATISFIED: 1.0,       # obviously exceeds
+    Judgement.MOSTLY: 0.5,          # Achieving but not outstanding
+    Judgement.PARTIAL: 0.25,        # Only related
+    Judgement.WEAK: 0.0,            # No bonus points (no extra points deduction)
     Judgement.NOT_SATISFIED: 0.0,
     Judgement.UNCERTAIN: None,
 }
@@ -55,14 +32,14 @@ BONUS_MAPPING = {
 ROLE_MAPPINGS = {"baseline": BASELINE_MAPPING, "bonus": BONUS_MAPPING}
 POOLS = ("baseline", "bonus")
 
-# 规则库必须声明的档位。基准项不设 satisfied（合格即满分，不判优秀）。
+# The gear that the rule base must declare. There is no satisfied basis for the benchmark items (passing means full marks, not excellence).
 REQUIRED_KEYS_BY_ROLE = {
     "baseline": ("mostly", "partial", "weak", "not_satisfied", "uncertain"),
     "bonus": ("satisfied", "mostly", "partial", "weak", "not_satisfied", "uncertain"),
 }
 
-# 顶刊跃迁门槛：基准项不能有短板，且加分项要明显超出。
-# 旧口径「每个维度达到维度权重 70%」是在五档等距标尺下定的，两池机制下语义已不适用。
+# Top publication jump threshold: the benchmark items must not have shortcomings, and the bonus items must be significantly exceeded.
+# The old standard of "each dimension reaches 70% of the dimension weight" was set on a five-level equidistant scale, and the semantics under the two-pool mechanism are no longer applicable.
 #
 # Empirical threshold calibration (2026-09-28). Read the criteria with their limits:
 # - The project has no gold-standard labels for this threshold; values were selected for repeat-run stability.
@@ -70,51 +47,48 @@ REQUIRED_KEYS_BY_ROLE = {
 # - Observed bonus-rate ranges: Choudhury 0.784–0.916, Blaurock 0.491–0.541, Cheng 0.427–0.455.
 # - The 0.65 / 0.30 thresholds provide a minimum margin of 0.109 (about 4.4 points).
 # - This margin remains below the between-batch variation for an individual paper; report ranges for repeated runs.
-# - 实测加分率区间：Choudhury 0.784–0.916、Blaurock 0.491–0.541、Cheng 0.427–0.455。
-#   旧值 0.60 / 0.35 虽是 0 翻转，但离 Blaurock 上界只有 0.059（≈2.4 分），随时会被噪声推过线。
-#   0.65 / 0.30 把最小裕度提到 0.109（≈4.4 分），是这批数据能达到的最宽裕度。
-# - **局限**：0.109 的裕度仍小于单篇批间波动（Choudhury 加分率摆动 0.131），
-#   所以单批次的「高/中潜力」判定本身不可靠。要下结论至少跑两批，报告应附批间范围。
+# - The measured bonus point range: Choudhury 0.784–0.916, Blaurock 0.491–0.541, Cheng 0.427–0.455.
+#   Old value 0.60 / 0.35 Although it is a 0 flip, it is only 0.059 (≈2.4 points) away from the Blaurock upper bound and will be pushed across the line by noise at any time.
+#   0.65 / 0.30 Raise the minimum margin to 0.109 (≈4.4 points), which is the widest margin that this batch of data can achieve.
+# - **Limitations**: The margin of 0.109 is still smaller than the single-article inter-batch fluctuation (Choudhury bonus point swing 0.131),
+#   Therefore, the "high/medium potential" determination of a single batch is inherently unreliable. To draw conclusions, at least two batches were run, and the report should be accompanied by the inter-batch range.
 BONUS_GATE_HIGH = 0.65
 BONUS_GATE_MID = 0.30
-# 基准项允许的短板比例：0 表示任何 weak/not_satisfied 都挡住「高」。
+# Allowable short board ratio for benchmark items: 0 means any weak/not_satisfied blocks "high".
 MAX_BASELINE_SHORTFALL_FOR_HIGH = 0.0
-# 「中」档允许的基准短板。
+# The standard shortcomings allowed by the "mid" range.
 MAX_BASELINE_SHORTFALL_FOR_MID = 0.05
 
-# 完整度低于此比例时不下高顶刊潜力结论（分数口径宽松，但不给缺失证据背书）。
+# When the completeness is lower than this ratio, no conclusion on high-top publication potential will be made (the score is loose, but the missing evidence will not be endorsed).
 TOP_JOURNAL_MIN_COMPLETENESS = 0.8
 
-# 标尺版本：改了上面的映射或两池口径就必须升这个号。
+# ruler version: If you change the above mapping or the caliber of the two pools, you must upgrade this number.
 SCALE_VERSION = "MGMT-SCALE-V6"
-SCALE_ANCHOR = "两池标尺：基准池 60 分（基准项合格即满分，只判缺口）+ 加分池 40 分（只有 satisfied 拿满加分）"
+SCALE_ANCHOR = 'Two-pool scale: 60 points in the benchmark pool (full marks will be awarded if the benchmark items are passed, only gaps will be judged) + 40 points in the bonus pool (only satisfied will get full bonus points)'
 
-# 等级带：基准分 60 = 各方面都合格 = 达到发表水准；低于它说明基准项出现短板。
+# grade band: benchmark score 60 = qualified in all aspects = reaching publication level; lower than it means there are shortcomings in the benchmark items.
 #
 # Grade thresholds were selected from the archived repeated runs. Previous values (93, 85, 75) were unstable:
 # Choudhury scores across four batches were 91.375 / 92.313 / 93.437 / 96.625.
-# 骑在 93 上，等级在「顶刊级 ↔ 强刊/顶刊边缘」之间翻转。
-# 新值按"离所有论文所有批次的总分都尽量远"选（0 翻转的候选有 3454 个，必须挑平台中部而不是边缘）：
+# rides on 93, and the level flips between "top issue level ↔ strong issue/top issue edge".
+# is selected according to "as far as possible from the total scores of all papers and all batches" (there are 3454 candidates for 0 flipping, and the middle of the platform must be selected instead of the edge):
 #   Choudhury [91.375, 96.625]｜Blaurock [79.625, 81.625]｜Cheng [77.078, 78.203]
-#   → 88 落在 (81.625, 91.375) 这个空档中部；85 与它保持 3 分间距；74 低于 Cheng 下界 3.08 分。
-#   三处最小裕度 3.0 分，是这批数据能达到的上限。
-# - **局限（必须一起读）**：3.0 分的裕度**小于 Choudhury 自身的批间波动 5.25 分**，
-#   所以只要论文落在某条线附近，单批次的等级就会翻。等级应视为"带不确定性的判定"：
-#   要下结论至少跑两批；报告里应给出批间范围，而不是一个批次的绝对值。
+#   → 88 falls in the middle of the gap (81.625, 91.375); 85 remains 3 points away from it; 74 is 3.08 points below the Cheng lower bound.
+#   The minimum margin of three points is 3.0 points, which is the upper limit that this batch of data can achieve.
+# - **Limitations (must be read together)**: A margin of 3.0 points** is less than Choudhury's own inter-batch variation of 5.25 points**,
+#   So as long as the paper falls near a certain line, the grade of a single batch will be flipped. Levels should be considered "judgments with uncertainty":
+#   To draw conclusions, at least two batches should be run; the report should give the range between batches, not the absolute value of one batch.
 GRADE_BANDS = (
-    (88.0, "顶刊级"),
-    (85.0, "强刊/顶刊边缘"),
-    (74.0, "好论文"),
-    (60.0, "达到发表水准"),
-    (50.0, "偏弱但有一定价值"),
+    (88.0, 'Top publication level'),
+    (85.0, 'Strong issue/top issue edge'),
+    (74.0, 'Good paper'),
+    (60.0, 'reaches publication level'),
+    (50.0, 'Weak but of certain value'),
 )
 
 
 def rule_score_mapping(rule: Any) -> dict[str, float | None]:
-    """档位 → 分值。单一真源是规则库的 score_mapping；缺档时才按角色退回代码默认标尺。
-
-    基准项的默认标尺**不含** satisfied——合格即满分，基准项不判优秀。
-    """
+    'gear → score. The single source of truth is the score_mapping of the rule base; when missing, the code default scale is returned by role.\n\n    The default scale for benchmark items **does not include** satisfied—passing means full marks, and benchmark items are not considered excellent.'
     role = str(getattr(rule, "role", "baseline"))
     mapping = {str(key): (None if value is None else float(value)) for key, value in (rule.score_mapping or {}).items()}
     required = REQUIRED_KEYS_BY_ROLE.get(role, REQUIRED_KEYS_BY_ROLE["baseline"])
@@ -127,11 +101,7 @@ def rule_score_mapping(rule: Any) -> dict[str, float | None]:
 
 
 def lookup_score(rule: Any, judgement: Judgement) -> float | None:
-    """取某档位的分值。
-
-    规则库没声明该档位时（例如基准项收到 satisfied），按角色防御性映射，
-    而不是当成「未评到」——后者会把它挤出分母，反而放大其余权重的分量。
-    """
+    'takes the score of a certain gear.\n\n    When the rule base does not declare this gear (for example, the benchmark item is satisfied), defensive mapping is performed according to the role.\n    Instead of treating it as "not rated" - the latter will squeeze it out of the denominator and instead amplify the weight of the remaining weights.'
     mapping = rule_score_mapping(rule)
     if judgement.value in mapping:
         return mapping[judgement.value]
@@ -163,7 +133,7 @@ def score_judgements(
                 weight=float(rule.weight),
                 dimension_id=rule.dimension_id,
                 dimension_name=rule.dimension_name,
-                # strict_* 已废弃：标尺只有一套，全部由规则库 score_mapping 决定。
+                # strict_* Deprecated: There is only one set of rulers, all determined by the rule base score_mapping.
                 strict_raw_score=raw_score,
                 strict_weighted_score=weighted_score,
                 out_of_scope=out_of_scope,
@@ -178,15 +148,7 @@ def score_judgements_with_scheme(
     scheme: dict[str, Any],
     out_of_scope_ids: set[str] | None = None,
 ) -> list[ScoreItem]:
-    """用**替代档位映射**重新算一遍分，供 Reliability Layer 的校准敏感性检测用。
-
-    这是给 `reliability_diagnosis.calibration_uncertainty()` 的只读入口：
-    它不改 `score_judgements`、不改规则库、不改任何已有调用方，只是把同一批 judgment
-    换一套 mapping 再算一次分。Agent 不重跑——判断记录是现成的。
-
-    `scheme` 形如 `{"baseline": {...}, "bonus": {...}}`，每项是档位 → 分值（None 表示不进分母）。
-    未声明的档位按角色退回 `ROLE_MAPPINGS` 默认标尺，与 `lookup_score` 的防御口径一致。
-    """
+    'Use ** to replace the gear mapping** and recalculate the points for calibration sensitivity detection of the Reliability Layer.\n\n    This is a read-only entry for `reliability_diagnosis.calibration_uncertainty()`:\n    It does not change `score_judgements`, the rule base, or any existing callers. It just replaces the same batch of judgments.\n    Change the mapping and calculate the points again. Agent does not rerun - the judgment record is ready.\n\n    `scheme` is in the shape of `{"baseline": {...}, "bonus": {...}}`, each item is gear → score (None means not to enter the denominator).\n    Undeclared gears are returned to the `ROLE_MAPPINGS` default scale by role, which is consistent with the defense caliber of `lookup_score`.'
     rules = profile.rules_by_id
     skipped = out_of_scope_ids or set()
     score_items: list[ScoreItem] = []
@@ -227,15 +189,15 @@ def classify_quality(
     bonus_rate: float,
     completeness: float = 1.0,
 ) -> dict[str, Any]:
-    """分档。分数口径宽松，但完整度不足时不给出高顶刊潜力判定，避免缺失证据被读成优秀。"""
+    'bin. The score caliber is loose, but when the completeness is insufficient, no judgment on the potential of high-ranking publications will be given to avoid missing evidence being read as excellent.'
     if score is None:
         return {
-            "quality_grade": "无法判断",
-            "top_journal_potential": "未知",
+            "quality_grade": 'Unable to determine',
+            "top_journal_potential": 'Unknown',
             "top_journal_gate_pass": False,
-            "top_journal_gate_reasons": ["有效评分权重为 0，无法形成质量等级。"],
+            "top_journal_gate_reasons": ['The effective scoring weight is 0 and a quality grade cannot be formed.'],
         }
-    grade = "问题较多"
+    grade = 'has many problems'
     for threshold, name in GRADE_BANDS:
         if score >= threshold:
             grade = name
@@ -251,29 +213,29 @@ def classify_quality(
         and bonus_rate >= BONUS_GATE_HIGH
     )
     if gate_pass:
-        potential = "高"
+        potential = 'high'
     elif complete_enough and shortfall <= MAX_BASELINE_SHORTFALL_FOR_MID and bonus_rate >= BONUS_GATE_MID:
-        potential = "中"
+        potential = 'Medium'
     else:
-        potential = "低"
+        potential = 'low'
 
     if shortfall > MAX_BASELINE_SHORTFALL_FOR_HIGH:
         reasons.append(
-            f"基准项存在短板（基准达成率 {baseline_rate:.0%}：有规则被判未达发表水准或严重缺陷）"
+            f"There are shortcomings in the benchmark items (Benchmark achievement rate {baseline_rate:.0%}: Some rules are judged to have not reached the publication level or have serious defects)"
         )
     if bonus_rate < BONUS_GATE_MID:
-        reasons.append(f"加分项得分偏低（{bonus_rate:.0%}，低于 {BONUS_GATE_MID:.0%}）")
+        reasons.append(f"has a low bonus score ({bonus_rate:.0%}, lower than {BONUS_GATE_MID:.0%})")
     elif bonus_rate < BONUS_GATE_HIGH:
-        reasons.append(f"加分项未达到顶刊门槛（{bonus_rate:.0%}，需 {BONUS_GATE_HIGH:.0%}）")
+        reasons.append(f"bonus points do not reach the top publication threshold ({bonus_rate:.0%}, {BONUS_GATE_HIGH:.0%} is required)")
     if not complete_enough:
         reasons = [
-            f"评分完整度 {completeness:.0%} 低于 {TOP_JOURNAL_MIN_COMPLETENESS:.0%}，"
-            "本次不足以判断顶刊潜力。",
+            f"rating completeness {completeness:.0%} is lower than {TOP_JOURNAL_MIN_COMPLETENESS:.0%},"
+            'This time is not enough to judge the top publication potential.',
             *reasons,
         ]
-        # 分数口径保持宽松，但高分等级必须带上完整度提示，避免缺失证据被读成优秀。
+        # The score caliber remains loose, but high score levels must carry a completeness reminder to avoid missing evidence being read as excellent.
         if score >= 86:
-            grade = f"{grade}（完整度 {completeness:.0%}，结论待复核）"
+            grade = f"{grade} (completeness {completeness:.0%}, conclusion to be reviewed)"
     return {
         "quality_grade": grade,
         "top_journal_potential": potential,
@@ -291,10 +253,7 @@ def profile_score_mapping(profile: RuleProfile) -> dict[str, float | None]:
 
 
 def construct_allocation(profile: RuleProfile) -> dict[str, list[tuple[str, float, list[str]]]]:
-    """返回 {dimension_id: [(construct_id, construct_weight, [rule_id...])]}。
-
-    权重全部取自规则库声明；没有 constructs 层时退回“每条规则自成构念”，权重取规则权重。
-    """
+    'returns {dimension_id: [(construct_id, construct_weight, [rule_id...])]}.\n\n    The weights are all taken from the rule base declaration; if there is no constructs layer, it returns to "each rule constitutes its own construct", and the weight is taken from the rule weight.'
     rules_by_construct: dict[str, list[str]] = {}
     for rule in profile.rules:
         rules_by_construct.setdefault(rule.cluster_key, []).append(rule.rule_id)
@@ -315,16 +274,7 @@ def construct_allocation(profile: RuleProfile) -> dict[str, list[tuple[str, floa
 
 
 def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict[str, Any]:
-    """两池汇总：基准池 × 基准达成率 + 加分池 × 加成分。
-
-    - 构念是权重的分配单位，按角色归池（`validate_rule_profile` 保证一个构念不跨角色）。
-    - 构念内：按规则份额加权平均得到 0-1 比率；构念比率 × 构念权重 = 该构念贡献。
-    - 口径宽松：只对**已评到**的构念权重归一，评不到的构念不进分母；完整度单独报告。
-    - 某一池整体评不到时，用另一池把总分重归一到满分，并打 `pool_renormalized` 标记，
-      避免因为一整池缺失把分数人为压低。
-    - 同时给出严格下界（无法判断按 0 分占分母）与乐观上界（基准项按合格计、加分项按只沾边计）。
-    - 适用范围外的构念既不进分子也不进分母。
-    """
+    'Summary of two pools: benchmark pool × benchmark achievement rate + bonus point pool × bonus points.\n\n    -Constructs are weight distribution units and are pooled according to roles (`validate_rule_profile` ensures that a construct does not span roles).\n    - Within the construct: The 0-1 ratio is obtained by weighting the average according to the rule share; construct ratio × construct weight = contribution of the construct.\n    - Loose caliber: only constructs that have been rated ** are weighted together, and constructs that are not rated are not included in the denominator; completeness is reported separately.\n    - When a certain pool cannot be rated as a whole, use another pool to reset the total score to full score and mark it with `pool_renormalized`.\n      Avoid artificially lowering scores due to missing an entire pool.\n    - At the same time, a strict lower bound is provided (the denominator is counted as 0 points if it cannot be judged) and an optimistic upper bound (the benchmark items are counted as qualified, and the bonus items are counted as only marginal).\n    - Constructs outside the applicable scope are not included in either the numerator or the denominator.'
     rules = profile.rules_by_id
     items_by_rule = {item.rule_id: item for item in score_items}
     allocation = construct_allocation(profile)
@@ -346,7 +296,7 @@ def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict
         for _construct_id, construct_weight, member_rule_ids in allocation.get(dimension_id, []):
             construct_count += 1
             members = [items_by_rule[rule_id] for rule_id in member_rule_ids if rule_id in items_by_rule]
-            # 维度满分按规则库全量权重摊分，与论文类型无关：否则同一维度在不同论文上会显示不同满分。
+            # The full score of the dimension is allocated according to the full weight of the rule base, regardless of the paper type: otherwise the same dimension will display different full scores on different papers.
             for rule_id in member_rule_ids:
                 member_rule = rules.get(rule_id)
                 if member_rule is not None:
@@ -355,7 +305,7 @@ def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict
             if not in_scope:
                 out_of_scope_weight += construct_weight
                 continue
-            # 构念不跨角色（由校验强制），取首条成员的角色即可
+            # The construct does not cross roles (forced by verification), just take the role of the first member
             pool = rules[in_scope[0].rule_id].role
             dim[pool]["scope"] += construct_weight
             agg[pool]["scope"] += construct_weight
@@ -375,7 +325,7 @@ def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict
             agg[pool]["available"] += construct_weight
             available_construct_count += 1
 
-        # 维度满分按两池权重比例摊分，保证 Σ 各维度满分 = 总分
+        # The full score of the dimension is apportioned according to the weight ratio of the two pools, ensuring that Σ the full score of each dimension = the total score
         dimension_max = {
             pool: (profile.baseline_pool if pool == "baseline" else profile.bonus_pool)
             * (dimension_rule_weight[pool] / total_weight[pool] if total_weight[pool] > 0 else 0.0)
@@ -433,7 +383,7 @@ def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict
         zero_b = agg["baseline"]["earned"] / scope_baseline if scope_baseline > 0 else 0.0
         zero_g = agg["bonus"]["earned"] / scope_bonus if scope_bonus > 0 else 0.0
         na_as_zero = profile.baseline_pool * zero_b + profile.bonus_pool * zero_g
-        # 乐观上界：未评到的基准项按合格计，未评到的加分项按「只沾边」计
+        # Optimistic upper bound: Unrated basic items will be counted as qualified, and unrated bonus items will be counted as "only marginal"
         opt_b = (
             (agg["baseline"]["earned"] + agg["baseline"]["missing"] * 1.0) / scope_baseline
             if scope_baseline > 0 else 0.0
@@ -454,8 +404,8 @@ def aggregate_scores(profile: RuleProfile, score_items: list[ScoreItem]) -> dict
 
     return {
         "scoring_mode": (
-            f"两池机制：基准池 {profile.baseline_pool:.0f} 分（基准项合格即满分）"
-            f" + 加分池 {profile.bonus_pool:.0f} 分（只有 satisfied 拿满加分）"
+            f"Two-pool mechanism: Benchmark pool {profile.baseline_pool:.0f} points (full score if the benchmark item is passed)"
+            f"+ bonus point pool {profile.bonus_pool:.0f} points (only satisfied can get full bonus points)"
         ),
         "scale_version": SCALE_VERSION,
         "scale_anchor": SCALE_ANCHOR,

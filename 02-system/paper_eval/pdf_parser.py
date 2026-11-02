@@ -10,17 +10,17 @@ from .models import Evidence, Paper
 
 
 SECTION_PATTERNS = [
-    (re.compile(r"^(?:\d+\.?\s*)?abstract\b|^摘要$", re.I), "Abstract"),
-    (re.compile(r"^(?:\d+\.?\s*)?introduction\b|^引言$", re.I), "Introduction"),
-    (re.compile(r"^(?:\d+\.?\s*)?(literature review|theory|theoretical background|background|related work|hypotheses?)\b|^(理论|文献综述|研究假设)$", re.I), "Literature Review"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(methods?|methodology|research methodology|research design|data collection|data and sample|sample and procedure|sample characteristics|measures?|model architecture|training)\b|^(方法|研究设计|数据与样本|变量测量|数据收集|样本特征)$", re.I), "Methods"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(results?|findings?|analysis|experiments?|evaluation|measurement model evaluation|structural model evaluation|mediation effect|moderation test|control variables|hypothesis testing)\b|^(结果|研究结果|实证结果|分析结果)$", re.I), "Results"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(discussion|(?:theoretical|practical|managerial) implications)\b|^讨论$", re.I), "Discussion"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(conclusion|conclusions|discussion and conclusion|general discussion|limitations?|future research|implications?)\b|^(结论|局限|未来研究|启示)$", re.I), "Conclusion"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(appendix|appendices|supplementary material)\b|^(附录|补充材料)$", re.I), "Appendix"),
-    (re.compile(r"^(?:\d+(?:\.\d+)*\.?\s*)?(references|bibliography)\b|^参考文献$", re.I), "References"),
+    (re.compile('^(?:\\d+\\.?\\s*)?abstract\\b|^Abstract$', re.I), "Abstract"),
+    (re.compile('^(?:\\d+\\.?\\s*)?introduction\\b|^Introduction$', re.I), "Introduction"),
+    (re.compile('^(?:\\d+\\.?\\s*)?(literature review|theory|theoretical background|background|related work|hypotheses?)\\b|^(theory|literature review|research hypotheses)$', re.I), "Literature Review"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(methods?|methodology|research methodology|research design|data collection|data and sample|sample and procedure|sample characteristics|measures?|model architecture|training)\\b|^(methods|research design|data and sample|variable measurement|data collection|sample characteristics)$', re.I), "Methods"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(results?|findings?|analysis|experiments?|evaluation|measurement model evaluation|structural model evaluation|mediation effect|moderation test|control variables|hypothesis testing)\\b|^(results|research results|empirical results|analysis results)$', re.I), "Results"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(discussion|(?:theoretical|practical|managerial) implications)\\b|^Discussion$', re.I), "Discussion"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(conclusion|conclusions|discussion and conclusion|general discussion|limitations?|future research|implications?)\\b|^(conclusion|limitations|future research|implications)$', re.I), "Conclusion"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(appendix|appendices|supplementary material)\\b|^(Appendix|Supplementary material)$', re.I), "Appendix"),
+    (re.compile('^(?:\\d+(?:\\.\\d+)*\\.?\\s*)?(references|bibliography)\\b|^References$', re.I), "References"),
 ]
-TABLE_PATTERN = re.compile(r"^(table|figure|fig\.?)\s+\d+|^(表|图)\s*\d+", re.I)
+TABLE_PATTERN = re.compile('^(table|figure|fig\\.?)\\s+\\d+|^(table|figure)\\s*\\d+', re.I)
 HEADING_NUMBER_PATTERN = re.compile(r"^\s*(?:\d+|[IVX]+)(?:\.\d+)*\.?\s+[A-Z][A-Za-z ,/&-]{2,80}$")
 
 

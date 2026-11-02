@@ -1,8 +1,4 @@
-"""规则适用范围自检：受控枚举、作用域过滤、分母与完整度。
-
-运行：
-    python ".\scripts\自检_规则适用范围.py"
-"""
+'Rule application scope self-test: controlled enumeration, scope filtering, denominator and completeness.\n\nRun:\n    python ".\\scripts\\self_test_rule_scope.py"'
 
 from __future__ import annotations
 
@@ -25,7 +21,7 @@ from paper_eval.rules import (
 )
 from paper_eval.scorer import aggregate_scores, rule_score_mapping, score_judgements
 
-RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
+RULES = Path(__file__).resolve().parents[1] / 'rules' / "rules_v1.yaml"
 
 
 def judgement(rule_id: str, value: Judgement = Judgement.SATISFIED) -> AgentJudgement:
@@ -35,7 +31,7 @@ def judgement(rule_id: str, value: Judgement = Judgement.SATISFIED) -> AgentJudg
         indicator_id=rule_id,
         judgement=value,
         evidence_ids=["EV-1"],
-        reason="自检占位理由。",
+        reason='Self-test space occupation reason.',
         confidence=0.8,
         needs_review=False,
         agent_version="self-check",
@@ -44,46 +40,46 @@ def judgement(rule_id: str, value: Judgement = Judgement.SATISFIED) -> AgentJudg
 
 
 def main() -> int:
-    # 1. 受控枚举映射
-    assert normalize_paper_type("综述论文") == "综述"
-    assert normalize_paper_type("管理学实证研究") == "实证"
-    assert normalize_paper_type("质性或案例研究") == "质性"
-    assert normalize_paper_type("理论或概念论文") == "理论"
-    assert normalize_paper_type("评论或观点论文") == "理论"
-    assert normalize_paper_type("实证类研究（问卷调研 + PLS-SEM 结构方程）") == "实证"
-    assert normalize_paper_type("混合方法研究") == "混合"
-    assert normalize_paper_type("本论文采用访谈与问卷结合的混合设计") == "混合"
-    assert normalize_paper_type("完全看不懂的类型", None) is None
-    assert normalize_paper_type("", "混合") == "混合"
+    # 1. Controlled enumeration mapping
+    assert normalize_paper_type('Review Paper') == 'Summary'
+    assert normalize_paper_type('Empirical Research on Management') == 'Evidence'
+    assert normalize_paper_type('Qualitative or case study') == 'Qualitative'
+    assert normalize_paper_type('Theoretical or conceptual paper') == 'Theory'
+    assert normalize_paper_type('Review or opinion paper') == 'Theory'
+    assert normalize_paper_type('Empirical research (questionnaire survey + PLS-SEM structural equation)') == 'Evidence'
+    assert normalize_paper_type('Mixed methods study') == 'Mix'
+    assert normalize_paper_type('This paper adopts a mixed design combining interviews and questionnaires.') == 'Mix'
+    assert normalize_paper_type('Completely incomprehensible type', None) is None
+    assert normalize_paper_type("", 'Mix') == 'Mix'
 
-    # 2. 单条规则适用范围
-    assert rule_in_scope("通用", "综述") is True
-    assert rule_in_scope("实证", "实证") is True
-    assert rule_in_scope("定量", "实证") is True          # 词表别名归一
-    assert rule_in_scope("质性", "实证") is False
-    assert rule_in_scope("质性", "混合") is True          # 混合方法含质性成分
-    assert rule_in_scope("实证", "理论") is False
-    assert rule_in_scope("未收录词表", "理论") is True     # 未知取值按通用，避免误伤
+    # 2. Scope of application of a single rule
+    assert rule_in_scope('General', 'Summary') is True
+    assert rule_in_scope('Evidence', 'Evidence') is True
+    assert rule_in_scope('Quantitative', 'Evidence') is True          # Vocabulary alias normalization
+    assert rule_in_scope('Qualitative', 'Evidence') is False
+    assert rule_in_scope('Qualitative', 'Mix') is True          # Mixed method contains qualitative ingredients
+    assert rule_in_scope('Evidence', 'Theory') is False
+    assert rule_in_scope('is not included in the vocabulary list', 'Theory') is True     # For unknown values, use universal to avoid accidental damage.
 
     profile = load_rule_profile(RULES)
 
-    # 3. 综述论文不该被按实证标准评分
-    review_scope = out_of_scope_rule_ids(profile, "综述")
+    # 3. Review papers should not be graded according to empirical standards
+    review_scope = out_of_scope_rule_ids(profile, 'Summary')
     assert "D-DATA-SAMPLE-V1" in review_scope
     assert "E-ROBUSTNESS-V1" in review_scope
     assert "A-TOPIC-SIGNIFICANCE-V1" not in review_scope
-    # 质性专用规则不该落在实证论文上
-    empirical_scope = out_of_scope_rule_ids(profile, "实证")
+    # Qualitative special rules should not fall on empirical papers
+    empirical_scope = out_of_scope_rule_ids(profile, 'Evidence')
     assert "D-QUAL-GENRE-FIT-V1" in empirical_scope
     assert "D-DATA-SAMPLE-V1" not in empirical_scope
-    assert out_of_scope_rule_ids_of(profile.rules, "实证") == empirical_scope
-    assert out_of_scope_rule_ids_of(profile.rules, "混合") == set()
+    assert out_of_scope_rule_ids_of(profile.rules, 'Evidence') == empirical_scope
+    assert out_of_scope_rule_ids_of(profile.rules, 'Mix') == set()
     runtime_judgements = [judgement(rule.rule_id) for rule in profile.rules]
     graph_result = aggregate_agent_scores(
         {
             "profile": profile,
             "judgements": runtime_judgements,
-            "paper_context": {"paper_profile": {"paper_type": "实证"}},
+            "paper_context": {"paper_profile": {"paper_type": 'Evidence'}},
         }
     )
     assert graph_result["trace"][-1]["out_of_scope_rule_count"] == len(empirical_scope)
@@ -95,7 +91,7 @@ def main() -> int:
         graph_result["score_items"],
         [],
         graph_result["summary"],
-        {"paper_profile": {"paper_type": "实证"}},
+        {"paper_profile": {"paper_type": 'Evidence'}},
     )
     assert audit_payload["audit_scope"]["excluded_out_of_scope_rules"] == len(empirical_scope)
     assert all(item["rule_id"] != "D-QUAL-GENRE-FIT-V1" for item in audit_payload["scoring_details"])
@@ -105,39 +101,39 @@ def main() -> int:
         [Evidence("EV-1", "P-TEST", "Methods", 1, (0, 20), "A valid evidence span for the scope self-check.", "h1")],
     )
     assert not any("D-QUAL-GENRE-FIT-V1" in issue.related_ids for issue in reflection_issues)
-    # 通用规则永远在范围内
-    assert not any(rule.applicable_type == "通用" for rule in profile.rules if rule.rule_id in empirical_scope)
+    # General rules are always in scope
+    assert not any(rule.applicable_type == 'General' for rule in profile.rules if rule.rule_id in empirical_scope)
 
-    # 4. 端到端：范围外规则不进分子也不进分母
+    # 4. End-to-end: Rules outside the scope do not enter the numerator or denominator.
     judgements = [judgement(rule.rule_id) for rule in profile.rules]
     items = score_judgements(profile, judgements, empirical_scope)
     summary = aggregate_scores(profile, items)
     skipped_weight = sum(rule.weight for rule in profile.rules if rule.rule_id in empirical_scope)
     assert summary["out_of_scope_weight"] == skipped_weight, summary["out_of_scope_weight"]
-    # 两次累加顺序不同，会有 1e-14 级浮点噪声（构念权重含 2.666667 这类摊分小数），不能用 ==
+    # The two accumulation sequences are different, and there will be 1e-14 level floating point noise (the construct weight contains amortized decimals such as 2.666667), so == cannot be used
     assert abs(summary["scope_weight"] - (profile.scoring_scale - skipped_weight)) < 1e-9, (
         summary["scope_weight"],
         profile.scoring_scale - skipped_weight,
     )
-    assert summary["available_weight"] == summary["scope_weight"], "范围外规则不应进入可用权重"
+    assert summary["available_weight"] == summary["scope_weight"], 'Out-of-scope rules should not enter available weights'
     assert summary["scoring_completeness"] == 1.0, summary["scoring_completeness"]
     assert abs(summary["total_score"] - profile.scoring_scale) < 1e-9, summary["total_score"]
-    # 范围外规则不得变成 needs_review 噪音
+    # Out-of-scope rules must not become needs_review noise
     assert all(not item.needs_review for item in judgements if item.indicator_id in empirical_scope)
 
-    # 5. 构念聚合：同一构念的规则先取加权平均，不再各自计票
+    # 5. Construct aggregation: Rules for the same construct are first weighted and averaged, and votes are no longer counted separately.
     cluster_keys = {rule.rule_id: rule.cluster_key for rule in profile.rules}
     assert cluster_keys["B-DIALOGUE-ADVANCE-V1"] == "B-DIALOGUE"
     dialogue_members = [rule for rule in profile.rules if rule.cluster == "B-DIALOGUE"]
-    assert len(dialogue_members) == 1, dialogue_members   # 三条对话类规则已合并为一条
-    # 该规则当前标为通用，运行时应尊重规则库而非旧版自检中的硬编码预期。
-    assert profile.rules_by_id["B-THEORY-INTEGRATION-V1"].applicable_type == "通用"
+    assert len(dialogue_members) == 1, dialogue_members   # Three dialogue rules have been merged into one
+    # This rule is currently marked as generic and the runtime should respect the rule base rather than the hard-coded expectations in the legacy self-test.
+    assert profile.rules_by_id["B-THEORY-INTEGRATION-V1"].applicable_type == 'General'
     assert "B-THEORY-INTEGRATION-V1" not in empirical_scope
-    # 定量/混合类规则不该给理论论文打分
-    assert "D-MODEL-IDENTIFICATION-V1" in out_of_scope_rule_ids(profile, "理论")
-    assert "D-MODEL-IDENTIFICATION-V1" not in out_of_scope_rule_ids(profile, "实证")
+    # Quantitative/mixed rules should not be used to grade theoretical papers
+    assert "D-MODEL-IDENTIFICATION-V1" in out_of_scope_rule_ids(profile, 'Theory')
+    assert "D-MODEL-IDENTIFICATION-V1" not in out_of_scope_rule_ids(profile, 'Evidence')
 
-    # 常见层级编号和完整标题短语必须命中章节路由，避免主体章节全部落入综述。
+    # Common level numbers and complete title phrases must hit the chapter routing to avoid all main chapters falling into the summary.
     assert detect_heading_section("3. Research methodology") == "Methods"
     assert detect_heading_section("3.3. Data collection") == "Methods"
     assert detect_heading_section("3.5. Measurement model evaluation") == "Results"
@@ -146,7 +142,7 @@ def main() -> int:
     assert detect_heading_section("4.1. Theoretical implications") == "Discussion"
     assert detect_heading_section("5. Conclusion, limitations, and future research directions") == "Conclusion"
 
-    # 二次复判应优先找到新的规则相关段落，不能被同页较早的标题/泛化段落挤掉。
+    # The second review should give priority to finding new rule-related paragraphs and not be crowded out by earlier titles/generalized paragraphs on the same page.
     f_agent = next(agent for agent in AGENTS if "F" in agent.dimension_ids)
     limit_rule = profile.rules_by_id["F-LIMITATIONS-V1"]
     second_pass_evidence = [
@@ -160,7 +156,7 @@ def main() -> int:
     )
     assert "EV-LIMIT-SPECIFIC" in {item.evidence_id for item in second_pass_pack}
 
-    cluster_judged = {"B-DIALOGUE-ADVANCE-V1": Judgement.PARTIAL}   # 对话类三条已合并为一条
+    cluster_judged = {"B-DIALOGUE-ADVANCE-V1": Judgement.PARTIAL}   # Three conversations have been merged into one
     mixed = [
         judgement(rule.rule_id, cluster_judged.get(rule.rule_id, Judgement.UNCERTAIN))
         for rule in profile.rules
@@ -172,8 +168,8 @@ def main() -> int:
     assert dimension_b["cluster_count"] == b_construct_count, dimension_b["cluster_count"]
     assert dimension_b["available_cluster_count"] == 1, dimension_b["available_cluster_count"]
 
-    # 每个维度都必须 基准:加分 = 6:4。这是「维度满分 == 声明的维度权重」成立的唯一条件：
-    # scorer 按池摊分（pool × 该维规则权重 / 池总权重），只有每维都 6:4 时摊分结果才等于声明权重。
+    # Each dimension must have Benchmark: Bonus = 6:4. This is the only condition for "dimension full score == declared dimension weight" to be true:
+    # scorer is apportioned by the pool (pool × rule weight of the dimension / total weight of the pool). Only when each dimension is 6:4, the apportioned result is equal to the declared weight.
     for dimension in profile.dimensions:
         base_weight = sum(
             r.weight for r in profile.rules
@@ -197,24 +193,24 @@ def main() -> int:
     assert abs(dimension_b["max_score"] - dimension_b_weight) < 1e-9, (
         dimension_b["max_score"], dimension_b_weight,
     )
-    # 只有这一个构念被评到：宽松口径按已评构念归一，维度分 = 该规则所在池的满分 × 达成率
+    # Only this construct was rated: the loose caliber is normalized according to the rated constructs, and the dimension score = the full score of the pool where the rule is located × the achievement rate
     dialogue_rule = profile.rules_by_id["B-DIALOGUE-ADVANCE-V1"]
     pool_max = dimension_b["baseline_max" if dialogue_rule.role == "baseline" else "bonus_max"]
     expected_normalized = pool_max * rule_score_mapping(dialogue_rule)["partial"]
     assert abs(dimension_b["normalized_score"] - expected_normalized) < 1e-9, dimension_b["normalized_score"]
-    # 各维度满分相加必须等于总分（两池摊分后仍然成立）
+    # The sum of the full scores in each dimension must equal the total score (still true after the two pools are divided)
     total_dim_max = sum(item["max_score"] for item in mixed_summary["dimension_scores"].values())
     assert abs(total_dim_max - profile.scoring_scale) < 1e-9, total_dim_max
-    assert mixed_summary["scoring_completeness"] < 1.0, "未评到的构念只影响完整度，不影响宽松分"
+    assert mixed_summary["scoring_completeness"] < 1.0, 'Unrated constructs only affect the completeness, not the looseness score.'
     assert mixed_summary["na_as_zero_total_score"] < mixed_summary["total_score"]
-    # 对话类三条原合计 11 分（4+3+4），合并后整个构念只占一条规则的权重，不再被取平均拖低
+    # The three dialogue rules originally totaled 11 points (4+3+4). After the merger, the entire construct only occupies the weight of one rule and is no longer dragged down by averaging.
     dialogue = profile.constructs_by_id["B-DIALOGUE"]
     assert abs(dialogue.weight - sum(r.weight for r in dialogue_members)) < 1e-9, dialogue.weight
-    # 构念权重必须加平到声明的维度权重（改权重时最容易漏的一环）
+    # The construct weight must be equalized to the declared dimension weight (the most easily missed link when changing the weight)
     b_construct_total = sum(c.weight for c in profile.constructs if c.dimension_id == "B")
     assert abs(b_construct_total - dimension_b_weight) < 1e-9, (b_construct_total, dimension_b_weight)
 
-    # 6. 不计分观察项（weight 0）不得影响总分
+    # 6. Non-scoring observation items (weight 0) shall not affect the total score
     all_satisfied = [judgement(rule.rule_id) for rule in profile.rules]
     writing_uncertain = [
         judgement(item.indicator_id, Judgement.UNCERTAIN if item.indicator_id == "C-WRITING-QUALITY-V1" else Judgement.SATISFIED)
@@ -225,10 +221,10 @@ def main() -> int:
     assert abs(score_a - score_b) < 1e-9, (score_a, score_b)
 
     print(
-        "适用范围自检通过："
-        f"实证论文适用权重 {summary['scope_weight']:.0f}/{profile.scoring_scale:.0f}，"
-        f"范围外 {len(empirical_scope)} 条规则（权重 {skipped_weight:.0f}）不计分；"
-        f"构念数与不计分项均已验证。"
+        'Applicable scope self-test passed:'
+        f"Applicable weight for empirical papers {summary['scope_weight']:.0f}/{profile.scoring_scale:.0f},"
+        f"out-of-range {len(empirical_scope)} rules (weight {skipped_weight:.0f}) are not scored;"
+        f"The number of constructs and unscored items have been verified."
     )
     return 0
 

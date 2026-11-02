@@ -58,27 +58,27 @@ class AgentRuntimeConfig:
     consistency_models: tuple[str, ...] = ()
     max_consistency_models: int = 2
     enable_llm_agents: bool = True
-    # 证据检索层（evidence_retrieval.py）。默认关闭：新链路先以开关形式落地，
-    # 不改动既有跑分行为；父 agent 验证过召回质量再在 YAML 里打开。
+    # Evidence retrieval layer (evidence_retrieval.py). Off by default: new links are first implemented in the form of switches.
+    # does not change the existing running score behavior; the parent agent has verified the recall quality and then opens it in YAML.
     evidence_retrieval_enabled: bool = False
-    # 词袋召回的候选条数：进 LLM 重排之前的上限。
+    # The number of candidates for word bag recall: the upper limit before LLM rearrangement.
     evidence_recall_top_k: int = 30
-    # LLM 重排开关。召回质量够用时可以关掉重排省一次调用，只保留词袋召回顺序。
+    # LLM rearrangement switch. When the recall quality is sufficient, you can turn off rearrangement to save one call, and only retain the bag-of-words recall order.
     evidence_rerank_enabled: bool = True
-    # 送进重排 prompt 的每条证据截断长度：只影响模型看到的文本，不影响最终进阅读包的原文。
-    # 240 会切掉约 14% 片段的尾部（实测三篇 1630 段：中位 137 字、P90 272 字），
-    # 关键句落在截断点之后时重排会误判该段不相关；400 可完整保留 96.9% 的片段。
+    # The length of each piece of evidence sent to the rearrangement prompt is truncated: it only affects the text seen by the model, and does not affect the original text that eventually enters the reading package.
+    # 240 will cut off the tail of about 14% of the fragments (actual measurement of three 1630 paragraphs: median 137 words, P90 272 words),
+    # When the key sentence falls after the truncation point, the rearrangement will misjudge that the paragraph is irrelevant; 400 can completely retain 96.9% of the fragment.
     evidence_rerank_max_chars: int = 400
-    # 证据包缓存目录（非空即启用）：把 LLM 重排选出的证据 id 序列落盘，复跑直接复用，
-    # 不再打重排调用。动机是实测 12 篇 × 2 批里 60.5% 的规则两批证据集不同，而重排是
-    # 服务端非确定的一跳——证据漂移正是分数批间波动的主因。失效条件见 evidence_retrieval.py。
+    # Evidence package cache directory (enabled if not empty): Put the evidence ID sequence selected by LLM rearrangement to the disk, and reuse it directly when running again.
+    # no longer makes rescheduling calls. The motivation is that 60.5% of the rules in the actual test of 12 articles × 2 batches are different in the two batches of evidence sets, and the rearrangement is
+    # A non-deterministic hop on the server side—evidence drift is the main cause of batch-to-batch fluctuations in scores. See evidence_retrieval.py for failure conditions.
     evidence_pack_cache_dir: str = ""
     api_key: str | None = None
     fallback_models: tuple[str, ...] = ()
-    # 输出上限：不设时部分部署会用很小的默认值，导致论文画像这类长 JSON 被截断。
+    # Output upper limit: When not set, some deployments will use a very small default value, causing long JSONs such as paper portraits to be truncated.
     max_output_tokens: int = 4096
-    # 原样合并进请求体的额外字段。DeepSeek 官方 API 用它关思考模式：
-    # extra_body: {thinking: {type: disabled}}。开着思考模式会烧推理 token，且该模式不认 temperature。
+    # The extra fields are merged into the request body as is. DeepSeek official API uses it to turn on the thinking mode:
+    # extra_body: {thinking: {type: disabled}}. Turning on the thinking mode will burn the reasoning token, and this mode does not recognize temperature.
     extra_body: dict[str, Any] | None = None
 
     @property
@@ -193,7 +193,7 @@ def parse_json_content(content: str) -> dict[str, Any]:
         relaxed = parse_agent_like_json(content[start : end + 1])
         if relaxed:
             return relaxed
-        # 统一成可重试错误：未知的 JSON 破损也应该触发下一个模型，而不是直接终结整次运行。
+        # Unified into a retryable error: Unknown JSON corruption should also trigger the next model, rather than directly terminating the entire run.
         raise RuntimeError(f"model json parse failed: expecting value ({parse_error})")
 
 
@@ -250,7 +250,7 @@ def agent_response_instruction(system_prompt: str) -> str:
         "evidence_ids must be a list of input evidence_id values. "
         "confidence must be a number between 0 and 1. "
         "needs_review must be true or false. "
-        "reason must be a concise Chinese expert note under 70 Chinese characters, covering: "
+        "reason must be a concise English reviewer note under 70 words, covering: "
         "why this judgement, how strong the cited evidence is, and what remains insufficient when relevant. "
         "Do not repeat the input payload. Do not include markdown."
     )
@@ -295,7 +295,7 @@ def format_agent_user_content(payload: dict[str, Any]) -> str:
     lines.extend(
         [
             "Now return only this JSON object:",
-            '{"indicator_id":"<rule_id>","judgement":"satisfied|partial|not_satisfied|uncertain","evidence_ids":["<evidence_id>"],"reason":"档位依据；证据强度；不足或边界","confidence":0.0,"needs_review":true}',
+            '{"indicator_id":"RULE-01","judgement":"satisfied|partial|not_satisfied|uncertain","evidence_ids":["EV-01"],"reason":"Rating basis; evidence strength; limitation or boundary","confidence":0.0,"needs_review":true}',
         ]
     )
     return "\n".join(lines)
@@ -337,7 +337,7 @@ def call_ollama_plain_json(system_prompt: str, payload: dict[str, Any], config: 
 
 
 def _apply_extra_body(body: dict[str, Any], config: AgentRuntimeConfig) -> dict[str, Any]:
-    """把配置里的 extra_body 合并进请求体（如 DeepSeek 官方 API 的 thinking 开关）。"""
+    'Merge extra_body in the configuration into the request body (such as the thinking switch of DeepSeek official API).'
     if isinstance(config.extra_body, dict):
         body.update(config.extra_body)
     return body

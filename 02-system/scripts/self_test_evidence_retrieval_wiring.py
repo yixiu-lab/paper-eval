@@ -1,13 +1,4 @@
-"""证据检索接线自检：验证 select_evidence 接进阅读包后，开关两态的行为都正确。
-
-这个自检管的是「接线」而不是「检索质量」：
-- 开关关闭时，必须与旧 build_reading_pack **逐条相同**（否则「关掉新链路 = 回到旧行为」只是口头承诺）
-- 开关打开时，召回必须把规则相关的段落选进包，并且 build_dimension_reading_packs 也吃到了 config
-- 外部文献（EXT-*）仍然只插给指定的那几条规则
-
-跑法：
-    python ".\scripts\自检_证据检索接线.py"
-"""
+'Evidence retrieval wiring self-test: Verify that after select_evidence is connected to the reading package, the behavior of both states of the switch is correct.\n\nThis self-test is about "wiring" rather than "retrieval quality":\n- When the switch is turned off, it must be the same as the old build_reading_pack **everything** (otherwise "turning off the new link = return to the old behavior" is just a lip service)\n- When the switch is turned on, recall must select the rule-related paragraphs into the package, and build_dimension_reading_packs also gets config\n- External documents (EXT-*) are still only inserted into the specified rules\n\nRunning method:\n    python ".\\scripts\\self_test_evidence_retrieval_wiring.py"'
 
 from __future__ import annotations
 
@@ -33,10 +24,10 @@ from paper_eval.llm import AgentRuntimeConfig  # noqa: E402
 from paper_eval.models import Evidence  # noqa: E402
 from paper_eval.rules import load_rule_profile  # noqa: E402
 
-RULES = ROOT / "评价规则库" / "rules_v1.yaml"
+RULES = ROOT / 'rules' / "rules_v1.yaml"
 TARGET_RULE = "D-MEASUREMENT-VALIDITY-V1"
-# 每段构造证据应该被哪条规则召回。检索词必须让「对的规则」捞到「对的段落」，
-# 所以这里按规则分别验证，而不是拿一段证据去测所有规则。
+# Which rule should each piece of construction evidence be recalled by. The search term must allow the "right rule" to find the "right paragraph".
+# So here we verify separately according to the rules instead of using a piece of evidence to test all the rules.
 RECALL_EXPECTATIONS = {
     "D-MEASUREMENT-VALIDITY-V1": "EV-VALID",
     "D-MODEL-IDENTIFICATION-V1": "EV-IDENT",
@@ -57,7 +48,7 @@ def make_evidence(evidence_id: str, section: str, page: int, text: str, offset: 
 
 
 def build_evidences() -> list[Evidence]:
-    """构造一小组正文证据：两条与 D-MEASUREMENT 直接相关，其余是噪音。"""
+    'Construct a small set of text evidence: two are directly related to D-MEASUREMENT, and the rest is noise.'
     items = [
         make_evidence(
             "EV-VALID",
@@ -105,7 +96,7 @@ def build_evidences() -> list[Evidence]:
             "findings may not generalize beyond the sampled industry.",
         ),
     ]
-    # 噪音：与 D 维无关、且不落在 Methods 章节
+    # Noise: has nothing to do with the D dimension and does not fall in the Methods chapter
     for index in range(24):
         items.append(
             make_evidence(
@@ -121,7 +112,7 @@ def build_evidences() -> list[Evidence]:
 
 
 def make_config(**overrides) -> AgentRuntimeConfig:
-    """不读 .env 的独立配置：AgentRuntimeConfig 全是带默认值的字段，不触发任何网络调用。"""
+    'does not read the independent configuration of .env: AgentRuntimeConfig is all fields with default values \u200b\u200band does not trigger any network calls.'
     return AgentRuntimeConfig(**overrides)
 
 
@@ -137,25 +128,26 @@ def main() -> int:
         evidence_rerank_enabled=False,
     )
 
-    # 1. 开关关闭：与旧 build_reading_pack 逐条相同
+    # 1. Switch off: same as old build_reading_pack item by item
     legacy = build_reading_pack(rule, evidences, METHOD_QUALITY_AGENT, 10, None)
     switched_off = select_evidence(rule, evidences, METHOD_QUALITY_AGENT, 10, None, off)
     assert [item.evidence_id for item in legacy] == [item.evidence_id for item in switched_off], (
-        "开关关闭时 select_evidence 必须与 build_reading_pack 逐条一致",
+        'When the switch is turned off, select_evidence must be consistent with build_reading_pack one by one.',
         [item.evidence_id for item in legacy],
         [item.evidence_id for item in switched_off],
     )
-    assert switched_off, "开关关闭时也不该返回空包"
+    assert switched_off, 'Empty packets should not be returned even when the switch is turned off.'
 
-    # 2. config 为 None 时同样退回旧行为（调用方漏传 config 不能改变行为）
+    # 2. When config is None, the old behavior will also be returned (the behavior cannot be changed if the caller misses config)
+# Build_reading_pack should be returned when
     assert [
         item.evidence_id
         for item in select_evidence(rule, evidences, METHOD_QUALITY_AGENT, 10, None, None)
-    ] == [item.evidence_id for item in legacy], "config=None 时应退回 build_reading_pack"
+    ] == [item.evidence_id for item in legacy], 'config=None'
 
-    # 2b. 带 paper_context 时同样必须逐条一致。
-    # paper_context 里带证据路由表与 facet 索引，是 build_reading_pack 真正的取证据来源；
-    # 接线时漏传或传错位置参数，这里就会露出来（且不会在 paper_context=None 的用例里暴露）。
+    # 2b. When using paper_context, it must also be consistent one by one.
+    # paper_context contains evidence routing table and facet index, which is the real source of evidence for build_reading_pack;
+    # If the position parameter is missed or wrongly passed during wiring, it will be exposed here (and will not be exposed in the use case of paper_context=None).
     paper_context = {
         "evidence_index": {
             facet: [item.evidence_id for item in evidences if item.section == section]
@@ -167,51 +159,52 @@ def main() -> int:
     off_ctx = select_evidence(rule, evidences, METHOD_QUALITY_AGENT, 10, paper_context, off)
     assert [item.evidence_id for item in legacy_ctx] == [
         item.evidence_id for item in off_ctx
-    ], "带 paper_context 时开关关闭也必须逐条等于 build_reading_pack"
+    ], 'When the switch is turned off with paper_context, it must be equal to build_reading_pack one by one.\nWhen'
     on_ctx = select_evidence(rule, evidences, METHOD_QUALITY_AGENT, 10, paper_context, on_no_rerank)
     assert len(on_ctx) == len(legacy_ctx), (
-        f"带 paper_context 时条数缩水：新 {len(on_ctx)} vs 旧 {len(legacy_ctx)}"
+        f"has paper_context, the number of entries shrinks: new {len(on_ctx)} vs old {len(legacy_ctx)}"
     )
 
-    # 3. 召回本身能把「对的段落」交给「对的规则」
+    # 3. Recall itself can hand over the "right paragraph" to the "right rule"
+# The search terms for
     vectors = build_evidence_vectors(evidences)
     evidences_by_id = {item.evidence_id: item for item in evidences}
     recalled_by_rule: dict[str, list[str]] = {}
     for rule_id, expected in RECALL_EXPECTATIONS.items():
         target = profile.rules_by_id[rule_id]
         terms = build_query_terms(target, None)
-        assert terms, f"{rule_id} 的检索词为空，无法召回（retrieval_terms 是否漏填？）"
+        assert terms, f"{rule_id} are empty and cannot be recalled (are retrieval_terms missing?)"
         ranked = recall_evidence(terms, vectors, evidences_by_id, 30)
         ids = [item.evidence_id for _score, item in ranked]
         recalled_by_rule[rule_id] = ids
-        assert expected in ids, f"{rule_id} 没召回到 {expected}，实际命中：{ids}"
-        assert not ids or ids[0] != "EV-NOISE-00", f"{rule_id} 把噪音排到了首位：{ids[:5]}"
+        assert expected in ids, f"{rule_id} was not recalled to {expected}, actual hit: {ids}"
+        assert not ids or ids[0] != "EV-NOISE-00", f"{rule_id} Putting noise first: {ids[:5]}"
 
-    # 4. 开关打开（重排关闭，避免真调模型）：相关段落进包
+    # 4. Switch on (rearrangement is off to avoid true adjustment of the model): related paragraphs are included in the package
     on_pack = select_evidence(rule, evidences, METHOD_QUALITY_AGENT, 10, None, on_no_rerank)
     on_ids = [item.evidence_id for item in on_pack]
-    assert "EV-VALID" in on_ids, f"检索层开时效度证据没进包：{on_ids}"
-    # 检索层不能反而「少给证据」：正文够多时，条数必须与旧启发式持平。
-    # 召回只命中 2 条就把包缩到 2 条，是把证据覆盖做小，与本次改造的目标相反。
+    assert "EV-VALID" in on_ids, f"The search layer opening validity evidence was not included in the package: {on_ids}"
+    # The search layer cannot "give less evidence": when there is enough text, the number of items must be equal to the old heuristic.
+    # The recall only hits 2 items and then shrinks the package to 2 items. This is to reduce the evidence coverage, which is contrary to the goal of this transformation.
     assert len(on_pack) == len(legacy), (
-        f"检索层开时只给了 {len(on_pack)} 条，旧启发式给 {len(legacy)} 条：召回命中不足时必须回填",
+        f"When the search layer is opened, only {len(on_pack)} items are given, and the old heuristic gives {len(legacy)} items: backfilling is required when there are insufficient recall hits.",
         on_ids,
     )
 
-    # 5. build_dimension_reading_packs 必须把 config 透下去（这是接线是否真的生效的证据）
+    # 5. build_dimension_reading_packs must penetrate the config (this is evidence whether the wiring is really effective)
     dim_off = build_dimension_reading_packs([rule], evidences, METHOD_QUALITY_AGENT, 10, None, config=None)
     dim_on = build_dimension_reading_packs(
         [rule], evidences, METHOD_QUALITY_AGENT, 10, None, config=on_no_rerank
     )
     assert [
         item.evidence_id for item in dim_off[rule.rule_id]
-    ] == [item.evidence_id for item in legacy], "build_dimension_reading_packs 在 config=None 时应等于旧行为"
+    ] == [item.evidence_id for item in legacy], 'build_dimension_reading_packs should equal old behavior when config=None'
     assert "EV-VALID" in [item.evidence_id for item in dim_on[rule.rule_id]], (
-        "build_dimension_reading_packs 没有把 config 透给 select_evidence",
+        'build_dimension_reading_packs does not pass config to select_evidence',
         [item.evidence_id for item in dim_on[rule.rule_id]],
     )
 
-    # 6. 外部文献仍只插给指定规则
+    # 6. External documents are still only inserted into specified rules
     external = external_evidence_blocks(
         {
             "related_works": [
@@ -227,31 +220,31 @@ def main() -> int:
         },
         "PAPER-SELFTEST",
     )
-    assert external, "构造外部文献块失败，自检前提不成立"
+    assert external, 'Failed to construct external document block, self-test prerequisite is not established'
     with_external = [*evidences, *external]
     designated = {rule.rule_id}
     packs = build_dimension_reading_packs(
         [rule], with_external, METHOD_QUALITY_AGENT, 10, None, external_rule_ids=designated, config=on_no_rerank
     )
     pack_ids = [item.evidence_id for item in packs[rule.rule_id]]
-    assert any(item.startswith("EXT-") for item in pack_ids), "指定规则没拿到外部文献块"
+    assert any(item.startswith("EXT-") for item in pack_ids), 'The specified rule did not obtain the external document block'
     other = profile.rules_by_id["A-TOPIC-SIGNIFICANCE-V1"]
     packs_other = build_dimension_reading_packs(
         [other], with_external, METHOD_QUALITY_AGENT, 10, None, external_rule_ids=designated, config=on_no_rerank
     )
     assert not any(
         item.startswith("EXT-") for item in [ev.evidence_id for ev in packs_other[other.rule_id]]
-    ), "未指定的规则不该拿到外部文献块"
+    ), 'Unspecified rules should not get external document blocks'
 
     print(
-        "证据检索接线自检通过："
-        f"开关关闭与旧行为逐条一致（{len(legacy)} 条）；"
+        'Evidence retrieval wiring self-test passed:'
+        f"switch off is consistent with the old behavior item by item ({len(legacy)} item);"
         + "；".join(
-            f"{rule_id} 召回 {expected}（第 {recalled_by_rule[rule_id].index(expected) + 1} 位）"
+            f"{rule_id} Recall {expected} (No. {recalled_by_rule[rule_id].index(expected) + 1})"
             for rule_id, expected in RECALL_EXPECTATIONS.items()
         )
-        + f"；开关打开仍给 {len(on_pack)} 条不缩水；"
-        "build_dimension_reading_packs 已透传 config；外部文献仅插给指定规则。"
+        + f"; When the switch is turned on, {len(on_pack)} bars will not shrink;"
+        'build_dimension_reading_packs has transparently transmitted config; external documents are only inserted into the specified rules.'
     )
     return 0
 

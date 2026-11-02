@@ -72,7 +72,7 @@ def notify_progress(state: EvaluationGraphState, stage: str) -> None:
 
 
 def build_paper_context(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "全文理解 Agent 正在建立论文画像")
+    notify_progress(state, 'Full text understanding Agent is creating a paper portrait')
     if state.get("paper_context_override") is not None:
         context = state["paper_context_override"]
         return {"paper_context": context, "trace": append_trace(state, {"step": "langgraph.build_paper_context", "paper_type": (context.get("paper_profile") or {}).get("paper_type"), "context_evidence_count": len(context.get("context_evidence_ids", [])), "paired_input_reused": True})}
@@ -102,11 +102,7 @@ def build_paper_context(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def ground_social_relevance(state: EvaluationGraphState) -> EvaluationGraphState:
-    """社会问题 grounding 输入层：把年度社会/国际议题转为可引用证据块。
-
-    该节点只为 F-SOCIAL 加分规则提供 SIV-* grounding。评分仍由原有
-    六个 Reviewer 判断，Harness 负责检查 evidence ID 是否真实存在。
-    """
+    'Social issue grounding input layer: Convert annual social/international issues into citable evidence blocks.\n\n    This node only provides SIV-* grounding for F-SOCIAL bonus rules. Ratings will remain the same as before\n    Six Reviewers judge that Harness is responsible for checking whether the evidence ID actually exists.'
     config = load_agent_runtime_config(state.get("agent_config_path"), overrides=state.get("agent_runtime_overrides"))
     if not config.social_relevance_grounding_enabled:
         return {
@@ -120,7 +116,7 @@ def ground_social_relevance(state: EvaluationGraphState) -> EvaluationGraphState
             "evidences": [*state["evidences"], *blocks],
             "trace": append_trace(state, {"step": "langgraph.ground_social_relevance", "evidence_block_count": len(blocks), "evidence_ids": [item.evidence_id for item in blocks], "paired_input_reused": True}),
         }
-    notify_progress(state, "正在匹配年度社会问题 grounding 证据")
+    notify_progress(state, 'is matching annual social issue grounding evidence')
     blocks = social_issue_evidence_blocks(
         state["paper"],
         state.get("paper_context"),
@@ -141,13 +137,8 @@ def ground_social_relevance(state: EvaluationGraphState) -> EvaluationGraphState
 
 
 def retrieve_external_evidence(state: EvaluationGraphState) -> EvaluationGraphState:
-    """在评分之前做真实外部检索：Claim Extraction → 三路召回 → Rerank → External Evidence Set。
-
-    放在这里而不是评分之后：判断「是否已有人做过」的那几条规则必须拿到外部对照，
-    否则模型只能相信论文的自述。检索失败不会中断评分——外部证据缺失会记成
-    `external_evidence_unavailable`，并在 Harness 侧拦住依赖领域比较的规则不给 satisfied。
-    """
-    notify_progress(state, "正在检索外部相关工作（Claim → 多路召回 → 重排）")
+    'Do true external retrieval before scoring: Claim Extraction → Three-Way Recall → Rerank → External Evidence Set.\n\n    Put it here instead of after the score: the rules that determine "whether someone has already done it" must be externally compared.\n    Otherwise, the model can only trust the self-statement of the paper. Failed searches will not interrupt scoring - missing external evidence will be credited\n    `external_evidence_unavailable`, and the rules that block dependent field comparisons on the Harness side are not satisfied.'
+    notify_progress(state, 'is retrieving external related work (Claim → Multi-way Recall → Rearrange)')
     config = load_agent_runtime_config(
         state.get("agent_config_path"),
         overrides=state.get("agent_runtime_overrides"),
@@ -191,7 +182,7 @@ def retrieve_external_evidence(state: EvaluationGraphState) -> EvaluationGraphSt
     return {
         "external_retrieval": retrieval,
         "external_evidences": blocks,
-        # 外部证据必须进总证据表，否则证据门控解析不了 XEV-* 引用。
+        # External evidence must be entered into the total evidence table, otherwise the evidence gate cannot parse XEV-* references.
         "evidences": [*state["evidences"], *blocks],
         "trace": append_trace(
             state,
@@ -215,8 +206,8 @@ def retrieve_external_evidence(state: EvaluationGraphState) -> EvaluationGraphSt
 
 
 def verify_novelty(state: EvaluationGraphState) -> EvaluationGraphState:
-    """整理先行文献比较证据，由 B Reviewer 完成最终创新性判断。"""
-    notify_progress(state, "正在整理先行文献比较证据并交给 B Reviewer")
+    'collates prior literature comparison evidence, and B Reviewer completes the final innovativeness judgment.'
+    notify_progress(state, 'is compiling the comparative evidence of prior literature and submitting it to B Reviewer')
     retrieval_config = load_external_retrieval_config(state.get("agent_config_path"))
     retrieval = state.get("external_retrieval") or {}
     paper = state["paper"]
@@ -258,12 +249,8 @@ def verify_novelty(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def validate_external_evidence_node(state: EvaluationGraphState) -> EvaluationGraphState:
-    """Harness External Evidence Validation：外部证据是否真实、一致、够用、引用存在。
-
-    只写 review_flags / needs_review / confidence，不改写 judgement 与 reason；
-    依赖领域比较却没有外部证据的正向判断直接转 uncertain（可追溯性硬门槛）。
-    """
-    notify_progress(state, "正在校验外部证据与引用")
+    'Harness External Evidence Validation: Whether the external evidence is true, consistent, sufficient, and cited.\n\n    Only write review_flags / needs_review / confidence, do not rewrite judgment and reason;\n    Positive judgments that rely on field comparisons without external evidence directly turn to uncertain (hard threshold for traceability).'
+    notify_progress(state, 'Verifying external evidence and references')
     retrieval_config = load_external_retrieval_config(state.get("agent_config_path"))
     runtime = load_agent_runtime_config(state.get("agent_config_path"), overrides=state.get("agent_runtime_overrides"))
     if not runtime.external_validation_enabled:
@@ -317,10 +304,7 @@ def _distribution(verdicts: list[dict[str, Any]]) -> dict[str, int]:
 
 
 class _ClaimView:
-    """把工作流里流转的 claim dict 还原成 Novelty Agent 认的属性对象。
-
-    只做只读映射，不复制业务逻辑：claim 的字段定义仍在 claim_extraction 里。
-    """
+    'Restore the claim dict circulating in the workflow into an attribute object recognized by Novelty Agent.\n\n    Only read-only mapping is performed, and business logic is not copied: the field definition of claim is still in claim_extraction.'
 
     def __init__(self, row: dict[str, Any]) -> None:
         self.claim_id = str(row.get("claim_id") or "")
@@ -350,7 +334,7 @@ class _ClaimView:
 
 def call_scoring_agents(state: EvaluationGraphState) -> EvaluationGraphState:
     runtime = load_agent_runtime_config(state.get("agent_config_path"), overrides=state.get("agent_runtime_overrides"))
-    notify_progress(state, "统一 Reviewer 正在评分" if runtime.unified_reviewer_enabled else "6 个专家 Agent 正在并行评分")
+    notify_progress(state, 'Unified Reviewer is rating' if runtime.unified_reviewer_enabled else '6 expert agents are scoring in parallel')
     judgements = run_core_agents(
         state["run_id"],
         state["profile"].rules,
@@ -370,7 +354,7 @@ def call_scoring_agents(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def retry_uncertain_agent_outputs(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "正在对无法判断项进行二次证据召回复判")
+    notify_progress(state, 'The second evidence recall and re-judgment is in progress for items that cannot be judged.')
     before = sum(1 for item in state["judgements"] if item.judgement.value == "uncertain")
     judgements = retry_uncertain_judgements(
         state["run_id"],
@@ -402,7 +386,7 @@ def retry_uncertain_agent_outputs(state: EvaluationGraphState) -> EvaluationGrap
 
 
 def validate_agent_outputs(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "正在校验 Agent 输出结构")
+    notify_progress(state, 'Verifying Agent output structure')
     config = load_agent_runtime_config(state.get("agent_config_path"), overrides=state.get("agent_runtime_overrides"))
     if not config.schema_validation_enabled:
         return {"schema_errors": [], "trace": append_trace(state, {"step": "langgraph.validate_agent_outputs", "error_count": 0, "disabled": True})}
@@ -416,7 +400,7 @@ def validate_agent_outputs(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def gate_evidence(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "正在检查证据链与高分证据门槛")
+    notify_progress(state, 'is checking the evidence chain and high score evidence threshold')
     ungated_judgements = list(state["judgements"])
     config = load_agent_runtime_config(state.get("agent_config_path"), overrides=state.get("agent_runtime_overrides"))
     if not config.evidence_gate_enabled:
@@ -440,8 +424,8 @@ def gate_evidence(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def aggregate_agent_scores(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "正在汇总维度得分和总分")
-    # 只对画像明确识别为互斥类型的专用规则做范围过滤；“混合”保持兼容。
+    notify_progress(state, 'Aggregating dimension scores and total score')
+    # Only performs range filtering on special rules whose portraits are clearly identified as mutually exclusive types; "mixed" remains compatible.
     skipped = out_of_scope_rule_ids_of(state["profile"].rules, paper_class(state.get("paper_context")))
     score_items = score_judgements(state["profile"], state["judgements"], skipped)
     summary = aggregate_scores(state["profile"], score_items)
@@ -461,7 +445,7 @@ def aggregate_agent_scores(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def external_validation_issues(validation: dict[str, Any]) -> list[ReflectionIssue]:
-    """外部证据校验结论 → 复核建议（severity 映射到既有档位）。"""
+    'External evidence verification conclusion → Review suggestion (severity is mapped to the existing gear).'
     severity_map = {"high": "high", "medium": "medium", "low": "info"}
     issues: list[ReflectionIssue] = []
     for finding in validation.get("findings") or []:
@@ -476,8 +460,8 @@ def external_validation_issues(validation: dict[str, Any]) -> list[ReflectionIss
                     if item
                 ],
                 suggested_action=(
-                    "人工核对这条外部证据的元数据与发表年份，或补检相关文献后重跑；"
-                    "外部证据不足时该项不应按 satisfied 采纳。"
+                    'Manually check the metadata and year of publication of this external evidence, or re-check the relevant documents and then run again;'
+                    'This item should not be accepted as satisfied when there is insufficient external evidence.'
                 ),
             )
         )
@@ -485,7 +469,7 @@ def external_validation_issues(validation: dict[str, Any]) -> list[ReflectionIss
 
 
 def review_agent_outputs(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "正在生成反思与复核建议")
+    notify_progress(state, 'is generating reflection and review suggestions')
     issues = reflect_run(state["judgements"], state["score_items"], state["evidences"])
     issues = [*issues, *external_validation_issues(state.get("external_validation") or {})]
     return {
@@ -495,7 +479,7 @@ def review_agent_outputs(state: EvaluationGraphState) -> EvaluationGraphState:
 
 
 def audit_scoring_process(state: EvaluationGraphState) -> EvaluationGraphState:
-    notify_progress(state, "反思审核智能体正在审核评分过程")
+    notify_progress(state, 'The reflective review agent is reviewing the scoring process')
     config = load_agent_runtime_config(
         state.get("agent_config_path"),
         overrides=state.get("agent_runtime_overrides"),
@@ -541,10 +525,10 @@ def build_evaluation_graph():
     graph.add_node("review_agent_outputs", review_agent_outputs)
     graph.add_node("audit_scoring_process", audit_scoring_process)
 
-    # 顺序：画像 → 外部检索 → 整理外部比较证据 → 社会议题 grounding → 六个 Reviewer 评分 →
-    # Harness 外部校验 → 二次召回 → 结构与证据门控 → 算分 → 反思 → 审核。
-    # 外部校验刻意排在二次召回之前：被判「依赖领域比较但没有外部证据」的项转 uncertain 后，
-    # 二次召回仍有机会补证据；反过来就没有补救窗口了。
+    # Sequence: Portrait → External search → Organize external comparative evidence → Grounding of social issues → Six Reviewer ratings →
+    # Harness external verification → secondary recall → structure and evidence gating → scoring → reflection → review.
+    # External verification is deliberately arranged before the secondary recall: after the item judged to "rely on field comparison but no external evidence" becomes uncertain,
+    # There is still a chance to supplement evidence during the second recall; conversely, there is no window for remediation.
     graph.add_edge(START, "build_paper_context")
     graph.add_edge("build_paper_context", "retrieve_external_evidence")
     graph.add_edge("retrieve_external_evidence", "verify_novelty")

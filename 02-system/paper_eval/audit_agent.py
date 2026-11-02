@@ -106,7 +106,7 @@ def build_audit_payload(
             "total_rules": len(in_scope_judgements),
             "excluded_out_of_scope_rules": len(judgements) - len(in_scope_judgements),
             "reviewed_rules": len(detail_rows),
-            "selection_policy": "优先审核低置信度、无证据、无法判断、已标记复核和高分项。",
+            "selection_policy": 'Prioritize review of low-confidence, no evidence, unable to judge, marked for review and high-scoring items.',
         },
         "local_reflection_issues": [
             {
@@ -138,14 +138,14 @@ def normalize_audit_output(raw: dict[str, Any]) -> dict[str, Any]:
             {
                 "issue_type": str(issue.get("issue_type") or "audit_issue"),
                 "severity": str(issue.get("severity") or "medium"),
-                "message": str(issue.get("message") or "审核智能体发现需要复核的问题。"),
+                "message": str(issue.get("message") or 'The audit agent found problems that need to be reviewed.'),
                 "related_ids": [str(item) for item in related][:20],
-                "suggested_action": str(issue.get("suggested_action") or "人工复核相关评分、证据和理由。"),
+                "suggested_action": str(issue.get("suggested_action") or 'Manual review of relevant scores, evidence and reasons.'),
             }
         )
     return {
         "audit_status": str(raw.get("audit_status") or "needs_review"),
-        "overall_assessment": str(raw.get("overall_assessment") or "审核智能体未给出总体意见。"),
+        "overall_assessment": str(raw.get("overall_assessment") or 'The review agent did not give an overall opinion.'),
         "score_reliability": str(raw.get("score_reliability") or "unknown"),
         "score_adjustment_needed": bool(raw.get("score_adjustment_needed", False)),
         "audit_issues": normalized_issues,
@@ -164,15 +164,15 @@ def run_reflection_audit_agent(
     config: AgentRuntimeConfig,
 ) -> dict[str, Any]:
     prompt = (
-        "你是反思审核智能体，负责审核评分过程和评分结果，而不是重新评分。"
-        "请检查：论文类型与规则是否匹配、全文证据分配是否覆盖关键页、专家判断是否过度、"
-        "高分是否有足够证据、无法判断是否合理、总分是否可能失真。"
-        "你不能直接修改分数，只能给出审核结论和需要人工复核的项目。"
-        "输出 JSON："
-        '{"audit_status":"pass|needs_review|fail","overall_assessment":"中文总体审核意见",'
+        'You are the reflective review agent, responsible for reviewing the scoring process and scoring results, rather than re-grading.'
+        'Please check: whether the paper type matches the rules, whether the distribution of full-text evidence covers key pages, whether expert judgment is excessive,'
+        'Whether there is sufficient evidence for the high score, whether it is reasonable or not, and whether the total score may be distorted.'
+        'You cannot modify the score directly, you can only provide review conclusions and items that require manual review.'
+        'output JSON:'
+        '{"audit_status":"pass|needs_review|fail","overall_assessment":"Concise English audit summary",'
         '"score_reliability":"high|medium|low","score_adjustment_needed":false,'
         '"audit_issues":[{"issue_type":"evidence_overclaim","severity":"low|medium|high",'
-        '"message":"中文说明","related_ids":["规则ID"],"suggested_action":"中文建议"}]}'
+        '"message":"Concise English description","related_ids":["Rule ID"],"suggested_action":"English follow-up action"}]}'
     )
     payload = build_audit_payload(
         run_id,
@@ -190,16 +190,16 @@ def run_reflection_audit_agent(
     except Exception as exc:
         return {
             "audit_status": "needs_review",
-            "overall_assessment": f"反思审核智能体未能在快速审核时间内完成：{exc}",
+            "overall_assessment": f"The reflective review agent failed to complete within the fast review time: {exc}",
             "score_reliability": "unknown",
             "score_adjustment_needed": True,
             "audit_issues": [
                 {
                     "issue_type": "audit_timeout",
                     "severity": "medium",
-                    "message": "评分主流程已完成，但反思审核 Agent 超时或连接失败。",
+                    "message": 'The main scoring process has been completed, but the reflective review Agent timed out or failed to connect.',
                     "related_ids": [],
-                    "suggested_action": "人工优先复核低置信度、NA、高分和质量警告项；必要时单独重跑审核。",
+                    "suggested_action": 'Manually review low confidence, NA, high score and quality warning items manually; if necessary, re-run the review separately.',
                 }
             ],
         }

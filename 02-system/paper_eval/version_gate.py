@@ -15,13 +15,13 @@ def evaluate_version_gate(calibration_summary: dict[str, Any], thresholds: GateT
     failures = []
     total_mae = calibration_summary.get("total_mae")
     if total_mae is None:
-        failures.append("缺少 total_mae，不能升级。")
+        failures.append('total_mae is missing and cannot be upgraded.')
     elif total_mae > thresholds.max_total_mae:
-        failures.append(f"total_mae={total_mae:.2f} 超过阈值 {thresholds.max_total_mae:.2f}")
+        failures.append(f"total_mae={total_mae:.2f} exceeds the threshold {thresholds.max_total_mae:.2f}")
 
     for dim, value in calibration_summary.get("dimension_mae", {}).items():
         if value is not None and value > thresholds.max_dimension_mae:
-            failures.append(f"dimension {dim} mae={value:.2f} 超过阈值 {thresholds.max_dimension_mae:.2f}")
+            failures.append(f"dimension {dim} mae={value:.2f} exceeds the threshold {thresholds.max_dimension_mae:.2f}")
 
     return {
         "approved": not failures,

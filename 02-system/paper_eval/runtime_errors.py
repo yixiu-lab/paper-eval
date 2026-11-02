@@ -6,62 +6,62 @@ def classify_runtime_error(message: str) -> dict[str, str]:
     if "not found:" in lowered:
         return {
             "type": "file_not_found",
-            "title": "输入文件不存在",
-            "user_message": "系统找不到指定的 PDF、规则库、索引或模型配置文件。请检查路径后重新运行。",
+            "title": 'The input file does not exist',
+            "user_message": 'The system cannot find the specified PDF, rule base, index, or model configuration file. Please check the path and run again.',
         }
     if "is not a file:" in lowered:
         return {
             "type": "invalid_file_path",
-            "title": "输入路径不是文件",
-            "user_message": "指定路径不是可读取文件。请检查 PDF、规则库、索引或模型配置路径。",
+            "title": 'The input path is not a file',
+            "user_message": 'The specified path is not a readable file. Please check the PDF, rule base, index, or model configuration path.',
         }
     if "pdf_parse_blocked" in lowered:
         return {
             "type": "pdf_parse_blocked",
-            "title": "PDF 解析未通过",
-            "user_message": "PDF 全文解析质量不足，系统已在调用云端模型前停止。请检查是否为扫描版、乱码版、只解析到前几页，或先转换为可复制文本的 PDF。",
+            "title": 'PDF parsing failed',
+            "user_message": 'PDF full text parsing quality is insufficient and the system has stopped before calling the cloud model. Please check whether it is a scanned version, a garbled version, only parsed to the first few pages, or converted to a PDF that can copy text first.',
         }
     if "external_evidence_required" in lowered:
         return {
             "type": "external_evidence_required",
-            "title": "外部文献检索未取得结果",
-            "user_message": "判断创新性需要外部文献对照，但本次检索没有拿到任何相关工作（可能断网、被限流或检索源不可用）。系统已在调用评分模型之前停止，本次没有消耗评分调用。请检查网络后重试；离线环境可把 external_retrieval.require_external_evidence 设为 false。",
+            "title": 'No results obtained from external literature search',
+            "user_message": 'Judging innovativeness requires external literature comparison, but no relevant work was found in this search (it may be disconnected, restricted or the search source is unavailable). The system has stopped before calling the scoring model, and no scoring calls are consumed this time. Please check the network and try again; for offline environments, set external_retrieval.require_external_evidence to false.',
         }
     if "insufficient_quota" in lowered or "free quota exhausted" in lowered:
         return {
             "type": "insufficient_quota",
-            "title": "API 额度不足",
-            "user_message": "当前模型服务返回额度不足。请检查所配置服务商的账户额度与计费状态后再运行。",
+            "title": 'API quota is insufficient',
+            "user_message": 'The current model service return quota is insufficient. Please check the account limit and billing status of the configured service provider before running.',
         }
     if "insufficient balance" in lowered or "http error 402" in lowered:
         return {
             "type": "insufficient_balance",
-            "title": "API 余额不足",
-            "user_message": "模型服务返回余额不足。请检查当前所配置服务商的账户余额与计费状态，充值后再运行。",
+            "title": 'API balance insufficient',
+            "user_message": 'Model service returns insufficient balance. Please check the account balance and billing status of the currently configured service provider, and recharge before running.',
         }
     if "http error 401" in lowered or "authentication fails" in lowered or "invalid api key" in lowered:
         return {
             "type": "invalid_api_key",
-            "title": "API Key 无效",
-            "user_message": "模型服务拒绝了这把 API Key。请检查 .env 里对应的 Key 是否完整、是否已被删除或重置。",
+            "title": 'API Key is invalid',
+            "user_message": 'The model service rejected this API Key. Please check whether the corresponding Key in .env is complete, deleted or reset.',
         }
     if "missing api key" in lowered or "api key env is missing" in lowered:
         return {
             "type": "missing_api_key",
-            "title": "API Key 未配置",
-            "user_message": "后端没有读取到模型 API Key。请检查项目根目录 .env 或系统环境变量。",
+            "title": 'API Key is not configured',
+            "user_message": 'The backend did not read the model API Key. Please check the project root .env or system environment variables.',
         }
     if "timed out" in lowered or "timeout" in lowered:
         return {
             "type": "timeout",
-            "title": "模型响应超时",
-            "user_message": "云端模型响应超时。本次不回退基线评分，请稍后重试或换更稳定的模型。",
+            "title": 'model response timeout',
+            "user_message": 'The cloud model response timed out. The baseline score will not be rolled back this time. Please try again later or change to a more stable model.',
         }
     if "remote end closed connection" in lowered:
         return {
             "type": "connection_closed",
-            "title": "模型连接中断",
-            "user_message": "云端模型连接被关闭。本次不回退基线评分，请重试或降低批量并发。",
+            "title": 'Model connection interrupted',
+            "user_message": 'The cloud model connection is closed. The baseline score will not be rolled back this time. Please try again or reduce batch concurrency.',
         }
     if (
         "jsondecodeerror" in lowered
@@ -72,11 +72,11 @@ def classify_runtime_error(message: str) -> dict[str, str]:
     ):
         return {
             "type": "malformed_model_json",
-            "title": "模型 JSON 输出格式错误",
-            "user_message": "云端模型返回的 JSON 不完整或格式破损。本次不回退基线评分，建议重试或换更稳定的模型。",
+            "title": 'model JSON output format error',
+            "user_message": 'The JSON returned by the cloud model is incomplete or has a broken format. There is no rollback to the baseline score this time. It is recommended to try again or change to a more stable model.',
         }
     return {
         "type": "unknown",
-        "title": "运行失败",
+        "title": 'operation failed',
         "user_message": message,
     }

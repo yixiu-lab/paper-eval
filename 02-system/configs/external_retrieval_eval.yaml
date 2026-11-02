@@ -1,10 +1,10 @@
-# External Literature Retrieval Evaluation —— 实验配置基线
+# External Literature Retrieval Evaluation——Experimental configuration baseline
 #
-# 这个文件记录本次正式实验所用的检索 / 重排配置，作为论文「Experimental Setup」一节的
-# 机器可读来源。命令行参数与此处一致；`experiments/<name>/experiment_manifest.json`
-# 是运行时实际生效值的快照，两者应当一致——若不一致，manifest 优先。
+# This file records the retrieval/rearrangement configuration used in this formal experiment, as the "Experimental Setup" section of the paper.
+# Machine-readable source. The command line parameters are the same as here; `experiments/<name>/experiment_manifest.json`
+# is a snapshot of the actual effective value at runtime. The two should be consistent - if they are inconsistent, the manifest takes precedence.
 #
-# 用法：
+# Usage:
 #   python -m paper_eval.retrieval_eval.cli run-all \
 #       --experiment external_retrieval \
 #       --scope data/retrieval_gold/experiment_scope.json \
@@ -21,8 +21,8 @@ experiment:
   K: [5, 10, 20, 50]
 
 gold_set:
-  # Gold 的发现路径：目标论文在 OpenAlex 登记的 referenced_works（作者自己的引文网络）。
-  # 刻意不使用 PaperEval 的检索结果，避免 retrieval pool bias。
+    # Gold's discovery path: the target paper's referenced_works (author's own citation network) registered in OpenAlex.
+    # deliberately does not use the search results of PaperEval to avoid retrieval pool bias.
   discovery: openalex_referenced_works
   claim_source: paper_body_claim_markers
   selection:
@@ -31,8 +31,9 @@ gold_set:
   gold_mapping:
     min_relevance: 2
     per_claim_limit: 8
-    # 机械预标注（claim 术语 ∩ prior 标题/摘要），annotation_status=machine_prelabel。
-    # relevance 的最终值只能由 annotation_records.jsonl 的人工标注决定。
+        # Machine prelabel (claim term ∩ prior title/abstract), annotation_status=machine_prelabel.
+        # The final value of
+        # relevance can only be determined by manual annotation of annotation_records.jsonl.
     method: lexical_term_overlap
 
 retrieval:
@@ -43,11 +44,11 @@ retrieval:
   min_interval_seconds: 0.6
   request_retries: 3
   timeout_seconds: 25
-  time_leak_policy: publication_year 存在且 < target_paper_year
+  time_leak_policy: "publication_year exists and < target_paper_year"
   routes:
-    query: 每个 claim 由 paper title + claim 术语展开 3-5 条检索式
-    citation: 目标论文 → referenced_works（OpenAlex，完整枚举）
-    semantic: claim/摘要/研究问题 与 候选标题+摘要 的 TF-IDF 余弦（本地，无外部调用）
+    query: "Each claim is expanded by paper title + claim terms and 3-5 search terms"
+    citation: "target paper → referenced_works (OpenAlex, full enumeration)"
+    semantic: "TF-IDF cosine of claim/abstract/research question with candidate title+abstract (local, no external calls)\nThere is no Gold with relevance>=2 in"
 
 reranker:
   kind: deterministic_weighted_signals
@@ -79,9 +80,9 @@ ablation_methods:
 failure_case_rules:
   low_recall_at_20: recall@20 < 0.34
   low_ndcg_at_10: nDCG@10 < 0.30
-  no_gold_in_top10: Top-10 内无 relevance>=2 的 Gold
+  no_gold_in_top10: "Top-10"
 
 notes:
-  - 检索与重排全程无 LLM 参与，结果可精确复现（同缓存同配置下逐位一致）。
-  - 目标论文的年份取自论文元数据 / 文件名；候选年份缺失时不进入候选池。
-  - Citation 路的 gold 结构性优势在报告中单独披露（见 README 研究诚信约束 §3）。
+  - "There is no LLM involved in the entire retrieval and rearrangement process, and the results can be accurately reproduced (bit by bit consistent under the same cache and configuration)."
+  - "The year of the target paper is taken from the paper metadata/file name; if the candidate year is missing, it will not enter the candidate pool."
+  - "Citation Road's gold structural advantages are disclosed separately in the report (see README Research Integrity Constraints §3)."

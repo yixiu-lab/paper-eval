@@ -7,11 +7,7 @@ from typing import Any
 
 
 class Judgement(str, Enum):
-    """五档判断 + 无法判断。
-
-    标尺锚点：partial = 60 分（及格线）。原来只有 satisfied/partial/not_satisfied 三档时，
-    60% 以上的判断挤在 partial 一档，总分被压成常数；拆出 mostly 与 weak 让中间散开。
-    """
+    'Fifth gear judgment + Unable to judge.\n\n    Scale anchor point: partial = 60 points (passing line). It turns out that there is only satisfied/partial/not_satisfied in the third gear.\n    More than 60% of the judgments are squeezed into the partial level, and the total score is reduced to a constant; most and weak are separated to spread out in the middle.'
 
     SATISFIED = "satisfied"
     MOSTLY = "mostly"
@@ -76,8 +72,8 @@ class AgentJudgement:
     agent_version: str
     model_version: str
     candidate_evidence_ids: list[str] = field(default_factory=list)
-    # 本地启发式的观察结果。约定：本地规则只写这里 + needs_review，
-    # 不改 judgement / reason / confidence，模型判断与理由保持原样可审计。
+    # Observations of local heuristics. Convention: local rules only write here + needs_review,
+    # does not change judgment / reason / confidence, the model judgment and reasons remain unchanged and can be audited.
     review_flags: list[str] = field(default_factory=list)
 
 
@@ -93,10 +89,10 @@ class ScoreItem:
     dimension_name: str
     strict_raw_score: float | None = None
     strict_weighted_score: float | None = None
-    # 李克特呈现层（1–5）：只是判断档位的编号，供报告与论文方法学描述使用；
-    # 参与总分计算的仍是 raw_score（两池映射，基准项 mostly/partial 同分）。
+    # Likert presentation layer (1–5): just the number of the judgment gear, used for report and paper methodology description;
+    # still uses raw_score (two-pool mapping, benchmark items mostly/partially have the same score) to participate in the calculation of the total score.
     likert_score: int | None = None
-    # 适用范围外：不评分、不进分子分母，只在报告里列出。
+    # Outside the applicable scope: no scoring, no inclusion in the numerator and denominator, only listed in the report.
     out_of_scope: bool = False
 
 

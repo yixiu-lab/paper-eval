@@ -1,16 +1,4 @@
-"""证据检索层：词袋召回 + LLM 重排。
-
-为什么要有这一层：`agents.build_reading_pack` 是纯确定性启发式，靠硬编码英文关键词挑候选
-证据，覆盖不全。实测 25 分的 D 维（研究设计与方法质量）平均只拿到 8.9 条候选，模型反复判
-partial，理由是「候选证据未覆盖信度来源、效度检验说明」「未覆盖内生性或选择偏差」——这些
-内容论文里有，只是关键词表没命中，压根没进候选包。
-
-这里的做法是两段式：先用规则声明的英文检索词做词袋召回（能覆盖关键词表没写的表述），
-再让模型从召回的候选里挑出真正该进阅读包的那些（能压掉词袋召回的假阳性）。
-纯标准库，复用 retrieval.py 的 tokenize / vectorize / cosine，不引入任何第三方依赖。
-
-性能：几百段 × 几十个查询词，纯 Python 毫秒级，不做倒排索引之类的优化。
-"""
+'Evidence retrieval layer: bag-of-words recall + LLM rearrangement.\n\nWhy is there this layer: `agents.build_reading_pack` is a purely deterministic heuristic that relies on hard-coded English keywords to select candidates\nEvidence, incomplete coverage. The measured D dimension (research design and method quality) with a score of 25 points only received an average of 8.9 candidates, and the model repeatedly judged\nPartial, the reason is that "candidate evidence does not cover reliability sources and validity test instructions" and "does not cover endogeneity or selection bias" - these\nThe content was included in the paper, but it didn’t hit the keyword list and didn’t make it into the candidate package at all.\n\nThe approach here is two-stage: first use the English search terms declared by the rules to do bag-of-word recall (which can cover expressions not written in the keyword list),\nThen let the model select the ones that really should be included in the reading package from the recalled candidates (which can suppress the false positives of bag-of-word recall).\nPure standard library, reusing tokenize/vectorize/cosine of retrieval.py without introducing any third-party dependencies.\n\nPerformance: hundreds of paragraphs × dozens of query terms, milliseconds in pure Python, without optimizations such as inverted indexing.'
 
 from __future__ import annotations
 
@@ -26,9 +14,9 @@ from .models import Evidence
 from .retrieval import cosine, vectorize
 from .rules import IndicatorRule
 
-# 规则 id 与 evidence_location 都不是自由文本，抽出来的词大多没有检索价值
-# （dimension 前缀、版本号、纯章节名）。这些词如果混进查询向量，会把整个向量归一化
-# 拉偏，让真正的检索词权重变低。所以显式列出来丢掉。
+# Rule id and evidence_location are not free text, and most of the words extracted have no retrieval value.
+# (dimension prefix, version number, pure chapter name). If these words are mixed into the query vector, the entire vector will be normalized.
+# pulls the bias, making the weight of the real search terms lower. So list it explicitly and throw it away.
 _GENERIC_TERMS = {
     "the", "and", "for", "with", "that", "this", "from", "v1", "v2", "v3",
     "abstract", "introduction", "conclusion", "discussion", "methods", "method",
@@ -42,22 +30,17 @@ _TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z-]{2,}")
 
 
 def _is_reference_evidence(item: Evidence) -> bool:
-    """等价于 `agents.is_reference_evidence`。
-
-    为什么在这里重写一遍而不用 import：agents.py 之后要 import 本模块（把 select_evidence
-    接进 build_reading_pack 的调用点），本模块再反向 import agents 就成环。逻辑只有两行，
-    复制比引入延迟导入的复杂度更划算；改动 agents.is_reference_evidence 时这里要同步。
-    """
+    'is equivalent to `agents.is_reference_evidence`.\n\n    Why rewrite it here instead of import: agents.py and then import this module (replace select_evidence\n    Connect to the call point of build_reading_pack), this module then reversely import agents to form a loop. There are only two lines of logic,\n    Copying is more cost-effective than introducing the complexity of lazy import; this needs to be synchronized when changing agents.is_reference_evidence.'
     return item.section.lower() == "references" or item.text.strip().lower().startswith(("references", "bibliography"))
 
 
 def _excluded(item: Evidence) -> bool:
-    """进不了检索池的证据：参考文献块没有实质内容；EXT-* 外部文献只显式插给指定规则。"""
+    'Evidence that it cannot enter the search pool: the reference block has no substantial content; EXT-* external documents are only explicitly inserted into the specified rules.'
     return _is_reference_evidence(item) or is_external_evidence(item)
 
 
 def build_evidence_vectors(evidences: list[Evidence]) -> dict[str, dict[str, int]]:
-    """evidence_id → 词频向量。键上带 section：同一段话在 Methods 和 Discussion 里检索价值不同。"""
+    'evidence_id → word frequency vector. With section on the key: the same paragraph has different search values \u200b\u200bin Methods and Discussion.'
     vectors: dict[str, dict[str, int]] = {}
     for item in evidences:
         if _excluded(item):
@@ -76,11 +59,7 @@ def recall_evidence(
     evidences_by_id: dict[str, Evidence],
     top_k: int,
 ) -> list[tuple[float, Evidence]]:
-    """词袋召回：按余弦相似度降序返回前 top_k，0 分的丢掉。
-
-    0 分直接丢：查询词一个都没命中时，余弦相似度是 0 而不是「有点相关」，
-    留下它们只会把真正命中的证据挤出 top_k。
-    """
+    'Bag-of-word recall: Return the top_k in descending order of cosine similarity, and discard those with 0 points.\n\n    0 points are lost directly: when none of the query words are hit, the cosine similarity is 0 instead of "somewhat related".\n    Leaving them in only pushes the evidence of real hits out of top_k.'
     query_vector = vectorize(build_query_string(query_terms))
     if not query_vector:
         return []
@@ -92,18 +71,13 @@ def recall_evidence(
         score = cosine(query_vector, vector)
         if score > 0:
             scored.append((score, item))
-    # 同分时按 evidence_id 稳定排序，保证召回顺序可复现（LLM 只重排不从零生成，确定性很重要）。
+    # is sorted stably by evidence_id at the same time to ensure that the recall sequence is reproducible (LLM only rearranges and does not generate from scratch, certainty is very important).
     scored.sort(key=lambda pair: (-pair[0], pair[1].evidence_id))
     return scored[: max(0, int(top_k))]
 
 
 def build_query_terms(rule: IndicatorRule, paper_context: dict[str, Any] | None = None) -> list[str]:
-    """规则的英文检索词。
-
-    优先用 `rule.retrieval_terms`（规则库里显式声明的英文词）。为空时回退到 rule_id 里的
-    英文 token + evidence_location 的英文 token（中文定义不参与：规则锚点是中文、被评论文
-    是英文，拿中文去搜英文正文恒不命中）。
-    """
+    'rule.\n\n    Prefer `rule.retrieval_terms`, the English search vocabulary declared in the rule profile. If it is empty, fall back to English tokens from the rule ID and evidence location. Rule prose is not parsed into search terms.'
     terms = [str(term).strip().lower() for term in (getattr(rule, "retrieval_terms", None) or []) if str(term).strip()]
     if not terms:
         fallback: list[str] = []
@@ -123,7 +97,7 @@ def build_query_terms(rule: IndicatorRule, paper_context: dict[str, Any] | None 
 
 
 def _config_int(config: Any, name: str, default: int) -> int:
-    """读配置里的正整数。配置文件里写成空值或字符串时不至于把流程打断。"""
+    'reads the positive integer in the configuration. Writing empty values \u200b\u200bor strings in the configuration file will not interrupt the process.'
     try:
         value = int(getattr(config, name, default))
     except (TypeError, ValueError):
@@ -137,7 +111,7 @@ def build_rerank_payload(
     limit: int,
     max_chars: int,
 ) -> dict[str, Any]:
-    """重排调用的 user payload。证据文本在这里截断——截的是给模型看的那一份，不是最终阅读包。"""
+    'rearranges the user payload of the call. The evidence text is truncated here - this is the copy for the model, not the final reading package.'
     judgement_values = getattr(rule, "judgement_values", None) or {}
     return {
         "indicator_name": str(getattr(rule, "indicator_name", "") or ""),
@@ -156,29 +130,25 @@ def build_rerank_payload(
     }
 
 
-# 重排 prompt。要求模型只做「筛选 + 排序 + 一句话理由」，不产出任何评分内容：
-# 这一步的价值是把词袋召回的假阳性压掉，越权判档会污染后面的评分链路。
+# Rearrange prompt. The model is required to only do "filtering + sorting + one sentence reason" and does not produce any scoring content:
+# The value of this step is to suppress the false positives in bag-of-word recall. Unauthorized judgment will pollute the subsequent scoring links.
 _RERANK_SYSTEM_PROMPT = (
-    "你是学术论文证据筛选助手。给你一条评分规则（指标名、定义、档位锚点）和一批候选证据片段，"
-    "你的唯一任务是从候选里挑出评判这条规则时评委真正需要读的片段，并按重要性从高到低排序。\n"
-    "判断依据：这条规则的档位锚点里提到的每个要素，候选里有没有对应表述；片段是否描述了具体的"
-    "做法、数据、检验或结果，而不是背景铺垫或泛泛论断。\n"
-    "约束：\n"
-    "1. 只能从候选里选，不得编造 evidence_id；\n"
-    f"2. 最多选 {{budget}} 条（这是硬上限），候选够用就选满，明显不相关的宁可不选；\n"
-    "3. 只做筛选与排序，不要给出档位判断或分数；\n"
-    "4. 每条给一句话中文理由（30 字以内），说明它覆盖了规则的哪个要素。\n"
-    "只返回一个 JSON 对象，不要 markdown，不要解释，格式：\n"
-    '{"selected":[{"evidence_id":"<候选里的 evidence_id>","reason":"<一句话理由>"}]}'
+    'You are an academic paper evidence screening assistant. Give you a scoring rule (indicator name, definition, gear anchor point) and a batch of candidate evidence fragments,'
+    'Your only task is to pick out the fragments from the candidates that the judges really need to read when judging this rule, and rank them in order of importance from high to low.'
+    'Judgment basis: for each element mentioned in the gear anchor point of this rule, whether there is a corresponding expression in the candidate; whether the fragment describes the specific'
+    'practices, data, tests or results, rather than background or general conclusions.'
+    'Constraints:'
+    '1. You can only choose from candidates, and you are not allowed to make up evidence_id;'
+    f"2. Select at most {{budget}} items (this is the hard upper limit). Select as many candidates as you can. You would rather not select those that are obviously irrelevant; \n"
+    '3. Only filter and sort, do not give grade judgment or score;'
+    '4. For each item, give a concise English reason (within 30 words) explaining which part of the rule it covers.'
+    'only returns a JSON object, no markdown, no explanation, format:'
+    '{"selected":[{"evidence_id":"EV-01","reason":"Relevant evidence for the assigned rule"}]}'
 )
 
 
 def _extract_selected_ids(parsed: Any) -> tuple[list[str], dict[str, str]]:
-    """从模型返回里抠出 evidence_id 列表与理由。
-
-    容错到「只要 id 在任意位置出现就能用」的程度：模型偶尔返回纯文本（{"ids": [...]}）、
-    偶尔返回 {"selected": [...]}、偶尔带理由对象。拿不到就返回空，由调用方走降级。
-    """
+    'Extract the evidence_id list and reasons from the model return.\n\n    Fault-tolerant to the extent that "as long as the id appears anywhere, it can be used": the model occasionally returns plain text ({"ids": [...]}),\n    Occasionally return {"selected": [...]}, occasionally with a reason object. If it cannot be obtained, it will return empty, and the caller will downgrade it.'
     if not isinstance(parsed, dict):
         return [], {}
     raw = parsed.get("selected")
@@ -209,7 +179,7 @@ def _extract_selected_ids(parsed: Any) -> tuple[list[str], dict[str, str]]:
             ids.append(str(entry[0]))
             if len(entry) > 1 and entry[1]:
                 reasons[str(entry[0])] = str(entry[1])
-    # 还没拿到理由时退一步：把顶层 evidence_ids 和 reasons 两个平行列表按位置对齐。
+    # Take a step back before you get the reasons: align the two parallel lists of top-level evidence_ids and reasons by position.
     if not reasons:
         flat_ids = parsed.get("evidence_ids")
         flat_reasons = parsed.get("reasons")
@@ -221,21 +191,14 @@ def _extract_selected_ids(parsed: Any) -> tuple[list[str], dict[str, str]]:
 
 
 def _call_rerank_llm(payload: dict[str, Any], config: AgentRuntimeConfig) -> Any:
-    """单独抽一层：自检里 monkeypatch 这个函数就能换掉模型响应，不必真调 API。"""
+    'Extract a separate layer: the monkeypatch function in the self-test can replace the model response without actually adjusting the API.'
     budget = payload.get("budget", 0)
     system_prompt = _RERANK_SYSTEM_PROMPT.replace("{budget}", str(budget))
     return call_plain_json(system_prompt, payload, config)
 
 
 def _fill_to_limit(ordered: list[Evidence], padding: list[Evidence], limit: int) -> list[Evidence]:
-    """按 evidence_id 去重，把 ordered 补到 limit 条（不足就返回现有的）。
-
-    补齐用启发式阅读包的结果，而不是「模型选几条就几条」。原因有两层：
-    1. 阅读包条数直接影响分数绝对值（实测 10 段 → 20 段整体上移约 7 分），条数缩水的规则
-       和条数满的规则不可比；
-    2. 更要命的是反向效果：检索层本意是扩大证据覆盖，如果召回命中少就让包从 10 条掉到 2 条，
-       恒判 partial 的规则会判得更死——比不开检索层还糟。
-    """
+    'Remove duplicates according to evidence_id, and fill ordered to the limit bar (if insufficient, return to the existing one).\n\n    Complete the results of reading the package using heuristics instead of "select only a few of the models". There are two reasons:\n    1. The number of reading packages directly affects the absolute value of the score (the actual measurement of 10 paragraphs → 20 paragraphs moves up by about 7 points), and the number of items shrinks.\n       It is not comparable to the full number of rules;\n    2. What’s even more terrible is the reverse effect: the original intention of the retrieval layer is to expand evidence coverage. If there are few recall hits, the package will drop from 10 to 2.\n       The rule of constant partial judgment will be even more fatal - worse than not opening the search layer.'
     seen = {item.evidence_id for item in ordered}
     result = list(ordered)
     for item in padding:
@@ -255,28 +218,24 @@ def rerank_evidence(
     limit: int,
     fallback: list[Evidence] | None = None,
 ) -> list[Evidence]:
-    """一次 LLM 调用重排候选；任何异常/坏返回都退回 recall 顺序，绝不抛异常打断整篇评分。
-
-    评分流程是一条链：某条规则的重排失败不能让这篇论文的评分整体失败——失败退回召回顺序，
-    最差也只是退回「词袋召回 + 启发式补齐」这个次优候选包，比整篇失败可控。
-    `fallback` 是 build_reading_pack 的结果，用来补足 limit；不传就只用 candidates 补。
-    """
+    'One LLM call reorders candidates; any exception/bad return will be returned to the recall order, and exceptions will never be thrown to interrupt the entire scoring.\n\n    The scoring process is a chain: failure to rearrange a certain rule cannot cause the overall scoring of this paper to fail - failure will return to the recall order,\n    The worst thing is to just return the sub-optimal candidate package of "bag of words recall + heuristic completion", which is more controllable than the failure of the entire article.\n    `fallback` is the result of build_reading_pack, used to make up for the limit; if not passed, only candidates are used to make up.'
     if not candidates:
         return (fallback or [])[:limit]
-    # 补齐池 = 召回顺序在前 + 启发式包在后，_fill_to_limit 会去重。
-    # 补齐无条件补满 limit，不做「按模型选中数打折」：证据条数本身会移动分数
-    # （实测 10 段 → 20 段整体上移约 7 分），新旧链路条数不一致，A/B 分差就分不清
-    # 是「证据更相关」还是「证据更少」。补进来的段落也都过了旧启发式的相关度门槛。
+    # Completion pool = recall order first + heuristic package last, _fill_to_limit will remove duplicates.
+    # fills up the limit unconditionally and does not do "discount based on the number of selected models": the number of evidence items itself will move the score
+    # (actually measured 10 segments → 20 segments moved up by about 7 points), the number of old and new links is inconsistent, and the A/B score difference cannot be distinguished
+    # Is “the evidence more relevant” or “the evidence is less”. The added paragraphs also passed the relevance threshold of the old heuristic.
+# The reason given by the
     padding = [*candidates, *(fallback or [])]
     max_chars = _config_int(config, "evidence_rerank_max_chars", 240)
     payload = build_rerank_payload(rule, candidates, limit, max_chars)
     try:
         parsed = _call_rerank_llm(payload, config)
-        # 模型给的理由暂时丢弃（ponytail: 当前只需要审计「最终进包的 evidence_id 对不对」，
-        # 没有消费者。等 A+B 真实跑批发现重排挑偏了，再加 rerank_evidence 的 reasons_out 出参）。
+        # model is temporarily discarded (ponytail: currently we only need to audit "whether the evidence_id in the final package is correct",
+        # has no consumers. When A+B actually runs the batch and finds that the rearrangement is biased, add the reasons_out parameter of rerank_evidence).
         selected_ids, _reasons = _extract_selected_ids(parsed)
     except Exception:
-        # LLM 报错 / 超时 / 非法 JSON（call_plain_json 内部会抛 RuntimeError）：静默降级。
+        # LLM error/timeout/illegal JSON (call_plain_json will throw RuntimeError internally): silent downgrade.
         return _fill_to_limit(candidates[:limit], padding, limit)
 
     known = {item.evidence_id: item for item in candidates}
@@ -289,10 +248,10 @@ def rerank_evidence(
         ordered.append(item)
         seen.add(evidence_id)
     if not ordered:
-        # id 全不认识 / 模型返回空：同样退回召回顺序。
+        # id is not known at all/the model returns empty: the recall sequence is also returned.
         return _fill_to_limit(candidates[:limit], padding, limit)
 
-    # 模型选不满 limit 时按召回顺序、再用启发式补齐（见 _fill_to_limit 的说明）。
+    # When the model selection is not satisfied with the limit, it is filled in the recall order and then used heuristics (see the description of _fill_to_limit).
     return _fill_to_limit(ordered, padding, limit)
 
 
@@ -300,14 +259,7 @@ PACK_CACHE_FORMAT = 2
 
 
 def evidence_cache_scope(evidences: list[Evidence], limit: int, config: Any) -> str:
-    """证据包缓存的作用域：论文证据集 + 条数 + 召回/截断参数（全是确定性输入）。
-
-    为什么不把「候选序列」放进命中条件：候选来自检索词，而检索词来自 `paper_context`，后者是
-    LLM 产物、**每批都不一样**（实测同一篇论文两次跑，paper_profile 的 8 个子字段全不同）。
-    要求候选一致等于要求 LLM 自洽，缓存必然全失效——2026-09-29 实测 17/34 规则仍在漂就是这个原因。
-    这里改成只认「论文没变、规则没变、预算没变」，让证据包真正冻结；代价是当 paper_context
-    大改（换了画像口径）时，包仍是上一批选的那批，需要人工清缓存目录来强制重选。
-    """
+    'The scope of the evidence package cache: paper evidence set + number of items + recall/truncation parameters (all deterministic input).\n\n    Why not put the "candidate sequence" into the hit condition: the candidate comes from the search term, and the search term comes from `paper_context`, which is\n    LLM products, **each batch is different** (actually tested the same paper twice, and the 8 subfields of paper_profile are all different).\n    Requiring candidates to be consistent is equivalent to requiring LLM to be self-consistent, and the cache must be completely invalid - this is the reason why 17/34 rules are still floating in the actual measurement on 2026-09-29.\n    Here it is changed to only recognize "the paper has not changed, the rules have not changed, and the budget has not changed", so that the evidence package is truly frozen; the cost is that when paper_context\n    When making a major change (changing the image caliber), the packages will still be the ones selected in the previous batch, and you need to manually clear the cache directory to force re-selection.'
     payload = json.dumps(
         {
             "evidence": sorted(item.evidence_id for item in evidences),
@@ -322,7 +274,7 @@ def evidence_cache_scope(evidences: list[Evidence], limit: int, config: Any) -> 
 
 
 def _rule_fingerprint(rule: IndicatorRule) -> str:
-    """规则指纹：改检索词/维度/适用范围等于换了一份规则，缓存必须失效。"""
+    'Rule fingerprint: Changing the search terms/dimensions/applicable scope is equivalent to changing a rule, and the cache must be invalidated.'
     payload = json.dumps(
         {
             "rule_id": rule.rule_id,
@@ -346,7 +298,7 @@ def _pack_cache_path(cache_dir: str, scope: str, rule: IndicatorRule, limit: int
 
 
 def _cached_pack(path: Path, evidences_by_id: dict[str, Evidence], limit: int) -> list[Evidence] | None:
-    """命中条件：格式/条数一致，且包内每个 id 在当前证据集里都能找到（找不到说明论文解析变了）。"""
+    'Hit condition: The format/number of entries are consistent, and each ID in the package can be found in the current evidence set (if it cannot be found, it means that the paper analysis has changed).'
     if not path.exists():
         return None
     try:
@@ -362,7 +314,7 @@ def _cached_pack(path: Path, evidences_by_id: dict[str, Evidence], limit: int) -
 
 
 def _store_pack(path: Path, candidates: list[Evidence], pack: list[Evidence], limit: int) -> None:
-    """只存 id 序列，不存正文（缓存文件里没有论文内容，可以安全落在 runs/ 下）。"""
+    'only stores the id sequence and does not store the text (there is no paper content in the cache file and can be safely placed under runs/).'
     path.write_text(
         json.dumps(
             {
@@ -386,22 +338,14 @@ def select_evidence(
     config: AgentRuntimeConfig | None = None,
     cache_scope: str | None = None,
 ) -> list[Evidence]:
-    """证据选择总入口。父 agent 把 agents.build_reading_pack 的调用点换成这里即可。
-
-    契约：返回条数**不小于**同参数下 build_reading_pack 的条数——正文够 limit 时两者都是 limit。
-    开关关闭时行为与旧的 build_reading_pack 完全一致（逐条透传，不加任何包装），
-    这样「关掉新链路 = 回到旧行为」是可以被自检证明的，不是靠阅读理解。
-
-    `cache_scope` 给定时（配合配置里的 `evidence_pack_cache_dir`），LLM 重排那一跳会被缓存复用：
-    只有这一跳是非确定的，召回与补齐都是纯确定性计算。
-    """
-    # agents.py 之后会 import 本模块，所以这里必须函数内延迟导入，模块级 import 会成环。
+    'General entrance for evidence selection. The parent agent can change the call point of agents.build_reading_pack here.\n\n    Contract: The number of items returned is not less than the number of items in build_reading_pack under the same parameters - both are limit when the text is enough.\n    When the switch is turned off, the behavior is exactly the same as the old build_reading_pack (transparent transmission one by one, without any packaging),\n    In this way, "turning off the new link = returning to the old behavior" can be proven by self-examination, not by reading comprehension.\n\n    When `cache_scope` is given (in conjunction with `evidence_pack_cache_dir` in the configuration), the LLM rearrangement hop will be reused by the cache:\n    Only this jump is non-deterministic, recall and completion are purely deterministic calculations.'
+    # agents.py will import this module later, so the import must be delayed within the function, and module-level import will form a loop.
     from .agents import build_reading_pack
 
     if config is None or not bool(getattr(config, "evidence_retrieval_enabled", False)):
         return build_reading_pack(rule, evidences, agent, limit, paper_context)
 
-    # 启发式包在这里就算好：既做召回为空时的整包回退，也做召回命中不足时的补齐。
+    # The heuristic package is good here: it not only does the whole package fallback when the recall is empty, but also makes up for the insufficient recall hits.
     legacy = build_reading_pack(rule, evidences, agent, limit, paper_context)
 
     vectors = build_evidence_vectors(evidences)
@@ -410,7 +354,7 @@ def select_evidence(
     top_k = _config_int(config, "evidence_recall_top_k", 30)
     recalled = recall_evidence(query_terms, vectors, evidences_by_id, top_k)
     if not recalled:
-        # 召回为空（检索词与正文完全无交集）：回退启发式，别交空包给模型。
+        # The recall is empty (the search term has no intersection with the text): fallback heuristic, do not give empty packets to the model.
         return legacy
 
     candidates = [item for _score, item in recalled]

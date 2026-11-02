@@ -1,22 +1,4 @@
-"""Evaluation Reliability Layer 自检（全程离线，不重跑 Agent、不打外部 API）。
-
-覆盖：
-1. 配置化阈值读取（`reliability:` 段 + 未知键报错）
-2. Run Variance：总分均值/标准差/极差、维度波动、等级翻转 → high_variance
-3. 单次运行必须老实报 insufficient_data（不许假装算得出来）
-4. 批次排序稳定性：换序批次 → ranking_change；同序批次 → high
-5. Evidence Variance：证据完全一致 → overlap 1.0；完全换掉 → evidence_instability
-6. Judgment Variance：一致率、分布、熵；证据稳而判断不稳 → agent_reasoning
-7. Calibration Uncertainty：换映射重算分 / 排序相关 / Top-K 重合 / calibration_sensitive
-8. Reliability Diagnosis 四种情况的归因与建议
-9. 最终 Reliability Report 结构 + **不含总可靠性分**
-10. 审计链：Score → Judgment → Evidence → Reliability Diagnosis
-11. 离线重算 CLI 端到端（真报告 JSON 走一遍）
-
-运行：
-    python ".\scripts\\自检_可靠性层.py"
-    python ".\scripts\\自检_可靠性层.py" --backtests   # 额外跑真实 v23 四批数据（若存在）
-"""
+'Evaluation Reliability Layer self-test (entirely offline, no re-running Agent, no external API).\n\nCoverage:\n1. Configurable threshold reading (`reliability:` segment + unknown key error)\n2. Run Variance: Total score mean/standard deviation/range, dimension fluctuation, level flip → high_variance\n3. A single run must report insufficient_data honestly (don’t pretend to calculate it)\n4. Batch ranking stability: Change order of batches → ranking_change; Same order batches → high\n5. Evidence Variance: The evidence is completely consistent → overlap 1.0; completely replaced → evidence_instability\n6. Judgment Variance: consistency rate, distribution, entropy; evidence is stable but judgment is unstable → agent_reasoning\n7. Calibration Uncertainty: Mapping recalculation / sorting related / Top-K coincidence / calibration_sensitive\n8. Reliability Diagnosis Attribution and suggestions for four situations\n9. Final Reliability Report Structure + **Excluding Total Reliability Score**\n10. Audit chain: Score → Judgment → Evidence → Reliability Diagnosis\n11. Offline recalculation CLI end-to-end (real report JSON go through)\n\nRun:\n    python ".\\scripts\\self_test_reliability.py"\n    python ".\\scripts\\self_test_reliability.py" --backtests # Run four additional batches of real v23 data (if existing)'
 
 from __future__ import annotations
 
@@ -51,9 +33,9 @@ from paper_eval.reliability_diagnosis import (  # noqa: E402
 )
 from paper_eval.rules import load_rule_profile  # noqa: E402
 
-RULES_PATH = ROOT / "评价规则库" / "rules_v1.yaml"
+RULES_PATH = ROOT / 'rules' / "rules_v1.yaml"
 CONFIG_PATH = ROOT / "configs" / "agent_runtime.deepseek.yaml"
-BACKTEST_RUNS = Path(r"D:\创业\agent文献打分\初始文件\article reviewer\runs")
+BACKTEST_RUNS = Path('D:\\Entrepreneurship\\agent document scoring\\initial document\\article reviewer\\runs')
 
 
 def make_trace(
@@ -63,8 +45,8 @@ def make_trace(
     judgements: dict[str, str],
     evidence: dict[str, list[str]],
     dimension_scores: dict[str, float] | None = None,
-    grade: str = "好论文",
-    potential: str = "中",
+    grade: str = 'Good paper',
+    potential: str = 'Medium',
     started_at: str = "2026-01-01T00:00:00Z",
     source_path: str = "",
     confidence: float = 0.7,
@@ -103,25 +85,25 @@ def step_1_config() -> ReliabilityConfig:
     assert config.run_variance_threshold == 5.0, config
     assert config.evidence_overlap_threshold == 0.6, config
     assert config.judgment_agreement_threshold == 0.8, config
-    assert ReliabilityConfig().enabled is False, "默认必须关闭：不启用时评价流程逐位不变"
+    assert ReliabilityConfig().enabled is False, 'Must be turned off by default: when not enabled, the evaluation process remains unchanged bit by bit.'
     try:
         load_reliability_config(ROOT / "configs" / "agent_runtime.cloud.yaml")
     except ValueError:
-        raise AssertionError("cloud 配置没有 reliability 段，不应报错")
-    # 未知键必须报错，而不是静默忽略（配置写错会让人以为阈值生效了）
+        raise AssertionError('cloud configuration does not have a reliability section and no error should be reported')
+    # Unknown keys must report an error instead of silently ignoring it (wrongly written configuration will make people think that the threshold has taken effect)
     temp = Path(tempfile.gettempdir()) / "_reliability_unknown_key.yaml"
     temp.write_text("reliability:\n  run_variance_threshold: 5.0\n  typo_key: 1\n", encoding="utf-8")
     try:
         load_reliability_config(temp)
-        raise AssertionError("未知键必须报错")
+        raise AssertionError('Unknown keys must report an error')
     except ValueError:
         pass
     finally:
         temp.unlink(missing_ok=True)
     print(
-        f"1) 配置化阈值：run_variance_threshold={config.run_variance_threshold}、"
+        f"1) Configurable threshold: run_variance_threshold={config.run_variance_threshold},"
         f"evidence_overlap_threshold={config.evidence_overlap_threshold}、"
-        f"judgment_agreement_threshold={config.judgment_agreement_threshold}；未知键报错；默认关闭"
+        f"judgment_agreement_threshold={config.judgment_agreement_threshold}; unknown key error; closed by default"
     )
     return config
 
@@ -129,19 +111,19 @@ def step_1_config() -> ReliabilityConfig:
 def step_2_run_variance(config: ReliabilityConfig) -> dict:
     judgements = {f"A-R{i}-V1": "mostly" for i in range(4)}
     evidence = {rule_id: [f"EV-{index}"] for index, rule_id in enumerate(judgements)}
-    # 稳定批次：总分只差 1 分
+    # stable batch: only 1 point difference in total score
     stable = [
-        make_trace("RUN-S1", "PAPER-STABLE", 90.0, judgements, evidence, grade="好论文"),
-        make_trace("RUN-S2", "PAPER-STABLE", 91.0, judgements, evidence, grade="好论文"),
+        make_trace("RUN-S1", "PAPER-STABLE", 90.0, judgements, evidence, grade='Good paper'),
+        make_trace("RUN-S2", "PAPER-STABLE", 91.0, judgements, evidence, grade='Good paper'),
     ]
     stable_result = run_variance(stable, config)
     assert stable_result["stability"] == "high", stable_result
     assert stable_result["range"] == 1.0 and stable_result["grade_flip"] is False, stable_result
 
-    # 波动批次：总分差 8 分且等级翻转
+    # Fluctuating batch: total score difference is 8 points and grade flipped
     volatile = [
-        make_trace("RUN-V1", "PAPER-VOLATILE", 88.0, judgements, evidence, grade="好论文"),
-        make_trace("RUN-V2", "PAPER-VOLATILE", 96.0, judgements, evidence, grade="顶刊级"),
+        make_trace("RUN-V1", "PAPER-VOLATILE", 88.0, judgements, evidence, grade='Good paper'),
+        make_trace("RUN-V2", "PAPER-VOLATILE", 96.0, judgements, evidence, grade='Top publication level'),
     ]
     volatile_result = run_variance(volatile, config)
     assert "high_variance" in volatile_result["flags"], volatile_result
@@ -149,7 +131,7 @@ def step_2_run_variance(config: ReliabilityConfig) -> dict:
     assert volatile_result["grade_flip"] is True, volatile_result
     assert volatile_result["mean_score"] == 92.0 and volatile_result["std"] == 4.0, volatile_result
 
-    # 维度波动：C 维度在两次运行间差 5 分
+    # Dimension fluctuation: C dimension differs by 5 points between two runs
     dimension = [
         make_trace("RUN-D1", "PAPER-DIM", 80.0, judgements, evidence, dimension_scores={"A": 10.0, "B": 10.0, "C": 10.0, "D": 10.0, "E": 10.0, "F": 10.0}),
         make_trace("RUN-D2", "PAPER-DIM", 81.0, judgements, evidence, dimension_scores={"A": 10.0, "B": 10.0, "C": 15.0, "D": 10.0, "E": 10.0, "F": 10.0}),
@@ -161,16 +143,16 @@ def step_2_run_variance(config: ReliabilityConfig) -> dict:
     single = run_variance([stable[0]], config)
     assert single["stability"] == "insufficient_data" and single["range"] is None, single
     print(
-        f"2-3) Run Variance：稳定批稳定性 {stable_result['stability']}（极差 {stable_result['range']}）；"
-        f"波动批 {volatile_result['stability']}（极差 {volatile_result['range']}，等级翻转 "
-        f"{volatile_result['grade_flip_detail']}）；维度 C 波动被抓到；"
-        f"单次运行老实报 {single['stability']}"
+        f"2-3) Run Variance: Stable batch stability {stable_result['stability']} (extremely poor {stable_result['range']});"
+        f"Fluctuating batch {volatile_result['stability']} (extremely poor {volatile_result['range']}, level flipped"
+        f"{volatile_result['grade_flip_detail']}); Dimension C fluctuation was caught;"
+        f"Honest report for a single operation {single['stability']}"
     )
     return {"volatile": volatile_result, "stable": stable_result, "dimension": dimension_result}
 
 
 def step_4_ranking(config: ReliabilityConfig) -> None:
-    # 同一批次目录下 3 篇论文，两个批次给出相同排序 → high
+    # 3 papers in the same batch directory, the two batches give the same ranking → high
     same = {
         "PAPER-A": [make_trace("R1", "PAPER-A", 90.0, {"A-1": "mostly"}, {"A-1": ["EV-1"]}, source_path="batch1/R1.json")],
         "PAPER-B": [make_trace("R2", "PAPER-B", 80.0, {"A-1": "mostly"}, {"A-1": ["EV-1"]}, source_path="batch1/R2.json")],
@@ -184,7 +166,7 @@ def step_4_ranking(config: ReliabilityConfig) -> None:
     assert stable_ranking["checked"] and stable_ranking["mean_spearman"] == 1.0, stable_ranking
     assert stable_ranking["ranking_change"] is False, stable_ranking
 
-    # 第二个批次把顺序颠倒 → ranking_change
+    # The second batch reverses the order → ranking_change
     flipped = {
         "PAPER-A": [make_trace("R1", "PAPER-A", 70.0, {"A-1": "mostly"}, {"A-1": ["EV-1"]}, source_path="batch1/R1.json")],
         "PAPER-B": [make_trace("R2", "PAPER-B", 80.0, {"A-1": "mostly"}, {"A-1": ["EV-1"]}, source_path="batch1/R2.json")],
@@ -200,9 +182,9 @@ def step_4_ranking(config: ReliabilityConfig) -> None:
     assert spearman([1, 2, 3], [3, 2, 1]) == -1.0
     assert spearman([1, 2, 3], [2, 4, 6]) == 1.0
     print(
-        f"4) 批次排序：同序批次 Spearman {stable_ranking['mean_spearman']}；"
-        f"颠倒批次 Spearman {flip_ranking['mean_spearman']} → ranking_change；"
-        f"Top-{stable_ranking['top_k']} 重合 {stable_ranking['top_k_overlap']}"
+        f"4) Batch sorting: batches in the same order Spearman {stable_ranking['mean_spearman']};"
+        f"reverse batch Spearman {flip_ranking['mean_spearman']} → ranking_change;"
+        f"Top-{stable_ranking['top_k']} overlap {stable_ranking['top_k_overlap']}"
     )
 
 
@@ -226,15 +208,15 @@ def step_5_evidence(config: ReliabilityConfig) -> None:
     assert moved_result["stability"] == "low", moved_result
     assert "A-1" in moved_result["unstable_rule_ids"], moved_result
     print(
-        f"5) Evidence Variance：证据完全一致 → 交集 {identical_result['evidence_overlap']}；"
-        f"整批换证据 → 交集 {moved_result['evidence_overlap']}，标记 {moved_result['flags']}"
+        f"5) Evidence Variance: The evidence is completely consistent → Intersection {identical_result['evidence_overlap']};"
+        f"Whole batch of evidence → intersection {moved_result['evidence_overlap']}, marked {moved_result['flags']}"
     )
     return moved_result
 
 
 def step_6_judgment(config: ReliabilityConfig) -> dict:
     stable_evidence = {"B1": ["EV-1"], "B2": ["EV-2"]}
-    # 证据稳、判断在 satisfied/partial 之间摇 → agent_reasoning
+    # The evidence is stable and the judgment wavers between satisfied/partial → agent_reasoning
     reasoning = [
         make_trace("R1", "P1", 80.0, {"B1": "satisfied", "B2": "satisfied"}, stable_evidence),
         make_trace("R2", "P1", 80.0, {"B1": "partial", "B2": "satisfied"}, stable_evidence),
@@ -250,7 +232,7 @@ def step_6_judgment(config: ReliabilityConfig) -> dict:
     assert judgment_result["source_of_uncertainty"] == "agent_reasoning", judgment_result
     assert "B1" in judgment_result["unstable_rule_ids"], judgment_result
 
-    # 证据与判断同时不稳 → retrieval_and_reasoning
+    # Evidence and judgment are unstable at the same time → retrieval_and_reasoning
     both = [
         make_trace("R1", "P1", 80.0, {"B1": "satisfied"}, {"B1": ["EV-1"]}),
         make_trace("R2", "P1", 80.0, {"B1": "partial"}, {"B1": ["EV-9"]}),
@@ -262,26 +244,27 @@ def step_6_judgment(config: ReliabilityConfig) -> dict:
     third = next(item for item in both_judgment["per_rule"] if item["rule_id"] == "B1")
     assert third["entropy"] > 1.5, third
     print(
-        f"6) Judgment Variance：B1 分布 {first['distribution']}，一致率 {first['agreement']}，熵 {first['entropy']}"
-        f" → 来源 {first['source_of_uncertainty']}；"
-        f"证据+判断同不稳 → {both_judgment['source_of_uncertainty']}"
+        f"6) Judgment Variance: B1 distribution {first['distribution']}, consistency rate {first['agreement']}, entropy {first['entropy']}"
+        f"→ source {first['source_of_uncertainty']};"
+        f"Evidence + judgment are both unstable → {both_judgment['source_of_uncertainty']}"
     )
     return {"agent_reasoning": judgment_result, "both": both_judgment}
 
 
 def step_7_calibration(profile, config: ReliabilityConfig) -> dict:
     rule_ids = [rule.rule_id for rule in profile.rules]
-    # 用规则库真实规则构一批"baseline 大多是 partial、bonus 大多是 satisfied"的判断记录：
-    # partial 在基准池里是 1.0，换到 Scheme B（partial=0.6）后分数必须明显下降 → calibration_sensitive
+    # Use the real rules of the rule base to construct a batch of judgment records of "baseline is mostly partial, bonus is mostly satisfied":
+    # partial is 1.0 in the benchmark pool. After switching to Scheme B (partial=0.6), the score must drop significantly → calibration_sensitive
     judgements: dict[str, str] = {}
     for rule in profile.rules:
         judgements[rule.rule_id] = "satisfied" if rule.role == "bonus" else "partial"
     evidence = {rule_id: ["EV-1"] for rule_id in rule_ids}
-    # 两篇论文必须分数不同，否则 Spearman 没有方差可算（返回 None）。
-    # 只差一条**加分**规则：判 uncertain 的那篇不进那条规则的分母，总分略低。
+    # The two papers must have different scores, otherwise Spearman has no variance to calculate (returns None).
+    # There is only one **extra point** rule missing: the article that is judged as uncertain does not enter the denominator of that rule, and the total score is slightly lower.
     swap_rule = next(rule.rule_id for rule in profile.rules if rule.role == "bonus")
-    # paper2 只把一条加分规则降成 partial：基准项（partial=1.0）不受影响，但总分低于 paper1，
-    # 排序才有方差可算（两篇分数完全相同 Spearman 会返回 None，那是"算不出"而不是"稳定"）。
+    # paper2 only reduces one bonus point rule to partial: the benchmark item (partial=1.0) is not affected, but the total score is lower than paper1,
+# Only
+    # sorting can calculate the variance (the scores of the two articles are exactly the same and Spearman will return None, which means "cannot be calculated" rather than "stable").
     weaker = {rule_id: ("partial" if rule_id == swap_rule else value) for rule_id, value in judgements.items()}
     traces = {
         "PAPER-1": [make_trace("R1", "PAPER-1", 90.0, judgements, evidence, source_path="b1/R1.json")],
@@ -299,8 +282,8 @@ def step_7_calibration(profile, config: ReliabilityConfig) -> dict:
     assert low_scheme["score_delta"] < 0, low_scheme
     assert low_scheme["sensitive"] is True, low_scheme
 
-    # 反过来：加分项普遍判 satisfied 时，换映射对分数的影响必须显著更小
-    #（证明这个检测不是恒真——它对"判断分布"有反应）。
+    # On the other hand: when the extra points are generally satisfied, the impact of changing the mapping on the score must be significantly smaller
+    #(proves that this test is not always true - it responds to the "judgment distribution").
     bonus_heavy = {rule.rule_id: "satisfied" for rule in profile.rules}
     bonus_heavy_weaker = {
         rule_id: ("not_satisfied" if rule_id == swap_rule else value) for rule_id, value in bonus_heavy.items()
@@ -313,17 +296,17 @@ def step_7_calibration(profile, config: ReliabilityConfig) -> dict:
     assert flat["schemes"], flat
     assert flat["score_difference"] < result["score_difference"], (flat["score_difference"], result["score_difference"])
     print(
-        f"7) Calibration Uncertainty：{result['scheme_count']} 套 mapping，最大 Δ总分 "
-        f"{result['max_abs_score_delta']}（相对 {result['max_score_delta_ratio']}），"
-        f"排序相关 {result['ranking_correlation']}，Top-K 重合 {result['mean_top_k_overlap']}，"
-        f"稳健性 {result['robustness']}（方案 {result['sensitive_schemes']}）；"
-        f"全 satisfied 批次 Δ总分仅 {flat['score_difference']}，说明检测不是恒真"
+        f"7) Calibration Uncertainty: {result['scheme_count']} set of mapping, maximum Δ total score"
+        f"{result['max_abs_score_delta']} (relative to {result['max_score_delta_ratio']}),"
+        f"sorting related {result['ranking_correlation']}, Top-K overlap {result['mean_top_k_overlap']},"
+        f"Robustness {result['robustness']} (scheme {result['sensitive_schemes']});"
+        f"is fully satisfied. The total score of the batch is only {flat['score_difference']}, indicating that the test is not constant."
     )
     return result
 
 
 def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_result: dict, calibration_result: dict, config: ReliabilityConfig) -> None:
-    # 情况 1：运行高波动 + 证据不稳 → retrieval_instability
+    # Case 1: High operational volatility + unstable evidence → retrieval_instability
     case1 = diagnose_reliability(
         {"flags": ["high_variance"], "stability": "low"},
         {"flags": ["evidence_instability"], "unstable_rule_ids": ["A-1"]},
@@ -332,9 +315,9 @@ def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_resu
         config,
     )
     assert case1["main_uncertainty_source"] == "retrieval_instability", case1
-    assert "检索候选" in case1["recommendation"], case1
+    assert 'Search Candidates' in case1["recommendation"], case1
 
-    # 情况 2：运行波动 + 证据稳 + 判断不稳 → agent_reasoning
+    # Situation 2: Operation fluctuation + stable evidence + unstable judgment → agent_reasoning
     case2 = diagnose_reliability(
         {"flags": ["high_variance"], "stability": "low"},
         {"flags": [], "stability": "high"},
@@ -343,10 +326,10 @@ def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_resu
         config,
     )
     assert case2["main_uncertainty_source"] == "agent_reasoning", case2
-    assert "投票" in case2["recommendation"], case2
+    assert 'vote' in case2["recommendation"], case2
     assert case2["needs_review"] == ["B1"], case2
 
-    # 情况 3：运行稳 + 校准高 → calibration_sensitive
+    # Case 3: Stable operation + high calibration → calibration_sensitive
     case3 = diagnose_reliability(
         {"flags": [], "stability": "high"},
         {"flags": [], "stability": "high"},
@@ -355,9 +338,9 @@ def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_resu
         config,
     )
     assert case3["main_uncertainty_source"] == "calibration_sensitive", case3
-    assert "校准" in case3["recommendation"], case3
+    assert 'Calibration' in case3["recommendation"], case3
 
-    # 情况 4：全稳 → evaluation_reliable（校准检测完成且排序也检过，才允许"零警告"）
+    # Case 4: Fully stable → evaluation_reliable ("zero warning" is allowed only after the calibration test is completed and the sorting is also checked)
     case4 = diagnose_reliability(
         {"flags": [], "stability": "high"},
         {"flags": [], "stability": "high"},
@@ -368,7 +351,7 @@ def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_resu
     assert case4["main_uncertainty_source"] == "evaluation_reliable", case4
     assert case4["warnings"] == [], case4
 
-    # 证据与判断都不稳但总分没波动 → 隐患也要报出来
+    # The evidence and judgment are unstable but the total score does not fluctuate → Hidden risks must also be reported
     case5 = diagnose_reliability(
         {"flags": [], "stability": "high"},
         {"flags": ["evidence_instability"]},
@@ -378,19 +361,19 @@ def step_8_diagnosis(run_result: dict, evidence_instability: dict, judgment_resu
     )
     assert case5["main_uncertainty_source"] == "retrieval_and_reasoning", case5
     print(
-        f"8) Reliability Diagnosis：检索不稳→{case1['main_uncertainty_source']}；"
-        f"推理不稳→{case2['main_uncertainty_source']}；规则敏感→{case3['main_uncertainty_source']}；"
-        f"全稳→{case4['main_uncertainty_source']}；隐藏隐患→{case5['main_uncertainty_source']}"
+        f"8) Reliability Diagnosis: Retrieval is unstable → {case1['main_uncertainty_source']};"
+        f"Unstable reasoning→{case2['main_uncertainty_source']}; Rule sensitive→{case3['main_uncertainty_source']};"
+        f"Fully stable→{case4['main_uncertainty_source']}; hidden danger→{case5['main_uncertainty_source']}"
     )
 
 
 def step_9_final_report(profile, run_result: dict, evidence_result: dict, judgment_result: dict, calibration_result: dict, config: ReliabilityConfig) -> dict:
-    # 用真实规则 ID：校准重算要按规则库取权重/角色，假 rule_id 会取不到。
+    # Use real rule ID: Calibration recalculation requires weight/role according to the rule base, false rule_id will not be obtained.
     rule_ids = [rule.rule_id for rule in profile.rules[:4]]
     judgements = {rule_id: "mostly" for rule_id in rule_ids}
     traces = [
-        make_trace("R1", "PAPER-X", 90.0, judgements, {rule_ids[0]: ["EV-1"]}, grade="好论文"),
-        make_trace("R2", "PAPER-X", 92.0, judgements, {rule_ids[0]: ["EV-9"]}, grade="顶刊级"),
+        make_trace("R1", "PAPER-X", 90.0, judgements, {rule_ids[0]: ["EV-1"]}, grade='Good paper'),
+        make_trace("R2", "PAPER-X", 92.0, judgements, {rule_ids[0]: ["EV-9"]}, grade='Top publication level'),
     ]
     report = build_reliability_report(profile, traces, config, focus_paper_id="PAPER-X")
     for key in (
@@ -404,7 +387,7 @@ def step_9_final_report(profile, run_result: dict, evidence_result: dict, judgme
         "diagnosis",
     ):
         assert key in report, key
-    assert "total" not in report and "overall_score" not in report, "需求明确：不许合成一个总可靠性分"
+    assert "total" not in report and "overall_score" not in report, 'The requirement is clear: it is not allowed to combine a total reliability score'
     assert set(report["reliability_report"]) >= {
         "run_stability",
         "evidence_stability",
@@ -414,22 +397,22 @@ def step_9_final_report(profile, run_result: dict, evidence_result: dict, judgme
     assert report["overall_warning"], report
     assert report["needs_review"], report
     markdown = "\n".join(render_reliability_markdown(report))
-    for heading in ("## 评价可靠性", "可靠性审计链", "需人工复核", "**建议：**"):
+    for heading in ('## Evaluation reliability', 'Reliability Audit Chain', 'requires manual review', '**Suggestion:**'):
         assert heading in markdown, heading
-    assert "总可靠性" not in markdown
+    assert 'Total Reliability' not in markdown
     print(
-        f"9) 最终报告：四个分项 {report['reliability_report']['run_stability']}/"
+        f"9) Final report: four sub-items {report['reliability_report']['run_stability']}/"
         f"{report['reliability_report']['evidence_stability']}/"
         f"{report['reliability_report']['judgment_stability']}/"
         f"{report['reliability_report']['calibration_robustness']}，"
-        f"警告 {len(report['overall_warning'])} 条，需复核 {len(report['needs_review'])} 条，"
-        f"无总可靠性分"
+        f"warning {len(report['overall_warning'])} items, need to review {len(report['needs_review'])} items,"
+        f"No overall reliability score"
     )
     return report
 
 
 def step_10_audit_chain(profile, config: ReliabilityConfig) -> None:
-    """审计链：Score → Judgment → Evidence → Reliability Diagnosis 每一环都能落地。"""
+    'Audit chain: Score → Judgment → Evidence → Reliability Diagnosis Each link can be implemented.'
     judgements = {"A-1": "mostly", "B-1": "satisfied"}
     evidence = {"A-1": ["EV-1", "EV-2"], "B-1": ["EV-3"]}
     traces = [
@@ -437,25 +420,25 @@ def step_10_audit_chain(profile, config: ReliabilityConfig) -> None:
         make_trace("R2", "PAPER-AUDIT", 89.0, judgements, evidence, source_path="/runs/x/R2_report.json"),
     ]
     report = build_reliability_report(profile, traces, config, focus_paper_id="PAPER-AUDIT")
-    # Score → Judgment：报告里能指到每次运行的总分
+    # Score → Judgment: The report can refer to the total score of each run
     assert {item["run_id"] for item in report["runs"]} == {"R1", "R2"}, report["runs"]
-    # Judgment → Evidence：judgment_variance 的 per_rule 能指到规则
+    # Judgment → Evidence: per_rule of judgment_variance can point to the rule
     assert any(item["rule_id"] == "A-1" for item in report["judgment_variance"]["per_rule"]), report["judgment_variance"]
-    # Evidence：evidence_variance 的 per_rule 能指到每条规则的证据交集
+    # Evidence: per_rule of evidence_variance can point to the intersection of evidence for each rule
     assert any(item["rule_id"] == "A-1" for item in report["evidence_variance"]["per_rule"]), report["evidence_variance"]
-    # Reliability Diagnosis：诊断能指到来源与建议
+    # Reliability Diagnosis: Diagnosis points to sources and recommendations
     assert report["diagnosis"]["main_uncertainty_source"], report["diagnosis"]
     assert report["diagnosis"]["recommendation"], report["diagnosis"]
     print(
-        f"10) 审计链：{len(report['runs'])} 次运行的 Score 可回查 → "
-        f"{len(report['judgment_variance']['per_rule'])} 条 Judgment → "
-        f"{len(report['evidence_variance']['per_rule'])} 条 Evidence → 诊断 "
+        f"10) Audit chain: Score of {len(report['runs'])} runs can be reviewed →"
+        f"{len(report['judgment_variance']['per_rule'])} Judgment →"
+        f"{len(report['evidence_variance']['per_rule'])} Evidence → Diagnosis"
         f"{report['diagnosis']['main_uncertainty_source']}"
     )
 
 
 def step_11_cli() -> None:
-    """离线重算 CLI：用合成报告 JSON 走一遍真实入口。"""
+    'Offline recalculation CLI: Use synthetic report JSON to walk through the real entrance.'
     out_dir = ROOT / "runs" / "_reliability_selftest"
     out_dir.mkdir(parents=True, exist_ok=True)
     for index, score in enumerate((90.0, 94.0), start=1):
@@ -494,7 +477,7 @@ def step_11_cli() -> None:
                 sys.executable,
                 "-X",
                 "utf8",
-                str(ROOT / "scripts" / "可靠性_离线重算.py"),
+                str(ROOT / "scripts" / 'reliability_offline recalculation.py'),
                 "--runs-dir",
                 str(out_dir),
                 "--out",
@@ -506,15 +489,15 @@ def step_11_cli() -> None:
             encoding="utf-8",
         )
         assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
-        # --print 会先输出完整 JSON，再输出一行摘要，所以只解码第一个 JSON 对象
+        # --print will output the complete JSON first, and then output a one-line summary, so only the first JSON object will be decoded
         payload, _ = json.JSONDecoder().raw_decode(result.stdout[result.stdout.index("{") :])
         assert payload["analyzed_run_count"] == 2, payload["analyzed_run_count"]
         assert payload["run_variance"]["range"] == 4.0, payload["run_variance"]
-        assert (out_dir / "out").glob("Reliability_*.json"), "未生成可靠性报告文件"
+        assert (out_dir / "out").glob("Reliability_*.json"), 'Reliability report file not generated'
         print(
-            f"11) 离线重算 CLI：读到 {payload['analyzed_run_count']} 次运行，"
-            f"极差 {payload['run_variance']['range']}，稳定性 {payload['run_variance']['stability']}，"
-            f"并写出独立报告文件"
+            f"11) Offline recalculation CLI: Read {payload['analyzed_run_count']} times,"
+            f"Extremely poor {payload['run_variance']['range']}, stability {payload['run_variance']['stability']},"
+            f"and write an independent report document"
         )
     finally:
         for path in sorted(out_dir.rglob("*"), reverse=True):
@@ -526,7 +509,7 @@ def step_11_cli() -> None:
 
 def backtests(profile, config: ReliabilityConfig) -> None:
     if not BACKTEST_RUNS.exists():
-        print(f"    （跳过真实数据回测：找不到 {BACKTEST_RUNS}）")
+        print(f"(Skip real data backtest: {BACKTEST_RUNS} not found)")
         return
     from paper_eval.reliability import discover_report_paths, load_traces_from_reports
 
@@ -550,17 +533,17 @@ def backtests(profile, config: ReliabilityConfig) -> None:
         "calibration_sensitive",
     }, report["diagnosis"]
     print(
-        f"12) 真实数据回测（v23 四批 × 3 篇）：总分区间 {run['min_score']}–{run['max_score']}、"
-        f"极差 {run['range']}、等级翻转 {run['grade_flip_detail']}；"
-        f"证据交集 {report['evidence_variance']['evidence_overlap']}；"
-        f"判断一致率 {report['judgment_variance']['mean_agreement']}；"
-        f"不确定性来源 {report['diagnosis']['main_uncertainty_source']}"
+        f"12) Real data backtest (v23 four batches × 3 articles): Total partition interval {run['min_score']}–{run['max_score']},"
+        f"extremely poor {run['range']}, level flip {run['grade_flip_detail']};"
+        f"Evidence intersection {report['evidence_variance']['evidence_overlap']};"
+        f"Judgment consistency rate {report['judgment_variance']['mean_agreement']};"
+        f"Source of uncertainty {report['diagnosis']['main_uncertainty_source']}"
     )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--backtests", action="store_true", help="额外跑真实 v23 四批数据")
+    parser.add_argument("--backtests", action="store_true", help='runs four additional batches of real v23 data')
     args = parser.parse_args()
 
     profile = load_rule_profile(RULES_PATH)
@@ -576,7 +559,7 @@ def main() -> int:
     step_11_cli()
     if args.backtests:
         backtests(profile, config)
-    print("Evaluation Reliability Layer 自检通过（全程离线，未重跑任何 Agent）。")
+    print('Evaluation Reliability Layer self-test passed (the whole process was offline, no Agent was re-run).')
     return 0
 
 

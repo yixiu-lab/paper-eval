@@ -1,19 +1,4 @@
-"""External Literature Retrieval：多路召回 → 去重 → 时间泄漏过滤 → Reranker → External Evidence Set。
-
-三路召回（**不允许**只搜论文标题）：
-
-1. **Query Retrieval**：每个 claim 生成 3-5 条检索式（核心构念 / 理论 / 机制 / 研究情境各一路），
-   走 Semantic Scholar 检索（search_external，源可换）。
-2. **Citation Retrieval**：先定位目标论文，读它的 references；再围绕高相关参考文献取 references，
-   形成局部 citation graph。引文关系能捞到"标题里没有一个共同词、但确实是同一条理论脉络"的文献。
-3. **Semantic Retrieval**：用 claim + 摘要 + 研究问题 与候选文献摘要算词法语义相关度（TF-IDF 余弦），
-   不额外打 API，所以它总是可用，保证外部 API 全挂时仍有一路召回。
-
-时间泄漏控制：验证某篇论文创新性只能用**目标论文发表年份之前**已发表的研究，所以候选池在
-rerank 之前就按年份过滤（`time_leak_guard`），漏在池外比污染判断更安全。
-
-检索逻辑全部住在这个模块里，Agent 只消费 `external_evidence_set`，不自己发检索。
-"""
+'External Literature Retrieval: Multi-channel recall → Deduplication → Time leak filtering → Reranker → External Evidence Set.\n\nThree-way recall (**not allowed** only searches the title of the paper):\n\n1. **Query Retrieval**: Each claim generates 3-5 search terms (one for each core construct/theory/mechanism/research situation),\n   Go to Semantic Scholar search (search_external, source can be changed).\n2. **Citation Retrieval**: First locate the target paper and read its references; then select references based on highly relevant references.\n   Form a local citation graph. The citation relationship can find documents that "do not have a common word in the title, but are indeed in the same theoretical context."\n3. **Semantic Retrieval**: Use claim + abstract + research question and candidate document abstract to calculate the lexical semantic relevance (TF-IDF cosine),\n   There is no additional API call, so it is always available, ensuring that there is still a way to recall when the external API is completely hung.\n\nTime leakage control: To verify the innovativeness of a certain paper, only research published before the publication year of the target paper can be used, so the candidate pool is\nFilter by year (`time_leak_guard`) before reranking. Leaking out of the pool is safer than contamination judgment.\n\nAll search logic lives in this module. The Agent only consumes `external_evidence_set` and does not issue searches by itself.'
 
 from __future__ import annotations
 
@@ -42,8 +27,8 @@ ROUTE_SEMANTIC = "semantic"
 ROUTE_ORDER = (ROUTE_CITATION, ROUTE_SEMANTIC, ROUTE_QUERY)
 ROUTE_WEIGHT = {ROUTE_CITATION: 0.10, ROUTE_SEMANTIC: 0.08, ROUTE_QUERY: 0.05}
 
-# 论文主题词在候选里的命中加成。主题词是"这篇论文研究什么"，比 claim 通用词更有区分度：
-# 实测缺了这项时，"fairness review" 这类泛泛综述会靠通用词命中考前（真正同主题的先验被压下去）。
+# The hit bonus of thesis topic words in the candidates. The subject word is "what this paper studies", which is more distinguishable than the general word claim:
+# When this item is missing in the actual test, general reviews such as "fairness review" will rely on common words to hit the test (the real priors on the same topic are suppressed).
 TOPIC_BONUS_PER_HIT = 0.3
 TOPIC_BONUS_CAP = 0.6
 
@@ -54,17 +39,17 @@ SEMANTIC_STOPWORDS = {
     "which", "who", "whom", "their", "they", "them", "these", "those", "such", "into", "over",
     "more", "most", "other", "some", "any", "all", "new", "first", "study", "review", "paper",
     "research", "findings", "results", "analysis", "based", "using", "used", "present", "show",
-    "研究", "论文", "本文", "的", "与", "和", "及", "或",
+    'Research', 'Paper', 'This article', '', 'and', 'and', 'and', 'or',
 }
 
-# rerank 各信号的权重，全部来自配置，改了就是改了标尺，必须进报告。
+# rerank The weight of each signal comes from the configuration. If it is changed, the scale is changed and must be reported.
 RANK_FEATURE_LABELS = {
-    "topic_relevance": "主题相关性",
-    "construct_overlap": "核心构念重合度",
-    "theory_relevance": "理论相关性",
-    "mechanism_relevance": "机制相关性",
-    "context_relevance": "研究情境相关性",
-    "semantic_similarity": "语义相似度",
+    "topic_relevance": 'Topic Relevance',
+    "construct_overlap": 'Core construct overlap',
+    "theory_relevance": 'Theoretical relevance',
+    "mechanism_relevance": 'Mechanism dependency',
+    "context_relevance": 'Study situational relevance',
+    "semantic_similarity": 'Semantic similarity',
     "citation_relationship": "citation relationship",
     "publication_year": "publication year",
 }
@@ -88,11 +73,7 @@ def _as_terms(value: Any) -> set[str]:
 
 
 def expand_query_routes(claim: Any, paper_title: str, limit: int = 5) -> list[dict[str, str]]:
-    """把一个 claim 展开成 3-5 条检索式：核心构念 / 理论 / 机制 / 研究情境 / claim 英译。
-
-    只发一条「论文标题」式的检索式是不够的：同一个创新主张可能在别的构念名、别的理论名下
-    已经有人做过，多路检索式就是为了撞上那些换名不换事的文献。
-    """
+    'Expand a claim into 3-5 search terms: core construct/theory/mechanism/research situation/claim English translation.\n\n    It is not enough to just send a "paper title" search query: the same innovative claim may be under other construct names or other theoretical names.\n    Someone has already done it. The purpose of multi-path search is to hit those documents whose names are changed without changing the content.'
     from .external_retrieval import _topic_tokens
 
     title_terms = " ".join(_topic_tokens(paper_title, 6))
@@ -146,23 +127,14 @@ def citation_graph(
     expand_depth: bool = True,
     progress_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
-    """局部引文图：目标论文 → references → 高相关参考文献的 references。
-
-    返回 {"papers": {query: [item]}, "target": {...}, "failures": [...], "requests": n}。
-    papers 的键标成 `references:target` / `refs:<被引文献标题>`，让 provenance 说得清来路。
-
-    `expand_depth=False` 时只读目标论文自己的参考文献，不再逐篇下钻：query 路已经召回够多候选时
-    没必要为每篇参考文献再打一次 Semantic Scholar（那是最费时的一段）。
-    默认**不**收集"引用本文"的后发文献（`allow_later_works=False`）：它们是目标论文发表之后的
-    研究，用来判定本文创新性就是时间泄漏。
-    """
+    'Local citation map: target paper → references → references of highly relevant references.\n\n    Return {"papers": {query: [item]}, "target": {...}, "failures": [...], "requests": n}.\n    The keys of papers are marked as `references:target` / `refs:<cited paper title>`, so that provenance can tell the origin clearly.\n\n    `expand_depth=False` only reads the target paper\'s own references and no longer drills down article by article: when the query path has recalled enough candidates\n    There is no need to type Semantic Scholar again for each reference (that is the most time-consuming part).\n    The default is not to collect later documents "citing this article" (`allow_later_works=False`): they are after the publication of the target paper.\n    The research used to determine the innovativeness of this article is time leakage.'
     result: dict[str, Any] = {"papers": {}, "target": None, "failures": [], "requests": 0}
     s2_config = S2Config.from_external(config)
     title = str(paper_title or "").strip()
     if not title:
         return result
     try:
-        # _cached_or_fetch 返回 (条目列表, 错误)——这里是列表，命中时才取第 0 条。
+        # _cached_or_fetch returns (entry list, error) - here is the list, only the 0th entry is taken when it hits.
         hits = _cached_or_fetch(
             "semantic_scholar",
             _citation_cache_key(title, "target", 1),
@@ -170,11 +142,11 @@ def citation_graph(
             lambda: ([found] if (found := s2_find_by_title(title, s2_config)) else []),
         )[0]
         target = hits[0] if hits else None
-    except Exception as exc:  # 引文路失败不致命，标记后由 query 路兜底
+    except Exception as exc:  # The failure of the citation path is not fatal. After marking, the query path will take the lead.
         result["failures"].append({"route": ROUTE_CITATION, "query": f"target:{title[:60]}", "error": str(exc)[:200]})
         return result
     if not target:
-        result["failures"].append({"route": ROUTE_CITATION, "query": f"target:{title[:60]}", "error": "Semantic Scholar 未定位到目标论文"})
+        result["failures"].append({"route": ROUTE_CITATION, "query": f"target:{title[:60]}", "error": 'Semantic Scholar did not locate the target paper'})
         return result
     result["target"] = target
     target_id = str((target.get("externalIds") or {}).get("DOI") or "") or str(target.get("paperId") or "")
@@ -187,7 +159,7 @@ def citation_graph(
     for kind in kinds:
         result["requests"] += 1
         if progress_callback:
-            progress_callback(f"引文路：读取目标论文 {kind}")
+            progress_callback(f"Citation path: read target paper {kind}")
         try:
             rows = _cached_or_fetch(
                 "semantic_scholar",
@@ -205,7 +177,7 @@ def citation_graph(
         result["papers"][f"{kind}:target"] = rows
         if kind != "references" or config.citation_graph_depth <= 0 or not expand_depth:
             continue
-        # 深度 1：围绕前几篇参考文献再取一层 references，形成局部引文图。
+        # Depth 1: Take another layer of references around the previous references to form a partial citation map.
         for row in rows[: config.citation_related_limit]:
             row_id = str((row.get("externalIds") or {}).get("DOI") or "") or str(row.get("paperId") or "")
             if not row_id:
@@ -236,11 +208,7 @@ def semantic_scores(
     query_terms: set[str],
     candidates: dict[str, RelatedWork],
 ) -> dict[str, float]:
-    """语义相关度：claim/检索式/研究问题 与 候选标题+摘要 的 TF-IDF 余弦。
-
-    只做词法 TF-IDF（标准库实现），因为它在离线、无 key、无向量服务时都可用，
-    而且每一分的来源都能打印出来审计——外部 API 全挂时这一路仍然给得出排序。
-    """
+    'Semantic relevance: TF-IDF cosine of claim/search term/research question and candidate title+abstract.\n\n    Only lexical TF-IDF (standard library implementation) is used, because it is available offline, without key, and without vector service.\n    Moreover, the source of each point can be printed and audited - even when the external API is completely down, this path can still be sorted.'
     docs: dict[str, list[str]] = {
         key: _tokens(f"{work.title} {work.abstract}") for key, work in candidates.items()
     }
@@ -277,11 +245,7 @@ def passes_time_guard(
     target_year: int | None,
     config: ExternalRetrievalConfig,
 ) -> bool:
-    """时间泄漏控制：prior literature 必须在目标论文发表年份之前（含 tolerance 宽限）。
-
-    没有任何年份信息的候选**放行**并标 `unknown_year`——证据不足时"少收一篇"比
-    "把 2026 年的文献当 2019 年的先验"安全，但直接丢掉会让新论文（当年预印本）全部落空。
-    """
+    'Time leakage control: prior literature must be before the publication year of the target paper (including tolerance grace).\n\n    Candidates without any year information are **released** and marked `unknown_year` - "receive one less article" when there is insufficient evidence.\n    It is safe to "use the literature of 2026 as a priori for 2019", but throwing it away directly will make all new papers (preprints of that year) useless.'
     if not config.time_leak_guard or not target_year:
         return True
     if work.year is None:
@@ -295,7 +259,7 @@ def rank_features(
     semantic: float,
     config: ExternalRetrievalConfig,
 ) -> dict[str, float]:
-    """按需求列出的八项信息逐项打分，每一项都能单独打印出来核对。"""
+    'The eight items of information listed according to the requirements are scored one by one, and each item can be printed out separately for verification.'
     title_tokens = set(_tokens(work.title))
     body_tokens = set(_tokens(f"{work.title} {work.abstract}"))
     topic_terms = _as_terms(getattr(claim, "topic_terms", None)) or _as_terms(getattr(claim, "concepts", None))
@@ -313,7 +277,7 @@ def rank_features(
         "context_relevance": _overlap(context_terms, body_tokens),
         "semantic_similarity": round(float(semantic or 0.0), 4),
         "citation_relationship": 1.0 if ROUTE_CITATION in work.routes else 0.0,
-        # publication year：落在目标年份前一档窗口内最相关，太老略微衰减（同一领域老文献成功率低）
+        # publication year: The most relevant if it falls within the window before the target year, and will be slightly attenuated if it is too old (the success rate of old documents in the same field is low)
         "publication_year": _year_feature(work, config),
     }
     topic_hits = len(topic_terms & (body_tokens | title_tokens))
@@ -351,15 +315,11 @@ def literature_rerank(
     topic_tokens: set[str],
     config: ExternalRetrievalConfig,
 ) -> tuple[float, dict[str, float], dict[str, float]]:
-    """Reranker：八项信号加权分 + 主题词命中加成 + 既有词命中分。
-
-    返回 (总分, 信号明细, 词命中明细)。主题词加成单列，因为它是"是不是讲同一件事"的直接证据，
-    与 claim 词命中（"为什么找它"）不是一回事，混在一起就没法解释排序了。
-    """
+    'Reranker: Eight signal weighted scores + subject word hit bonus + existing word hit score.\n\n    Returns (total score, signal details, word hit details). The subject words are added in a separate column because they are direct evidence of "whether they are talking about the same thing."\n    It is not the same thing as claim word hit ("why find it"), and it cannot explain the ordering if mixed together.'
     features = rank_features(work, claim, semantic, config)
     signal_total = sum(RANK_WEIGHTS[key] * features.get(key, 0.0) for key in RANK_WEIGHTS)
     token_score, token_detail = token_rerank(work, claim_tokens, claim_phrases, topic_tokens)
-    # 词命中分归一化后与信号分同量级（原分数量级 0-40，除以 20 封顶 1）
+    # After normalization, the word hit score is of the same magnitude as the signal score (the original score is 0-40, divided by 20 to cap 1)
     normalized_token = min(1.0, token_score / 20.0)
     topic_bonus = min(TOPIC_BONUS_CAP, TOPIC_BONUS_PER_HIT * features.get("topic_term_hits", 0.0))
     total = round(10.0 * (0.55 * signal_total + 0.45 * normalized_token) + topic_bonus, 4)
@@ -372,7 +332,7 @@ def select_external_evidence_set(
     config: ExternalRetrievalConfig,
     top_k: int,
 ) -> list[RelatedWork]:
-    """Top-K 高相关文献。排序确定：总分 → 引文关系 → 他引数 → 年份 → 标题。"""
+    'Top-K Highly relevant literature. Sorting is determined: total score → citation relationship → other citations → year → title.'
     ordered = sorted(
         works,
         key=lambda work: (
@@ -411,11 +371,7 @@ def run_literature_search(
     progress_callback: Callable[[str], None] | None = None,
     fetcher: Callable[[str, int], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """三路召回 → 合并去重 → 时间过滤 → 重排 → External Evidence Set。
-
-    返回结构里 `candidate_literature_pool` 是合并去重后的候选池（带 provenance），
-    `external_evidence_set` 是每个 claim 的 Top-K，`queries` 是完整的检索过程日志。
-    """
+    'Three-way recall → merge and deduplication → time filtering → rearrangement → External Evidence Set.\n\n    `candidate_literature_pool` in the returned structure is the candidate pool (with provenance) after merging and deduplication.\n    `external_evidence_set` is the Top-K of each claim, and `queries` is the complete retrieval process log.'
     cfg = config
     started = time.time()
     result: dict[str, Any] = {
@@ -469,7 +425,7 @@ def run_literature_search(
             )
             pool[key] = work
         else:
-            # 多路命中不新增记录，只累积 provenance（哪几条路都召回了它）。
+            # Multi-path hits do not add new records, but only accumulate provenance (whichever paths recall it).
             if item.get("citationCount") and not work.citation_count:
                 work.citation_count = item.get("citationCount")
             if item.get("abstract") and not work.abstract:
@@ -527,13 +483,14 @@ def run_literature_search(
     if ROUTE_QUERY in {route for work in pool.values() for route in work.routes}:
         result["routes_used"].append(ROUTE_QUERY)
 
-    # 路 2：引文图（挂在第一个 claim 上，引文关系不属于某一条 claim 的语义检索）。
-    # query 路已经召回足够多候选时只读目标论文自己的参考文献，不再逐篇下钻：
-    # 逐篇 references 是这条链路最贵的部分（每篇一次 Semantic Scholar 请求）。
+    # Road 2: Citation graph (hanging on the first claim, the citation relationship does not belong to the semantic retrieval of a certain claim).
+# When
+    # query has recalled enough candidates, it will only read the target paper's own references and no longer drill down one by one:
+    # Article-by-article references are the most expensive part of this link (one Semantic Scholar request per article).
     if cfg.citation_route_enabled:
         expand_depth = len(pool) < max(4, cfg.max_evidence_blocks)
         if progress_callback:
-            progress_callback("Citation Retrieval：读取目标论文 references")
+            progress_callback('Citation Retrieval: Read target paper references')
         graph = citation_graph(
             paper_title,
             cfg,
@@ -550,7 +507,7 @@ def run_literature_search(
         result["failures"].extend(graph["failures"])
         anchor = claims[0]
         for label, rows in graph["papers"].items():
-            # 引文方向必须记清楚：refs: = 参考文献的参考文献（更早的先验），references: = 本文参考文献。
+            # The citation direction must be clearly remembered: refs: = references of references (earlier a priori), references: = references of this article.
             relationship = (
                 "reference_of_reference" if label.startswith("refs:")
                 else "target_reference" if label.startswith("references:")
@@ -564,7 +521,7 @@ def run_literature_search(
 
     result["pool_size"] = len(pool)
 
-    # 时间泄漏过滤：先过滤再重排，避免"post-hoc 解释为什么某篇没进池"
+    # Time leak filtering: filter first and then rearrange to avoid "post-hoc explanation why a certain article did not enter the pool"
     kept: dict[str, RelatedWork] = {}
     for key, work in pool.items():
         if passes_time_guard(work, target_year, cfg):
@@ -573,11 +530,11 @@ def run_literature_search(
             result["time_filtered"] += 1
     pool = kept
 
-    # 逐 claim 重排 + 语义路
+    # claim-by-claim rearrangement + semantic path
     top_k = cfg.top_k if cfg.top_k > 0 else 10
     evidence_set: list[RelatedWork] = []
-    # 一篇文献可能同时被多条 claim 召回：只保留"最高分的那次"，否则后一条 claim 的分数会覆盖前一条，
-    # External Evidence Set 里的相关度就与它实际被哪条 claim 支持脱节（判 novel 时尤其致命）。
+    # A document may be recalled by multiple claims at the same time: only the "one with the highest score" is retained, otherwise the score of the later claim will overwrite the previous one.
+    # The relevance in the External Evidence Set is disconnected from which claim it is actually supported by (especially fatal when judging novel).
     best: dict[int, tuple[float, dict[str, float], dict[str, float], float]] = {}
     for claim in claims:
         claim_tokens, claim_phrases, topic_tokens = _claim_tokens(claim, paper_title)
@@ -618,7 +575,7 @@ def run_literature_search(
             if work not in evidence_set:
                 evidence_set.append(work)
 
-    # 选完再把"最高分那次"的特征写回对象，让 External Evidence Set 里的分数与解释一致
+    # After selecting, write the characteristics of "the highest score" back to the object, so that the scores in the External Evidence Set are consistent with the explanation.
     for work in evidence_set:
         entry = best.get(id(work))
         if entry is None:
@@ -649,7 +606,7 @@ def run_literature_search(
 
 
 def attach_external_evidence_ids(result: dict[str, Any]) -> list[dict[str, Any]]:
-    """给 External Evidence Set 里每篇论文分配可引用的外部证据 ID（XEV-1..N），写回结果。"""
+    'Assign a citable external evidence ID (XEV-1..N) to each paper in the External Evidence Set and write back the results.'
     works = list(result.get("external_evidence_set") or [])
     for index, work in enumerate(works, start=1):
         work["evidence_id"] = f"XEV-{index}"
@@ -661,7 +618,7 @@ def external_evidence_blocks_from_set(
     result: dict[str, Any],
     paper_id: str,
 ) -> list[Evidence]:
-    """External Evidence Set → 可引用的证据块。每条写清"为什么召回它"和"对应哪条 claim"。"""
+    'External Evidence Set → Quotable evidence block. For each item, write clearly "why it is recalled" and "which claim it corresponds to".'
     import hashlib
 
     blocks: list[Evidence] = []
@@ -675,18 +632,18 @@ def external_evidence_blocks_from_set(
         )
         lines = [
             (
-                f"【外部文献 {index}｜{work.get('evidence_id')}｜{work.get('year') or '年份未知'}｜"
-                f"{work.get('venue') or '期刊未知'}｜他引 {work.get('citation_count')}】"
+                f"【External literature {index}｜{work.get('evidence_id')}｜{work.get('year') or 'year unavailable'}｜"
+                f"{work.get('venue') or 'venue unavailable'}｜He cited {work.get('citation_count')}]"
             ),
-            f"标题：{work.get('title')}",
-            f"DOI：{work.get('doi') or '无'}（元数据校验：{work.get('metadata_check') or 'unchecked'}）",
-            f"召回路径：{routes}；对应 claim：{claim_ids}；检索式：{str(work.get('source_query') or '')[:120]}",
-            f"相关度：{work.get('relevance_score')}（{'，'.join(piece for piece in [why] if piece)}）",
+            f"Title: {work.get('title')}",
+            f"DOI: {work.get('doi') or 'None'} (metadata check: {work.get('metadata_check') or 'unchecked'})",
+            f"Recall path: {routes}; corresponding claim: {claim_ids}; search formula: {str(work.get('source_query') or '')[:120]}",
+            f"Correlation: {work.get('relevance_score')} ({'，'.join(piece for piece in [why] if piece)})",
         ]
         abstract = str(work.get("abstract") or "").strip()
-        lines.append(f"摘要：{abstract[:600] if abstract else '（该文献无摘要）'}")
+        lines.append(f"Summary: {abstract[:600] if abstract else '（No abstract available）'}")
         summary = work.get("summary") if isinstance(work.get("summary"), dict) else {}
-        for key, label in (("method", "方法"), ("findings", "发现"), ("similar", "相似"), ("different", "不同")):
+        for key, label in (("method", 'method'), ("findings", 'found'), ("similar", 'similar'), ("different", 'different')):
             value = str(summary.get(key) or "").strip()
             if value:
                 lines.append(f"{label}：{value}")
@@ -706,12 +663,12 @@ def external_evidence_blocks_from_set(
     return blocks
 
 
-# 外部文献证据块的 section 名。agents.py 里判断"这条是不是外部文献"用的就是它 + source_type。
-EXTERNAL_EVIDENCE_SECTION = "外部文献（多路召回）"
+# The section name of the external document evidence block. In agents.py, it is used to determine "whether this article is an external document" + source_type.
+EXTERNAL_EVIDENCE_SECTION = 'External documentation (multiple recall)'
 
 
 def coverage_of(result: dict[str, Any]) -> dict[str, Any]:
-    """prior literature coverage：Novelty Agent 判 novel 时 Harness 要靠它决定是否降置信度。"""
+    'prior literature coverage: Harness relies on Novelty Agent to decide whether to lower the confidence when judging novel.'
     works = list(result.get("external_evidence_set") or [])
     prior = [work for work in works if work.get("year") is not None]
     routes = {route for work in works for route in (work.get("routes") or [])}

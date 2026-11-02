@@ -33,21 +33,21 @@ class IndicatorRule:
     applicable_type: str
     source_reference: list[str]
     status: str
-    # 规则角色：baseline = 合格性门槛（合格即满分，只判缺口）；bonus = 加分项（只有 satisfied 才拿满）。
-    # 已发表论文在基准项上默认合格，所以差异只应来自加分项——这是 V11 的核心机制。
+    # Rule role: baseline = eligibility threshold (passing means full marks, only gaps will be judged); bonus = bonus points (full marks will be awarded only if satisfied).
+    # Published papers are qualified by default on the baseline, so the difference should only come from bonus points - this is the core mechanism of V11.
     role: str = "baseline"
-    # 同一构念的多条规则共用一个 cluster 名；汇总时一个 cluster 只算一个条目，
-    # 避免同一构念被重复计权。缺省即自成一条。
+    # Multiple rules of the same construct share a cluster name; when summarizing, one cluster is only counted as one entry.
+    # prevents the same construct from being weighted repeatedly. The default is to have a line of its own.
     cluster: str | None = None
-    # 规则说明：为什么设这条、什么算够、什么算不够；以及判定 satisfied / mostly 的证据门槛。
-    # 这些会进入报告，让读者看懂分数是怎么来的。
+    # Rule explanation: why this rule is set, what counts as enough and what counts as insufficient; and the evidence threshold for determining satisfied / mostly.
+    # These will go into the report so readers can understand how the scores were derived.
     rationale: str | None = None
     threshold: str | None = None
     mostly_threshold: str | None = None
-    # mostly 档的容差说明：哪些常见缺口不阻断 mostly，防止梯子中间档被架空。
+    # Tolerance description of mostly gears: Which common gaps do not block the majority to prevent the middle gear of the ladder from being elevated.
     mostly_note: str | None = None
-    # 该规则的**英文**检索词。规则锚点是中文、被评论文是英文，直接拿中文去搜英文正文恒不命中
-    # （见 rule_keyword_hints 的旧实现）。这里显式声明英文词，供证据检索（词袋召回 + LLM 重排）使用。
+    # English search terms for this rule, aligned with the English-language paper corpus.
+    # (see the old implementation of rule_keyword_hints). English words are explicitly declared here for use in evidence retrieval (bag-of-words recall + LLM rearrangement).
     retrieval_terms: list[str] = field(default_factory=list)
 
     @property
@@ -57,7 +57,7 @@ class IndicatorRule:
 
 @dataclass(frozen=True)
 class ConstructRule:
-    """构念层：维度权重的实际分配单位。同一构念下的规则测量的是同一件事。"""
+    'Concept layer: the actual allocation unit of dimension weights. Rules for the same construct measure the same thing.'
 
     construct_id: str
     construct_name: str
@@ -76,12 +76,12 @@ class RuleProfile:
     dimensions: list[DimensionRule]
     rules: list[IndicatorRule]
     constructs: list[ConstructRule] = field(default_factory=list)
-    # 两池标尺：基准池代表「达到发表水准」的基准分，加分池是超过合格才能拿到的分数。
-    # 两者相加必须等于 scoring_scale，由 validate_rule_profile 强制。
+    # Two-pool scale: the benchmark pool represents the benchmark score that "reaches the publication level", and the bonus pool represents the score that can be obtained beyond passing the standard.
+    # The sum of the two must equal scoring_scale, enforced by validate_rule_profile.
     baseline_pool: float = 0.0
     bonus_pool: float = 0.0
-    # 证据预算：分数绝对值随每条规则的证据条数变化（实测 10→20 段整体上移约 7 分），
-    # 所以预算必须随规则库一起版本化，不能悄悄改。Harness 会比对声明值与实际生效值。
+    # Evidence budget: The absolute value of the score changes with the number of evidence items for each rule (the actual measurement of paragraphs 10→20 moves up by about 7 points),
+    # Therefore, the budget must be versioned along with the rule base and cannot be changed quietly. Harness will compare the declared value with the actual effective value.
     max_evidence_per_rule: int | None = None
 
     @property
@@ -93,66 +93,66 @@ class RuleProfile:
         return {item.construct_id: item for item in self.constructs}
 
 
-# 论文类型受控枚举。规则适用性只认这 5 类，不再用自由文本匹配。
-PAPER_TYPE_CLASSES = ("实证", "质性", "理论", "综述", "混合")
+# Controlled enumeration of paper types. Rule applicability only recognizes these 5 categories and no longer uses free text matching.
+PAPER_TYPE_CLASSES = ('Evidence', 'Qualitative', 'Theory', 'Summary', 'Mix')
 
-# 规则角色白名单。
+# rule role whitelist.
 RULE_ROLES = ("baseline", "bonus")
 
-# 基准项不判「优秀」，所以不设 satisfied；加分项必须有 satisfied 才有加分空间。
+# The benchmark item is not judged as "excellent", so there is no satisfied; the bonus item must be satisfied to have room for extra points.
 REQUIRED_JUDGEMENT_KEYS_BY_ROLE = {
     "baseline": ("mostly", "partial", "weak", "not_satisfied", "uncertain"),
     "bonus": ("satisfied", "mostly", "partial", "weak", "not_satisfied", "uncertain"),
 }
-# 兼容旧引用：完整档位集合。
+# Compatible with old references: Complete gear set.
 REQUIRED_JUDGEMENT_KEYS = REQUIRED_JUDGEMENT_KEYS_BY_ROLE["bonus"]
 
-# 旧的描述性标签 → 受控类型
+# old descriptive tag → controlled type
 PAPER_TYPE_LABELS = {
-    "管理学实证研究": "实证",
-    "技术或机器学习论文": "实证",
-    "质性或案例研究": "质性",
-    "理论或概念论文": "理论",
-    "评论或观点论文": "理论",
-    "综述论文": "综述",
-    "未识别": "混合",
+    'Empirical Research on Management': 'Evidence',
+    'Technical or machine learning paper': 'Evidence',
+    'Qualitative or case study': 'Qualitative',
+    'Theoretical or conceptual paper': 'Theory',
+    'Review or opinion paper': 'Theory',
+    'Review Paper': 'Summary',
+    'not recognized': 'Mix',
 }
 
-# 规则库 applicable_type 词表 → 允许的论文类型。None 表示不限。
+# Rule Base applicable_type Vocabulary → Allowed paper types. None means no limit.
 APPLICABLE_TYPE_ALIASES: dict[str, set[str] | None] = {
-    "通用": None,
-    "实证": {"实证", "混合"},
-    "定量": {"实证", "混合"},
-    "质性": {"质性", "混合"},
-    "理论": {"理论", "混合"},
-    "评论": {"理论", "混合"},
-    "综述": {"综述"},
-    "混合": {"混合"},
+    'General': None,
+    'Evidence': {'Evidence', 'Mix'},
+    'Quantitative': {'Evidence', 'Mix'},
+    'Qualitative': {'Qualitative', 'Mix'},
+    'Theory': {'Theory', 'Mix'},
+    'Comments': {'Theory', 'Mix'},
+    'Summary': {'Summary'},
+    'Mix': {'Mix'},
 }
 
 PAPER_TYPE_KEYWORDS = [
-    ("综述", ["综述", "元分析", "文献回顾", "review", "meta-analysis", "systematic literature"]),
+    ('Summary', ['Summary', 'meta-analysis', 'Literature review', "review", "meta-analysis", "systematic literature"]),
     (
-        "质性",
-        ["质性", "案例研究", "访谈", "扎根", "民族志", "qualitative", "case study", "interview", "ethnograph", "grounded theory"],
+        'Qualitative',
+        ['Qualitative', 'Case Study', 'Interview', 'Take root', 'Ethnography', "qualitative", "case study", "interview", "ethnograph", "grounded theory"],
     ),
     (
-        "理论",
-        ["理论", "概念", "命题", "观点", "评论", "theoretical", "conceptual", "proposition", "commentary", "viewpoint", "essay"],
+        'Theory',
+        ['Theory', 'concept', 'proposition', 'Views', 'Comments', "theoretical", "conceptual", "proposition", "commentary", "viewpoint", "essay"],
     ),
     (
-        "实证",
+        'Evidence',
         [
-            "实证", "定量", "问卷", "回归", "实验", "样本", "机器学习", "算法", "技术",
+            'Evidence', 'Quantitative', 'Questionnaire', 'Return', 'Experiment', 'sample', 'Machine Learning', 'algorithm', 'Technology',
             "empirical", "quantitative", "survey", "regression", "experiment", "panel", "machine learning", "benchmark",
         ],
     ),
-    ("混合", ["混合", "mixed method", "mixed-method"]),
+    ('Mix', ['Mix', "mixed method", "mixed-method"]),
 ]
 
 
-def normalize_paper_type(value: Any, fallback: str | None = "混合") -> str | None:
-    """把自由文本论文类型收敛成受控枚举；无法识别时返回 fallback。"""
+def normalize_paper_type(value: Any, fallback: str | None = 'Mix') -> str | None:
+    'Converge free text paper types into controlled enumerations; return fallback when unrecognized.'
     text = str(value or "").strip()
     if not text:
         return fallback
@@ -162,20 +162,16 @@ def normalize_paper_type(value: Any, fallback: str | None = "混合") -> str | N
         return PAPER_TYPE_LABELS[text]
     lowered = text.lower()
     hits = {name for name, markers in PAPER_TYPE_KEYWORDS if any(marker in lowered for marker in markers)}
-    if "混合" in hits or {"实证", "质性"} <= hits:
-        return "混合"
-    for name in ("综述", "质性", "理论", "实证"):
+    if 'Mix' in hits or {'Evidence', 'Qualitative'} <= hits:
+        return 'Mix'
+    for name in ('Summary', 'Qualitative', 'Theory', 'Evidence'):
         if name in hits:
             return name
     return fallback
 
 
 def rule_in_scope(applicable_type: str, paper_type: str | None) -> bool:
-    """规则是否适用于该论文类型。
-
-    applicable_type 允许写成多值（如「理论/综述/混合」「定量/混合」），按分隔符拆开逐项归一再取并集。
-    词表未收录的取值或写成「通用」都按不限处理，避免误伤。
-    """
+    'Whether the rules apply to this paper type.\n\n    applicable_type allows to be written as multiple values \u200b\u200b(such as "theory/overview/mixed" and "quantitative/mixed"), split by delimiters, normalize item by item and then take the union.\n    Values \u200b\u200bnot included in the vocabulary or written as "general" will be treated as unrestricted to avoid accidental injury.'
     if not paper_type:
         return True
     text = str(applicable_type).strip()
@@ -185,11 +181,11 @@ def rule_in_scope(applicable_type: str, paper_type: str | None) -> bool:
     for token in (part.strip() for part in re.split(r"[/、,，|]", text)):
         if not token:
             continue
-        if token == "通用":
+        if token == 'General':
             return True
         values = APPLICABLE_TYPE_ALIASES.get(token)
         if values is None:
-            # 未收录词表：按不限处理，避免因为写了个新词就把规则全部排除
+            # Not included in the word list: treated as unrestricted to avoid excluding all rules just because a new word is written.
             return True
         allowed |= values
     if not allowed:
@@ -224,22 +220,22 @@ def load_rule_profile(path: str | Path) -> RuleProfile:
 
 
 def validate_rule_profile(profile: RuleProfile) -> list[str]:
-    """严格校验：任何一层权重加不平、任何规则没有归属、两池加不平，都返回错误，harness 直接拒绝运行。"""
+    'Strict verification: If the weight of any layer is not equal, any rule has no attribution, or the two pools are not equal, an error will be returned, and the harness will directly refuse to run.'
     errors: list[str] = []
     dimension_weights = {d.dimension_id: d.weight for d in profile.dimensions}
     rule_dimension_sums = {d.dimension_id: 0.0 for d in profile.dimensions}
     seen: set[str] = set()
 
-    # 两池标尺：基准池 + 加分池 = 总分。基准池必须存在，否则「合格即满分」没有落点。
+    # Two pool scale: base pool + bonus pool = total score. The benchmark pool must exist, otherwise "passing means full score" will not fall into place.
     if abs((profile.baseline_pool + profile.bonus_pool) - profile.scoring_scale) > 1e-9:
         errors.append(
-            f"两池加不平：基准池 {profile.baseline_pool} + 加分池 {profile.bonus_pool} "
-            f"!= 总分 {profile.scoring_scale}"
+            f"The two pools are not equal: the base pool {profile.baseline_pool} + the bonus pool {profile.bonus_pool}"
+            f"!= Total score {profile.scoring_scale}"
         )
     if profile.baseline_pool <= 0:
-        errors.append("基准池必须大于 0：基准分是「达到发表水准」的落点")
+        errors.append('The benchmark pool must be greater than 0: the benchmark score is the landing point for "reaching publication level"')
     if profile.bonus_pool <= 0:
-        errors.append("加分池必须大于 0：没有加分池就无法区分论文优劣")
+        errors.append('The bonus point pool must be greater than 0: without the bonus point pool, it is impossible to distinguish between good and bad papers.')
 
     for rule in profile.rules:
         if rule.rule_id in seen:
@@ -254,12 +250,12 @@ def validate_rule_profile(profile: RuleProfile) -> list[str]:
                 errors.append(f"{rule.rule_id} ({rule.role}) missing judgement value: {key}")
             if key not in rule.score_mapping:
                 errors.append(f"{rule.rule_id} ({rule.role}) missing score mapping: {key}")
-        # 基准项不判优秀：带 satisfied 会让「合格即满分」重新变成两档竞争。
+        # The benchmark items are not judged as excellent: adding "satisfied" will turn "passing means full score" into a two-level competition again.
         if rule.role == "baseline" and "satisfied" in rule.score_mapping:
-            errors.append(f"{rule.rule_id} 是基准项，不应声明 satisfied 分值（合格即满分）")
-        # 加分项必须有 satisfied，否则没有加分空间。
+            errors.append(f"{rule.rule_id} is a benchmark item, and the satisfied score should not be declared (passed means full score)")
+        # The bonus points must be satisfied, otherwise there will be no room for bonus points.
         if rule.role == "bonus" and "satisfied" not in rule.score_mapping:
-            errors.append(f"{rule.rule_id} 是加分项，必须声明 satisfied 分值")
+            errors.append(f"{rule.rule_id} is a bonus item and the satisfied score must be declared")
         if rule.dimension_id not in dimension_weights:
             errors.append(f"Unknown dimension_id for {rule.rule_id}: {rule.dimension_id}")
             continue
@@ -268,15 +264,15 @@ def validate_rule_profile(profile: RuleProfile) -> list[str]:
         rule_dimension_sums[rule.dimension_id] += float(rule.weight)
 
     if not any(rule.role == "baseline" and rule.weight > 0 for rule in profile.rules):
-        errors.append("没有任何有權重的基准项规则")
+        errors.append('There is no weighted benchmark item rule')
     if not any(rule.role == "bonus" and rule.weight > 0 for rule in profile.rules):
-        errors.append("没有任何有權重的加分项规则")
+        errors.append('does not have any weighted bonus points rules')
 
     if abs(sum(dimension_weights.values()) - profile.scoring_scale) > 1e-9:
         errors.append("Dimension weights do not sum to scoring scale")
 
     if not profile.constructs:
-        # 没有构念层：退回“每条规则自成构念”，此时规则权重必须直接加平到维度权重。
+        # There is no construct layer: Return to "Each rule constitutes its own construct". At this time, the rule weight must be directly added to the dimension weight.
         for dimension_id, expected in dimension_weights.items():
             actual = rule_dimension_sums.get(dimension_id, 0.0)
             if abs(actual - expected) > 1e-9:
@@ -314,11 +310,11 @@ def validate_rule_profile(profile: RuleProfile) -> list[str]:
         member_count[construct_id] += 1
         member_roles[construct_id].add(rule.role)
 
-    # 两池按构念归集（构念是权重的实际分配单位），所以一个构念不能同时包含基准项与加分项，
-    # 否则这个构念的得分该算进哪个池就说不清了。
+    # The two pools are aggregated according to constructs (constructs are the actual allocation units of weights), so a construct cannot contain both benchmark items and bonus items.
+    # Otherwise, it is unclear which pool the score of this construct should be included in.
     for construct_id, roles in member_roles.items():
         if len(roles) > 1:
-            errors.append(f"Construct {construct_id} 同时包含 {'/'.join(sorted(roles))} 两种角色，无法归池")
+            errors.append(f"Construct {construct_id} contains both {'/'.join(sorted(roles))} characters and cannot be returned to the pool")
 
     for construct_id, construct in construct_by_id.items():
         if member_count[construct_id] == 0:
@@ -341,9 +337,9 @@ def validate_rule_profile(profile: RuleProfile) -> list[str]:
         if abs(actual - expected) > 1e-9:
             errors.append(f"Dimension {dimension_id} construct weight mismatch: expected {expected}, got {actual}")
 
-    # 维度满分由两池摊分算出（pool × 该维规则权重 / 池总权重），不是直接取维度权重；
-    # 只有每维都满足 基准规则权重 = 0.6 × 维度权重 时，摊分结果才等于声明的维度权重。
-    # 不卡这一条，改权重就会静默产出「B 满分 25.26 / 声明 20」这类错位。
+    # The full score of the dimension is calculated by dividing the two pools (pool × the weight of the rule of the dimension / the total weight of the pool), instead of directly taking the dimension weight;
+    # Only when each dimension satisfies the baseline rule weight = 0.6 × dimension weight, the apportionment result will be equal to the declared dimension weight.
+    # If this is not stuck, changing the weight will silently produce a misalignment such as "B full score 25.26 / statement 20".
     if profile.baseline_pool > 0:
         baseline_share = profile.baseline_pool / profile.scoring_scale
         dimension_baseline_sums = {d.dimension_id: 0.0 for d in profile.dimensions}
@@ -355,8 +351,8 @@ def validate_rule_profile(profile: RuleProfile) -> list[str]:
             actual = dimension_baseline_sums.get(dimension_id, 0.0)
             if abs(actual - expected) > 1e-9:
                 errors.append(
-                    f"Dimension {dimension_id} 基准规则权重 {actual} != 维度权重 × 基准池占比 {expected}"
-                    f"（每维必须 基准:加分 = 6:4，否则该维度满分不等于声明的 {dimension_weight}）"
+                    f"Dimension {dimension_id} Benchmark rule weight {actual} != Dimension weight × Benchmark pool proportion {expected}"
+                    f"(Each dimension must have benchmark: bonus score = 6:4, otherwise the full score of this dimension is not equal to the declared {dimension_weight})"
                 )
 
     return errors

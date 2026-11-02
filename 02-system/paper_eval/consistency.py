@@ -67,18 +67,18 @@ def _compact_rule_reviews(
 
 def _review_prompt() -> str:
     return (
-        "你是独立复判模型，负责做多模型一致性审核。"
-        "请只根据论文画像、维度分、规则判断理由和证据片段判断主评分是否公正。"
-        "不要根据期刊、作者、学校、影响因子、引用量加减分。"
-        "不要重新生成每条规则评分，只做整体分数复判。"
-        "评分标尺：每条规则都取中间档（部分完成）时总分是 60 分；全满足 100 分，全不满足 20 分。"
-        "你的 recommended_score 必须按这一标尺给出，否则无法与主评分比较。"
-        "如果主评分偏高或偏低，请说明具体来自哪些维度或证据链问题。"
-        "输出 JSON："
+        'You are an independent re-judgment model and responsible for multi-model consistency review.'
+        'Please only judge whether the main score is fair based on the paper portrait, dimension score, rule judgment reasons and evidence fragments.'
+        'Do not add or subtract points based on journal, author, school, impact factor, or citation count.'
+        'Do not regenerate scores for each rule, only re-judge the overall score.'
+        'Scoring scale: When each rule is in the middle (partially completed), the total score is 60 points; 100 points if all are met, and 20 points if all are not met.'
+        'Your recommended_score must be given on this scale, otherwise it cannot be compared with the main score.'
+        'If the main score is high or low, please indicate which dimensions or evidence chain issues it comes from.'
+        'output JSON:'
         '{"recommended_score":0,"score_band":"60-69|70-79|80-89|90-100",'
         '"agreement_level":"high|medium|low","major_disagreements":["..."],'
         '"suspected_biases":["..."],"should_adjust_score":false,'
-        '"adjusted_score":0,"reason":"中文复判理由","confidence":0.0}'
+        '"adjusted_score":0,"reason":"Concise English rationale for the adjusted score","confidence":0.0}'
     )
 
 
@@ -94,7 +94,7 @@ def _normalize_review(raw: dict[str, Any], model: str, primary_score: float | No
     adjusted = max(0.0, min(100.0, number("adjusted_score", recommended)))
     should_adjust = raw.get("should_adjust_score", False)
     if isinstance(should_adjust, str):
-        should_adjust = should_adjust.strip().lower() in {"true", "yes", "1", "是", "需要"}
+        should_adjust = should_adjust.strip().lower() in {"true", "yes", "1", 'Yes', 'required'}
     agreement = str(raw.get("agreement_level") or "medium").lower()
     if agreement not in {"high", "medium", "low"}:
         agreement = "medium"
@@ -111,7 +111,7 @@ def _normalize_review(raw: dict[str, Any], model: str, primary_score: float | No
         else [],
         "should_adjust_score": bool(should_adjust),
         "adjusted_score": round(adjusted, 2),
-        "reason": _trim(str(raw.get("reason") or "复判模型未给出充分理由。"), 500),
+        "reason": _trim(str(raw.get("reason") or 'The re-judgment model does not give sufficient reasons.'), 500),
         "confidence": max(0.0, min(1.0, number("confidence", 0.5))),
     }
 

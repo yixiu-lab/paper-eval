@@ -1,13 +1,4 @@
-"""证据门控。
-
-契约（2026-09 修订）：门控是**检查器**，不是第二个评分员。
-
-- 只允许写 `review_flags` 和 `needs_review`，不得改写模型给出的
-  `judgement` / `reason` / `confidence`。
-- 唯一例外：正向判断（satisfied / partial）却找不到任何有效证据 ID 时，
-  判断转为 uncertain —— 这是可追溯性硬门槛，不是质量判断。
-- 证据强弱只是提示，是否降档由人工复核决定，不再由本地关键词命中数决定。
-"""
+'Evidence Gating.\n\nContract (Revised 2026-09): Gating is a **checker**, not a second grader.\n\n- Only `review_flags` and `needs_review` are allowed to be written, and the values given by the model are not allowed to be overwritten.\n  `judgement`/`reason`/`confidence`.\n- The only exception: when forward judgment (satisfied/partial) cannot find any valid evidence ID,\n  The judgment becomes uncertain – this is a hard threshold for traceability, not a quality judgment.\n- The strength of the evidence is just a reminder. Whether to downgrade is determined by manual review and is no longer determined by the number of local keyword hits.'
 
 from __future__ import annotations
 
@@ -31,13 +22,13 @@ SUBSTANTIVE_MARKERS = {
         "analysis",
         "procedure",
         "data",
-        "方法",
-        "样本",
-        "测量",
-        "实验",
-        "回归",
-        "模型",
-        "数据",
+        'method',
+        'sample',
+        'Measurement',
+        'Experiment',
+        'Return',
+        'model',
+        'data',
     ],
     "result": [
         "result",
@@ -50,13 +41,13 @@ SUBSTANTIVE_MARKERS = {
         "figure",
         "robust",
         "hypothesis",
-        "结果",
-        "发现",
-        "显著",
-        "表",
-        "图",
-        "稳健",
-        "假设",
+        'results',
+        'found',
+        'significant',
+        'table',
+        'diagram',
+        'Robust',
+        'Assumption',
     ],
     "theory": [
         "theory",
@@ -67,13 +58,13 @@ SUBSTANTIVE_MARKERS = {
         "hypothesis",
         "literature",
         "contribution",
-        "理论",
-        "框架",
-        "机制",
-        "构念",
-        "假设",
-        "文献",
-        "贡献",
+        'Theory',
+        'frame',
+        'mechanism',
+        'Concept',
+        'Assumption',
+        'Literature',
+        'Contribution',
     ],
 }
 
@@ -95,20 +86,20 @@ def _substantive_pages(items: list[Evidence]) -> set[int]:
 def _has_reason_score_conflict(reason: str) -> bool:
     lowered = reason.lower()
     conflict_markers = [
-        "未明确",
-        "不明确",
-        "未充分",
-        "不充分",
-        "不足",
-        "缺少",
-        "缺乏",
-        "未见",
-        "没有",
-        "仅",
-        "只是",
-        "暗示",
-        "部分",
-        "无法判断",
+        'Not clear',
+        'Unclear',
+        'Insufficient',
+        'Insufficient',
+        'Insufficient',
+        'missing',
+        'lack',
+        'not seen',
+        'None',
+        'only',
+        'just',
+        'hint',
+        'part',
+        'Unable to determine',
         "cannot determine",
         "insufficient",
         "not explicit",
@@ -130,9 +121,9 @@ def _marker_hits(items: list[Evidence], marker_group: str) -> int:
 
 def evidence_strength(items: list[Evidence], indicator_id: str) -> tuple[str, str]:
     if not items:
-        return "none", "没有有效证据"
+        return "none", 'No valid evidence'
     if _is_abstract_only(items):
-        return "mention_only", "证据主要来自摘要或首页声明"
+        return "mention_only", 'The evidence mainly comes from the abstract or homepage statement'
 
     pages = _substantive_pages(items)
     sections = {item.section.strip().lower() for item in items if item.section.strip()}
@@ -143,23 +134,23 @@ def evidence_strength(items: list[Evidence], indicator_id: str) -> tuple[str, st
 
     if indicator_id.startswith(("D-", "E-")):
         if len(pages) >= 2 and len(long_blocks) >= 2 and (method_hits >= 2 or result_hits >= 2 or method_hits + result_hits >= 2):
-            return "strong_support", "方法/结果证据跨页且包含实质方法或结果信息"
+            return "strong_support", 'Method/Results Evidence spans two pages and contains substantive method or results information'
         if len(pages) >= 1 and (method_hits >= 1 or result_hits >= 1):
-            return "partial_support", "有方法或结果证据，但跨页或细节强度不足"
-        return "mention_only", "只看到方法或结果相关提及，缺少实质细节"
+            return "partial_support", 'There is evidence of methods or results, but there is insufficient cross-page or lack of detail.'
+        return "mention_only", 'Only saw mentions of methods or results, lacking substantive details'
 
     if indicator_id.startswith(("B-", "C-")):
         if len(pages) >= 2 and len(long_blocks) >= 2 and theory_hits >= 2:
-            return "strong_support", "理论证据跨页且包含构念、机制、框架或文献贡献信息"
+            return "strong_support", 'Theoretical evidence spans two pages and contains construct, mechanism, framework or literature contribution information'
         if len(pages) >= 1 and theory_hits >= 1:
-            return "partial_support", "有理论相关证据，但机制或贡献展开不足"
-        return "mention_only", "只看到理论相关提及，缺少机制或贡献展开"
+            return "partial_support", 'There is theoretically relevant evidence, but the mechanism or contribution is insufficiently developed.'
+        return "mention_only", 'Only saw mentions related to theory, lack of mechanism or contribution expansion'
 
     if len(pages) >= 2 and len(long_blocks) >= 2 and len(sections) >= 1:
-        return "strong_support", "证据来自多处正文且文本较完整"
+        return "strong_support", 'The evidence comes from multiple texts and the text is relatively complete.'
     if len(pages) >= 1 and long_blocks:
-        return "partial_support", "有正文证据，但数量或覆盖范围有限"
-    return "mention_only", "证据较短或停留在一般性提及"
+        return "partial_support", 'Textual evidence is available, but quantity or coverage is limited'
+    return "mention_only", 'The evidence is short or stops at general mentions'
 
 
 def apply_evidence_gate(judgements: list[AgentJudgement], evidences: list[Evidence]) -> list[AgentJudgement]:
@@ -173,7 +164,7 @@ def apply_evidence_gate(judgements: list[AgentJudgement], evidences: list[Eviden
             if evidence_id in evidence_map and len(evidence_map[evidence_id].text.strip()) >= 40
         ]
 
-        # 硬门槛：正向判断但没有任何有效证据，无法追溯，转为无法判断。
+        # Hard threshold: positive judgment but without any valid evidence, cannot be traced, and becomes impossible to judge.
         if judgement.judgement in positive and not valid_ids:
             gated.append(
                 replace(
@@ -184,7 +175,7 @@ def apply_evidence_gate(judgements: list[AgentJudgement], evidences: list[Eviden
                     needs_review=True,
                     review_flags=[
                         *judgement.review_flags,
-                        "证据门控：未找到有效证据 ID 或证据文本，因无法追溯转为无法判断。",
+                        'Evidence gating: No valid evidence ID or evidence text was found, and it became impossible to judge because it could not be traced back.',
                     ],
                 )
             )
@@ -196,19 +187,19 @@ def apply_evidence_gate(judgements: list[AgentJudgement], evidences: list[Eviden
         if judgement.judgement == Judgement.SATISFIED:
             if _has_reason_score_conflict(judgement.reason):
                 flags.append(
-                    "证据门控提示：理由中出现证据不足或仅部分支持的表述，与 satisfied 不一致，需人工复核。"
+                    'Evidence gating prompt: There is insufficient evidence or only partially supported statements in the reasons, which are inconsistent with satisfied and require manual review.'
                 )
             if strength != "strong_support":
                 flags.append(
-                    f"证据强度提示：satisfied 的证据强度为 {strength}（{strength_reason}），需人工复核。"
+                    f"Evidence strength reminder: The evidence strength of satisfied is {strength} ({strength_reason}), which requires manual review."
                 )
             if len(valid_ids) < 2:
                 flags.append(
-                    f"高分证据提示：satisfied 只采纳 {len(valid_ids)} 条有效证据，需人工复核。"
+                    f"High score evidence tip: satisfied only adopts {len(valid_ids)} valid evidence, which requires manual review."
                 )
         elif judgement.judgement == Judgement.PARTIAL and strength == "mention_only":
             flags.append(
-                f"证据强度提示：partial 的证据强度为 {strength}（{strength_reason}），需人工复核。"
+                f"Evidence strength reminder: The evidence strength of partial is {strength} ({strength_reason}), which requires manual review."
             )
 
         gated.append(

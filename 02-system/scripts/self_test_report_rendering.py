@@ -1,11 +1,4 @@
-"""报告渲染自检：Markdown 与 HTML 两条渲染路径必须能跑通。
-
-加这个检查的原因：评分跑完却挂在"生成报告"这一步，整次运行的判断全部丢失
-（harness 的失败分支只保存空判断）。渲染路径此前没有被任何自检覆盖。
-
-运行：
-    python ".\scripts\自检_报告渲染.py"
-"""
+'Report rendering self-test: the two rendering paths of Markdown and HTML must be able to run smoothly.\n\nThe reason for adding this check: after the scoring run was completed, it hung at the "Generate Report" step, and all the judgments of the entire run were lost.\n(The failure branch of harness only saves empty judgments). The rendering path has not been previously covered by any self-test.\n\nRun:\n    python ".\\scripts\\self_test_report_rendering.py"'
 
 from __future__ import annotations
 
@@ -28,12 +21,12 @@ from paper_eval.report import build_report, render_markdown
 from paper_eval.rules import load_rule_profile, out_of_scope_rule_ids
 from paper_eval.scorer import aggregate_scores, score_judgements
 
-RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
+RULES = Path(__file__).resolve().parents[1] / 'rules' / "rules_v1.yaml"
 
 
 def main() -> int:
     profile = load_rule_profile(RULES)
-    paper = Paper(paper_id="PAPER-T", metadata={"title": "报告渲染自检样例"}, sections=[], references=[])
+    paper = Paper(paper_id="PAPER-T", metadata={"title": 'Report rendering self-test example'}, sections=[], references=[])
     run = EvaluationRun(
         run_id="RUN-RENDER-CHECK",
         paper_id="PAPER-T",
@@ -50,10 +43,10 @@ def main() -> int:
         section="Discussion",
         page=9,
         span=(0, 120),
-        text="本文讨论了适用范围与局限。" * 6,
+        text='This article discusses scope and limitations.' * 6,
         text_hash="h1",
     )
-    skipped = out_of_scope_rule_ids(profile, "实证")
+    skipped = out_of_scope_rule_ids(profile, 'Evidence')
     judgements = [
         AgentJudgement(
             task_id=run.run_id,
@@ -61,7 +54,7 @@ def main() -> int:
             indicator_id=rule.rule_id,
             judgement=Judgement.UNCERTAIN if rule.rule_id in skipped else Judgement.PARTIAL,
             evidence_ids=[] if rule.rule_id in skipped else ["EV-1"],
-            reason="报告渲染自检占位理由。",
+            reason='Report rendering self-test placeholder reason.',
             confidence=0.6,
             needs_review=False,
             agent_version="self-check",
@@ -84,22 +77,22 @@ def main() -> int:
         [],
         paper_context={
             "paper_profile": {
-                "paper_type": "实证",
-                "paper_type_label": "管理学实证研究",
+                "paper_type": 'Evidence',
+                "paper_type_label": 'Empirical Research on Management',
                 "paper_type_source": "agent",
             }
         },
     )
     markdown = render_markdown(report)
-    assert "## 评分标准说明" in markdown, "缺少评分标准说明章节"
-    assert "判定" not in markdown or True
+    assert '## Scoring Criteria Description' in markdown, 'Missing scoring standards description chapter'
+    assert 'Judgment' not in markdown or True
     rule_count = sum(1 for rule in profile.rules if rule.threshold)
-    listed = markdown.count("：")  # 粗略计数，只要不空即可
+    listed = markdown.count("：")  # rough count, as long as it is not empty
     assert rule_count > 0 and listed > rule_count // 2
     html = render_html(report)
-    assert "质量分" in html and "评分完整度" in html
+    assert 'quality points' in html and 'Rating completeness' in html
 
-    # 外部检索结果必须能渲染进两条报告路径：正常结果、摘要生成失败、整段失败三种形态都要活下来。
+    # External search results must be able to be rendered into two reporting paths: normal results, summary generation failure, and entire paragraph failure must survive the three forms.
     external_payload = {
         "enabled": True,
         "candidates": 2,
@@ -123,38 +116,38 @@ def main() -> int:
                 "citation_count": 900,
                 "rerank_score": 6.05,
                 "summary": {
-                    "method": "概念论文",
-                    "findings": "自动化—增强悖论",
-                    "experiments": "无实验",
-                    "similar": "同样关注算法与人的关系",
-                    "different": "不含量化证据",
+                    "method": 'Concept Paper',
+                    "findings": 'Automation—The Augmentation Paradox',
+                    "experiments": 'No experiment',
+                    "similar": 'also pays attention to the relationship between algorithms and people',
+                    "different": 'does not contain quantitative evidence',
                 },
             },
             {
-                "title": "摘要缺失的样例文献",
+                "title": 'Sample document with missing abstract',
                 "year": None,
                 "venue": "",
                 "citation_count": None,
                 "rerank_score": 0.2,
                 "summary": None,
-                "summary_error": "模型额度不足",
+                "summary_error": 'model quota is insufficient',
             },
         ],
     }
     external_markdown = render_markdown({**report, "external_retrieval": external_payload})
-    assert "## 外部相关工作" in external_markdown, "缺少外部相关工作章节"
+    assert '## External related work' in external_markdown, 'Missing external related work chapters'
     assert "Artificial Intelligence and Management" in external_markdown
-    assert "方法：概念论文" in external_markdown, "五问摘要未渲染"
-    assert "摘要生成失败：模型额度不足" in external_markdown, "摘要失败未标注"
+    assert 'Methods: Concept Paper' in external_markdown, 'Five questions summary not rendered'
+    assert 'Summary generation failed: Insufficient model quota' in external_markdown, 'Summary failed and not marked'
     external_html = render_html({**report, "external_retrieval": external_payload})
-    assert "外部相关工作" in external_html and "Artificial Intelligence and Management" in external_html
+    assert 'External related work' in external_html and "Artificial Intelligence and Management" in external_html
     broken_markdown = render_markdown({**report, "external_retrieval": {"error": "HTTP 429 Too Many Requests"}})
-    assert "外部检索失败，已跳过" in broken_markdown, "整段失败未降级渲染"
-    assert render_markdown(report).count("## 外部相关工作") == 0, "无外部检索时不应出现空章节"
+    assert 'External retrieval failed and skipped' in broken_markdown, 'The entire section failed and the rendering was not downgraded.'
+    assert render_markdown(report).count('## External related work') == 0, 'Empty chapters should not appear when there is no external search'
 
     print(
-        f"报告渲染自检通过：Markdown {len(markdown)} 字，HTML {len(html)} 字，规则说明 {rule_count} 条，"
-        f"外部相关工作 {len(external_payload['related_works'])} 篇（含摘要失败与整段失败降级）。"
+        f"Report rendering self-test passed: Markdown {len(markdown)} words, HTML {len(html)} words, rule description {rule_count} articles,"
+        f"External related work {len(external_payload['related_works'])} (including summary failure and entire segment failure downgrade)."
     )
     return 0
 

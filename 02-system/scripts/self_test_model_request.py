@@ -1,15 +1,4 @@
-"""模型请求自检：确认配置里的 extra_body / thinking 开关真的进了请求体。
-
-加这个检查的原因：DeepSeek 官方 API 的思考模式**默认打开**，必须显式传
-`{"thinking": {"type": "disabled"}}` 关掉。这个字段走的是配置 → AgentRuntimeConfig →
-请求体这条链路，任何一环断掉都不会报错，只会静默地按思考模式烧推理 token，
-而且思考模式下 temperature 不生效。所以必须拦截真实请求体来验。
-
-同时确认 DeepSeek 专有的 thinking 字段**没有**泄漏到其它厂商的请求里。
-
-运行：
-    python ".\\scripts\\自检_模型请求.py"
-"""
+'Model request self-test: Confirm that the extra_body / thinking switch in the configuration really enters the request body.\n\nThe reason for adding this check: the thinking mode of DeepSeek official API is turned on by default and must be passed explicitly.\n`{"thinking": {"type": "disabled"}}` turns off. This field goes through configuration → AgentRuntimeConfig →\nIf any link in the request body is broken, no error will be reported, and the reasoning token will be burned silently according to the thinking mode.\nAnd temperature does not take effect in thinking mode. Therefore, the real request experience must be intercepted.\n\nAlso confirm that DeepSeek\'s proprietary thinking field is not leaked into requests from other vendors.\n\nRun:\n    python ".\\scripts\\self_test_model_request.py"'
 
 from __future__ import annotations
 
@@ -30,7 +19,7 @@ AGENT_JSON = json.dumps(
         "indicator_id": "A-GAP-PUZZLE-V1",
         "judgement": "mostly",
         "evidence_ids": ["EV-1"],
-        "reason": "占位理由",
+        "reason": 'Reason for occupying space',
         "confidence": 0.8,
         "needs_review": False,
     },
@@ -60,7 +49,7 @@ class _FakeResponse:
 
 
 def _capture(content: str = AGENT_JSON):
-    """返回 (captured, fake_urlopen)：把每次请求的 URL / 头 / 体记下来，并回一个合法响应。"""
+    'Return (captured, fake_urlopen): Record the URL/header/body of each request and return a legal response.'
     captured: list[dict] = []
 
     def fake_urlopen(request, timeout=None):
@@ -77,18 +66,18 @@ def _capture(content: str = AGENT_JSON):
 
 
 def main() -> int:
-    # 1) DeepSeek 官方配置读出来是什么
+    # 1) What does DeepSeek’s official configuration read out?
     config = load_agent_runtime_config(DEEPSEEK_CONFIG, overrides={"api_key": "dummy-key"})
     assert config.base_url == "https://api.deepseek.com", config.base_url
     assert config.model == "deepseek-flash", config.model
     assert config.api_key_env == "DEEPSEEK_API_KEY", config.api_key_env
     assert config.extra_body == {"thinking": {"type": "disabled"}}, config.extra_body
-    print(f"配置读取：base_url={config.base_url} model={config.model} 思考模式开关={config.extra_body}")
+    print(f"Configuration reading: base_url={config.base_url} model={config.model} Thinking mode switch={config.extra_body}")
 
-    # 2) 专家评分请求体：thinking 必须关掉，且 json 模式 / temperature 正常
+    # 2) Expert rating request body: thinking must be turned off, and the json mode/temperature is normal
     captured, fake = _capture()
     with patch("urllib.request.urlopen", fake):
-        result = call_agent_json("评分系统提示", PAYLOAD, config)
+        result = call_agent_json('Scoring System Tips', PAYLOAD, config)
     assert len(captured) == 1, captured
     request = captured[0]
     body = request["body"]
@@ -99,28 +88,28 @@ def main() -> int:
     assert body["temperature"] == 0, body["temperature"]
     assert "Bearer dummy-key" in request["headers"].get("Authorization", ""), request["headers"]
     assert result["judgement"] == "mostly" and result["indicator_id"] == "A-GAP-PUZZLE-V1", result
-    print(f"评分请求：URL {request['url']}；body 含 thinking={body['thinking']}；鉴权头已带 Bearer")
+    print(f"Rating request: URL {request['url']}; body contains thinking={body['thinking']}; authentication header has Bearer")
 
-    # 3) 纯 JSON 调用（论文画像 / 五问摘要走这条路）也要带上开关和 max_tokens
+    # 3) Pure JSON calls (paper portraits/five questions abstracts go this way) also need to bring switches and max_tokens
     plain_captured, plain_fake = _capture()
     with patch("urllib.request.urlopen", plain_fake):
-        call_plain_json("请输出 JSON", {"a": 1}, config)
+        call_plain_json('Please output JSON', {"a": 1}, config)
     plain_body = plain_captured[0]["body"]
     assert plain_body["thinking"] == {"type": "disabled"}, plain_body.get("thinking")
     assert plain_body["max_tokens"] == config.max_output_tokens, plain_body.get("max_tokens")
-    print(f"纯 JSON 请求：thinking 同样关闭，max_tokens={plain_body['max_tokens']}（防止长 JSON 被截断）")
+    print(f"Pure JSON request: thinking is also closed, max_tokens={plain_body['max_tokens']} (to prevent long JSON from being truncated)")
 
-    # 4) 其它厂商不能收到 DeepSeek 专有字段
+    # 4) Other manufacturers cannot receive DeepSeek proprietary fields
     cloud = load_agent_runtime_config(CLOUD_CONFIG, overrides={"api_key": "dummy-key"})
     assert cloud.extra_body is None, cloud.extra_body
     cloud_captured, cloud_fake = _capture()
     with patch("urllib.request.urlopen", cloud_fake):
-        call_agent_json("评分系统提示", PAYLOAD, cloud)
+        call_agent_json('Scoring System Tips', PAYLOAD, cloud)
     cloud_body = cloud_captured[0]["body"]
     assert "thinking" not in cloud_body, cloud_body.keys()
-    print(f"跨厂商隔离：{cloud.model} 的请求体不含 thinking 字段（未泄漏 DeepSeek 专有参数）")
+    print(f"Cross-vendor isolation: The request body of {cloud.model} does not contain the thinking field (no DeepSeek proprietary parameters are leaked)")
 
-    # 5) 回退链路上 extra_body 不能丢：第一个模型 429，第二个模型要带着同样的开关发出
+    # 5) Extra_body cannot be lost on the fallback link: the first model is 429, and the second model must be sent with the same switch
     fallback_captured: list[dict] = []
 
     def flaky_urlopen(request, timeout=None):
@@ -135,23 +124,23 @@ def main() -> int:
         overrides={"api_key": "dummy-key", "fallback_models": ["deepseek-v4-pro"]},
     )
     with patch("urllib.request.urlopen", flaky_urlopen):
-        switched = call_agent_json("评分系统提示", PAYLOAD, fallback_config)
+        switched = call_agent_json('Scoring System Tips', PAYLOAD, fallback_config)
     assert [item["model"] for item in fallback_captured] == ["deepseek-flash", "deepseek-v4-pro"], fallback_captured
     assert all(item["thinking"] == {"type": "disabled"} for item in fallback_captured), fallback_captured
     assert switched["_model_fallback"]["used_model"] == "deepseek-v4-pro", switched.get("_model_fallback")
-    print("回退链路：deepseek-flash 429 后切到 deepseek-v4-pro，thinking 开关未丢")
+    print('Fallback link: deepseek-flash 429 and then switch to deepseek-v4-pro, the thinking switch is not lost')
 
-    # 6) 余额 / Key 错误要有中文提示，而不是抛原始英文
+    # 6) Balance/Key errors should have Chinese prompts instead of throwing the original English ones
     from paper_eval.runtime_errors import classify_runtime_error
 
     balance = classify_runtime_error('LLM HTTP error 402: {"error":{"message":"Insufficient Balance"}}')
-    assert balance["title"] == "API 余额不足", balance
-    assert "DeepSeek" not in balance["user_message"] and "服务商" in balance["user_message"], balance
+    assert balance["title"] == 'API balance insufficient', balance
+    assert "DeepSeek" not in balance["user_message"] and 'Service Provider' in balance["user_message"], balance
     invalid = classify_runtime_error("LLM HTTP error 401: Authentication Fails")
-    assert invalid["title"] == "API Key 无效", invalid
-    print(f"错误提示：402 → {balance['title']}；401 → {invalid['title']}")
+    assert invalid["title"] == 'API Key is invalid', invalid
+    print(f"Error message: 402 → {balance['title']}; 401 → {invalid['title']}")
 
-    print("模型请求自检通过。")
+    print('model request self-test passed.')
     return 0
 
 

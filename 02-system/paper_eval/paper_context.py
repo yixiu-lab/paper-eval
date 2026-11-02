@@ -10,9 +10,9 @@ from .rules import PAPER_TYPE_CLASSES, RuleProfile, normalize_paper_type
 
 
 SECTION_ALIASES = {
-    "abstract": ["abstract", "摘要"],
-    "introduction": ["introduction", "引言", "intro"],
-    "theory": ["literature", "theory", "hypothesis", "background", "related work", "理论", "文献", "假设"],
+    "abstract": ["abstract", 'Summary'],
+    "introduction": ["introduction", 'Introduction', "intro"],
+    "theory": ["literature", "theory", "hypothesis", "background", "related work", 'Theory', 'Literature', 'Assumption'],
     "method": [
         "method",
         "methods",
@@ -23,16 +23,16 @@ SECTION_ALIASES = {
         "model",
         "architecture",
         "training",
-        "方法",
-        "设计",
-        "数据",
-        "样本",
-        "测量",
+        'method',
+        'design',
+        'data',
+        'sample',
+        'Measurement',
     ],
-    "results": ["result", "finding", "experiment", "evaluation", "analysis", "robust", "结果", "发现", "实验", "检验"],
-    "discussion": ["discussion", "conclusion", "limitation", "future", "implication", "讨论", "结论", "局限", "启示"],
-    "tables_figures": ["tables and figures", "table", "figure", "fig.", "表", "图"],
-    "appendix": ["appendix", "appendices", "supplementary", "附录", "补充材料"],
+    "results": ["result", "finding", "experiment", "evaluation", "analysis", "robust", 'results', 'found', 'Experiment', 'inspection'],
+    "discussion": ["discussion", "conclusion", "limitation", "future", "implication", 'Discussion', 'Conclusion', 'Limitations', 'Enlightenment'],
+    "tables_figures": ["tables and figures", "table", "figure", "fig.", 'table', 'diagram'],
+    "appendix": ["appendix", "appendices", "supplementary", 'Appendix', 'Supplementary Materials'],
 }
 
 DIMENSION_FACETS = {
@@ -45,12 +45,12 @@ DIMENSION_FACETS = {
 }
 
 DIMENSION_ROUTING_GUIDE = {
-    "A": "选题价值、研究问题、研究范围、问题边界、可操作性。",
-    "B": "理论贡献、挑战既有假设、文献分歧整合、跨理论整合、新概念或新机制。",
-    "C": "概念定义、理论前提、推理链条、假设或命题、边界条件、替代解释。",
-    "D": "研究设计、数据来源、样本、测量、模型设定、识别策略、方法执行。",
-    "E": "结果呈现、结果与问题对应、稳健性、证据强度、结论有效性、讨论综合。",
-    "F": "可复制性、数据代码透明、局限、外部效度、实践启示、长期影响。",
+    "A": 'Topic value, research questions, research scope, problem boundaries, and operability.',
+    "B": 'Theoretical contribution, challenging existing assumptions, integration of literature differences, cross-theoretical integration, new concepts or new mechanisms.',
+    "C": 'Concept definition, theoretical premise, chain of reasoning, hypothesis or proposition, boundary conditions, alternative explanations.',
+    "D": 'Research design, data sources, samples, measurements, model setting, identification strategy, method implementation.',
+    "E": 'Presentation of results, correspondence between results and questions, robustness, strength of evidence, validity of conclusions, and discussion synthesis.',
+    "F": 'Replicability, data coding transparency, limitations, external validity, practical implications, long-term impact.',
 }
 
 THEORETICAL_MOVE_TYPES = [
@@ -66,29 +66,29 @@ THEORETICAL_MOVE_TYPES = [
 THEORETICAL_MOVE_STRENGTHS = {"weak", "moderate", "strong", "breakthrough", "unclear"}
 
 PAPER_TYPE_RULE_FOCUS = {
-    "理论或概念论文": {
+    'Theoretical or conceptual paper': {
         "primary_dimensions": ["A", "B", "C", "F"],
-        "notes": "重点看问题定位、理论对话、概念机制、命题逻辑和边界条件；不能强制要求样本、变量或回归模型。",
+        "notes": 'focuses on problem positioning, theoretical dialogue, conceptual mechanisms, propositional logic and boundary conditions; samples, variables or regression models cannot be mandatory.',
     },
-    "管理学实证研究": {
+    'Empirical Research on Management': {
         "primary_dimensions": ["A", "C", "D", "E", "F"],
-        "notes": "重点看研究问题、设计匹配、变量测量、样本数据、识别策略、结果稳健性和结论边界。",
+        "notes": 'focuses on research questions, design matching, variable measurement, sample data, identification strategies, result robustness and conclusion boundaries.',
     },
-    "质性或案例研究": {
+    'Qualitative or case study': {
         "primary_dimensions": ["A", "B", "C", "D", "E", "F"],
-        "notes": "重点看研究范式匹配、案例选择、资料可信度、编码或解释透明度、理论生成和反身性。",
+        "notes": 'focuses on research paradigm matching, case selection, data credibility, coding or interpretation transparency, theory generation and reflexivity.',
     },
-    "技术或机器学习论文": {
+    'Technical or machine learning paper': {
         "primary_dimensions": ["A", "D", "E", "F"],
-        "notes": "重点看任务价值、方法新意、实验设计、基准比较、可复现性和应用边界；理论贡献维度需谨慎解释。",
+        "notes": 'focuses on task value, method novelty, experimental design, benchmark comparison, reproducibility and application boundaries; the theoretical contribution dimension needs to be interpreted with caution.',
     },
-    "综述论文": {
+    'Review Paper': {
         "primary_dimensions": ["A", "B", "C", "F"],
-        "notes": "重点看文献覆盖、分类框架、共识整合、研究议程和边界说明；不强制要求实证识别策略。",
+        "notes": 'focuses on literature coverage, classification framework, consensus integration, research agenda and boundary description; empirical identification strategy is not mandatory.',
     },
-    "评论或观点论文": {
+    'Review or opinion paper': {
         "primary_dimensions": ["A", "B", "C", "F"],
-        "notes": "重点看问题洞察、论证质量、对既有讨论的推进和实践/治理启示；方法维度通常需要人工复核。",
+        "notes": 'focuses on problem insights, argumentation quality, advancement of existing discussions, and practical/governance implications; the method dimension usually requires manual review.',
     },
 }
 
@@ -128,17 +128,17 @@ def _normalize_paper_type(value: Any, fallback: str) -> str:
     text = str(value or "").strip()
     lowered = text.lower()
     if any(marker in lowered for marker in ["empirical", "experiment", "survey", "regression", "panel"]):
-        return "管理学实证研究"
+        return 'Empirical Research on Management'
     if any(marker in lowered for marker in ["conceptual", "theory", "theoretical"]):
-        return "理论或概念论文"
+        return 'Theoretical or conceptual paper'
     if any(marker in lowered for marker in ["review", "meta-analysis"]):
-        return "综述论文"
+        return 'Review Paper'
     if any(marker in lowered for marker in ["qualitative", "case study", "interview"]):
-        return "质性或案例研究"
+        return 'Qualitative or case study'
     if any(marker in lowered for marker in ["commentary", "viewpoint", "perspective"]):
-        return "评论或观点论文"
+        return 'Review or opinion paper'
     if any(marker in lowered for marker in ["machine learning", "algorithm", "technical"]):
-        return "技术或机器学习论文"
+        return 'Technical or machine learning paper'
     return text or fallback
 
 
@@ -154,13 +154,13 @@ def _normalize_theoretical_move(value: Any) -> dict[str, str]:
         if extra and extra not in description:
             description = _trim(f"{description} {extra}", 420)
         extra_lower = extra.lower()
-        if any(marker in extra_lower for marker in ["breakthrough", "突破", "field-changing"]):
+        if any(marker in extra_lower for marker in ["breakthrough", 'Breakthrough', "field-changing"]):
             strength = "breakthrough"
-        elif any(marker in extra_lower for marker in ["strong", "robust", "clear", "明确", "较强"]):
+        elif any(marker in extra_lower for marker in ["strong", "robust", "clear", 'clear', 'Stronger']):
             strength = "strong"
-        elif any(marker in extra_lower for marker in ["weak", "limited", "不足", "较弱"]):
+        elif any(marker in extra_lower for marker in ["weak", "limited", 'Insufficient', 'weaker']):
             strength = "weak"
-        elif any(marker in extra_lower for marker in ["moderate", "partial", "部分", "中等"]):
+        elif any(marker in extra_lower for marker in ["moderate", "partial", 'part', 'Medium']):
             strength = "moderate"
         else:
             strength = "unclear"
@@ -170,34 +170,34 @@ def _normalize_theoretical_move(value: Any) -> dict[str, str]:
 def _paper_type(title: str, evidences: list[Evidence]) -> str:
     sample = " ".join(item.text.lower() for item in evidences[:20])
     text = f"{title.lower()} {sample}"
-    if _matches(text, ["review", "systematic literature", "meta-analysis", "综述", "元分析"]):
-        return "综述论文"
-    if _matches(text, ["editorial", "commentary", "perspective", "call for action", "viewpoint", "评论", "观点"]):
-        return "评论或观点论文"
-    if _matches(text, ["interview", "case study", "ethnograph", "qualitative", "访谈", "案例", "质性"]):
-        return "质性或案例研究"
-    if _matches(text, ["regression", "survey", "panel data", "sample", "hypotheses", "empirical", "实证", "回归", "问卷"]):
-        return "管理学实证研究"
+    if _matches(text, ["review", "systematic literature", "meta-analysis", 'Summary', 'meta-analysis']):
+        return 'Review Paper'
+    if _matches(text, ["editorial", "commentary", "perspective", "call for action", "viewpoint", 'Comments', 'Views']):
+        return 'Review or opinion paper'
+    if _matches(text, ["interview", "case study", "ethnograph", "qualitative", 'Interview', 'case', 'Qualitative']):
+        return 'Qualitative or case study'
+    if _matches(text, ["regression", "survey", "panel data", "sample", "hypotheses", "empirical", 'Evidence', 'Return', 'Questionnaire']):
+        return 'Empirical Research on Management'
     if _matches(text, ["transformer", "neural", "architecture", "algorithm", "benchmark", "dataset", "machine translation"]):
-        return "技术或机器学习论文"
-    if _matches(text, ["theory", "conceptual", "proposition", "framework", "理论", "概念", "命题"]):
-        return "理论或概念论文"
-    return "未识别"
+        return 'Technical or machine learning paper'
+    if _matches(text, ["theory", "conceptual", "proposition", "framework", 'Theory', 'concept', 'proposition']):
+        return 'Theoretical or conceptual paper'
+    return 'not recognized'
 
 
 def build_review_profile(paper_type: str) -> dict[str, Any]:
     focus = PAPER_TYPE_RULE_FOCUS.get(paper_type, {})
-    nonstandard_types = {"理论或概念论文", "质性或案例研究", "综述论文", "评论或观点论文"}
+    nonstandard_types = {'Theoretical or conceptual paper', 'Qualitative or case study', 'Review Paper', 'Review or opinion paper'}
     return {
         "paper_type": paper_type,
         "nonstandard_paradigm": paper_type in nonstandard_types,
         "primary_dimensions": focus.get("primary_dimensions", ["A", "B", "C", "D", "E", "F"]),
-        "rule_focus_notes": focus.get("notes", "先按通用管理学论文评价，无法适配的维度需进入人工复核。"),
+        "rule_focus_notes": focus.get("notes", 'First evaluate the general management paper. Dimensions that cannot be adapted need to be manually reviewed.\nWhen'),
         "anti_homogenization_policy": (
-            "识别为非常规研究范式时，不强制套用标准实证模板；但仍要求问题清楚、论证严谨、证据充分。"
+            'is identified as an unconventional research paradigm, it is not mandatory to apply the standard empirical template; but it still requires clear questions, rigorous argumentation, and sufficient evidence.'
         ),
         "high_score_evidence_policy": (
-            "高分必须依赖多处实质证据，不能只依赖摘要、引言中的自我声明或格式化表述。"
+            'A high score must rely on multiple substantive evidences and cannot only rely on self-declarations or formatted statements in the abstract and introduction.'
         ),
     }
 
@@ -291,7 +291,7 @@ def fallback_dimension_evidence_routes(paper_context: dict[str, Any], context_pa
                 selected.append(evidence_id)
                 seen.add(evidence_id)
         routes[dimension.dimension_id] = selected[:8]
-        notes[dimension.dimension_id] = "证据路由 Agent 不可用时，由本地章节索引生成候选证据；最终评分仍由专家 Agent 判断。"
+        notes[dimension.dimension_id] = 'When the evidence routing agent is unavailable, candidate evidence is generated from the local chapter index; the final score is still judged by the expert agent.'
     return {"dimension_evidence_routes": routes, "routing_notes": notes, "routing_mode": "local_index_fallback"}
 
 
@@ -311,15 +311,15 @@ def build_dimension_evidence_routes(
         for item in profile.dimensions
     ]
     prompt = (
-        "你是全文证据路由 Agent。你已经看到论文全文的跨页证据包和论文画像。"
-        "请不要按 PDF 页眉或章节标签机械分配，而要根据内容语义判断哪些证据应交给哪个专家。"
-        "快速完成分配。每个维度至少选择 4 条、最多 8 条 evidence_id；应覆盖前部、中部、后部的相关内容。"
-        "A/B/C 不得只选摘要；必须尽量包含概念定义、文献对话、理论展开或讨论段。"
-        "D/E/F 必须尽量包含方法、数据、结果、讨论、局限或附录相关段。"
-        "只允许引用输入 context_evidences 中存在的 evidence_id。"
-        "输出 JSON："
+        "You are a full-text evidence routing agent. You've seen the full text of the paper, the double-page evidence package and the paper portrait."
+        'Please do not assign mechanically according to PDF headers or chapter labels, but judge which evidence should be given to which expert based on the semantics of the content.'
+        'Complete allocation quickly. Select at least 4 and up to 8 evidence_ids for each dimension; relevant content in the front, middle, and rear parts should be covered.'
+        'A/B/C Do not select only abstracts; you must try to include concept definitions, literature dialogue, theoretical development or discussion paragraphs.'
+        'D/E/F must try to include relevant paragraphs on methods, data, results, discussion, limitations or appendices.'
+        'Only references to evidence_id present in the input context_evidences are allowed.'
+        'output JSON:'
         '{"dimension_evidence_routes":{"A":["EV-..."],"B":[],"C":[],"D":[],"E":[],"F":[]},'
-        '"routing_notes":{"A":"中文说明","B":"中文说明","C":"中文说明","D":"中文说明","E":"中文说明","F":"中文说明"}}'
+        '"routing_notes":{"A":"English summary","B":"English summary","C":"English summary","D":"English summary","E":"English summary","F":"English summary"}}'
     )
     payload = {
         "run_id": run_id,
@@ -362,9 +362,9 @@ def build_dimension_evidence_routes(
     }
 
 
-PROFILE_PLACEHOLDER = "待 Agent 结合全文判断"
+PROFILE_PLACEHOLDER = 'To be judged by Agent based on the full text'
 
-# 全文画像里必须由 Agent 真正填写的字段；仍是占位符就说明画像没生成成功。
+# A field in the full-text portrait that must be filled in by the Agent; if it is still a placeholder, it means that the portrait was not generated successfully.
 REQUIRED_PROFILE_FIELDS = [
     "central_problem",
     "research_gap",
@@ -396,36 +396,36 @@ def build_global_context(
         "run_id": run_id,
         "paper_profile": {
             "title": title,
-            # paper_type 是受控枚举（实证/质性/理论/综述/混合），只用于规则适用范围；
-            # 描述性标签保留在 paper_type_label，供提示词与报告阅读。
-            "paper_type": normalize_paper_type(heuristic_type) or "混合",
+            # paper_type is a controlled enumeration (empirical/qualitative/theoretical/review/mixed) and is only used within the scope of rule application;
+            # The descriptive label is retained in paper_type_label for prompt words and report reading.
+            "paper_type": normalize_paper_type(heuristic_type) or 'Mix',
             "paper_type_label": heuristic_type,
-            "central_problem": "待 Agent 结合全文判断",
-            "research_gap": "待 Agent 结合全文判断",
-            "research_question": "待 Agent 结合全文判断",
-            "core_claim": "待 Agent 结合全文判断",
-            "main_contribution": "待 Agent 结合全文判断",
+            "central_problem": 'To be judged by Agent based on the full text',
+            "research_gap": 'To be judged by Agent based on the full text',
+            "research_question": 'To be judged by Agent based on the full text',
+            "core_claim": 'To be judged by Agent based on the full text',
+            "main_contribution": 'To be judged by Agent based on the full text',
             "theoretical_move": {
                 "type": "unclear",
-                "description": "待 Agent 结合全文判断",
+                "description": 'To be judged by Agent based on the full text',
                 "strength": "unclear",
             },
             "method_design": {
-                "design_type": "待 Agent 结合全文判断",
-                "sample_data": "待 Agent 结合全文判断",
-                "identification_or_validity_strategy": "待 Agent 结合全文判断",
-                "limitations": "待 Agent 结合全文判断",
+                "design_type": 'To be judged by Agent based on the full text',
+                "sample_data": 'To be judged by Agent based on the full text',
+                "identification_or_validity_strategy": 'To be judged by Agent based on the full text',
+                "limitations": 'To be judged by Agent based on the full text',
             },
-            "method_type": "待 Agent 结合全文判断",
-            "data_or_material": "待 Agent 结合全文判断",
+            "method_type": 'To be judged by Agent based on the full text',
+            "data_or_material": 'To be judged by Agent based on the full text',
             "evidence_structure": {
                 "main_evidence": [],
                 "robustness_or_validation": [],
                 "cross_section_support": [],
             },
-            "main_findings": "待 Agent 结合全文判断",
-            "boundary_conditions": "待 Agent 结合全文判断",
-            "limitations": "待 Agent 结合全文判断",
+            "main_findings": 'To be judged by Agent based on the full text',
+            "boundary_conditions": 'To be judged by Agent based on the full text',
+            "limitations": 'To be judged by Agent based on the full text',
             "most_important_pages": [],
             "possible_top_journal_signals": [],
             "blocking_weaknesses": [],
@@ -443,42 +443,42 @@ def build_global_context(
     }
     context_pack = build_context_evidence_pack(evidences)
     prompt = (
-        "你是全文理解 Agent。请先通读给定的跨页证据包，形成论文整体画像。"
-        "必须只基于证据，不要编造；不要根据期刊、作者或影响因子判断质量。"
-        "你的输出会作为后续 A-F 专家 Agent 的共享上下文，因此要帮助它们理解全文，而不是只摘要前两页。"
-        "输出 JSON，键包括 paper_profile 和 reading_notes。"
-        "paper_profile 必须包含 title, paper_type, paper_type_detail, central_problem, research_gap, research_question, core_claim, main_contribution, "
+        'You are the full text understanding Agent. Please first read through the given cross-page evidence package to form an overall picture of the paper.'
+        'Must be based only on evidence, not fabrication; do not judge quality based on journal, author, or impact factor.'
+        'Your output will serve as shared context for subsequent A-F expert agents, so help them understand the full text rather than just summarizing the first two pages.'
+        'outputs JSON with keys including paper_profile and reading_notes.'
+        'paper_profile must contain title, paper_type, paper_type_detail, central_problem, research_gap, research_question, core_claim, main_contribution,'
         "theoretical_move, method_design, method_type, data_or_material, evidence_structure, main_findings, boundary_conditions, "
         "limitations, most_important_pages, possible_top_journal_signals, blocking_weaknesses。"
-        "theoretical_move 必须包含 type, description, strength；type 从 "
-        f"{', '.join(THEORETICAL_MOVE_TYPES)} 中选最接近的一项。"
-        "method_design 必须包含 design_type, sample_data, identification_or_validity_strategy, limitations。"
-        "evidence_structure 必须包含 main_evidence, robustness_or_validation, cross_section_support。"
-        "possible_top_journal_signals 只记录正文内部信号，例如重要问题、新机制、新构念、强识别、证据闭环、边界清楚、可迁移框架；"
-        "blocking_weaknesses 记录阻止进入 85+ 的内部短板。"
-        "most_important_pages 填最能支撑评分的页码，最多 8 个。"
-        f"paper_type 必须从这 5 个受控取值里选一个，只能填词本身：{'、'.join(PAPER_TYPE_CLASSES)}；"
-        "不要写句子或自造类别，否则会被当作无效并退回本地启发式判断。"
-        "论文范式、跨学科性质或非常规方法请写在 paper_type_detail 里。"
-        "reading_notes 用中文简要说明中部章节是否充分覆盖。"
+        'theoretical_move must contain type, description, strength; type starts from'
+        f"{', '.join(THEORETICAL_MOVE_TYPES)} Select the closest one."
+        'method_design must contain design_type, sample_data, identification_or_validity_strategy, limitations.'
+        'evidence_structure must contain main_evidence, robustness_or_validation, cross_section_support.'
+        'possible_top_journal_signals only records internal signals of the text, such as important issues, new mechanisms, new constructs, strong identification, evidence closure, clear boundaries, and transferable frameworks;'
+        'blocking_weaknesses records internal weaknesses that prevent entry to 85+.'
+        'most_important_pages Fill in the page numbers that best support the rating, up to 8 pages.'
+        f"paper_type must choose one of these 5 controlled values, and can only fill in the word itself: {'、'.join(PAPER_TYPE_CLASSES)};"
+        'Do not write sentences or create your own categories, otherwise it will be regarded as invalid and the local heuristic judgment will be returned.'
+        'Please write the paper paradigm, interdisciplinary nature or unconventional methods in paper_type_detail.'
+        'reading_notes Briefly describe in English whether the main sections are adequately covered.'
     )
     payload = {"run_id": run_id, "paper": paper.metadata, "context_evidences": context_pack}
     try:
         agent_context = call_plain_json(prompt, payload, config)
     except Exception as first_exc:
         try:
-            # 缩小证据包重试一次：输出被截断是这条链路最常见的失败原因。
+            # Shrink Evidence Packet Retry: Output truncation is the most common cause of failure on this link.
             agent_context = call_plain_json(
                 prompt,
                 {"run_id": run_id, "paper": paper.metadata, "context_evidences": context_pack[:12]},
                 config,
             )
         except Exception as second_exc:
-            # 仍然失败也不终止整次评价：退回本地启发式画像，并在报告里显式标记。
+            # still fails and does not terminate the entire evaluation: return the local heuristic portrait and mark it explicitly in the report.
             base_context["context_error"] = (
-                "全文理解 Agent 两次调用均失败，已退回本地启发式画像；"
-                "规则级判断仍基于正文证据，但缺少全文共享上下文，建议人工复核。"
-                f"首次错误：{first_exc}；重试错误：{second_exc}"
+                'The full text understanding Agent failed to call twice and has returned to the local heuristic portrait;'
+                'The rule-level judgment is still based on textual evidence, but lacks full-text sharing context. Manual review is recommended.'
+                f"First error: {first_exc}; Retry error: {second_exc}"
             )
             base_context["context_evidence_ids"] = [item["evidence_id"] for item in context_pack]
             routing = build_dimension_evidence_routes(run_id, base_context, context_pack, profile, config)
@@ -514,12 +514,12 @@ def build_global_context(
                 except (TypeError, ValueError):
                     continue
             merged_profile["most_important_pages"] = pages
-        # 受控类型只认模型自己填的值。模型没给有效值时不再退回关键词启发式——
-        # 实测启发式把 Choudhury 2020、Blaurock 2024 这类实证论文判成「综述」，
-        # 会砍掉 20% 以上的适用权重。宁可退回中性的「混合」（适用全部规则、不误排除）。
+        # The controlled type only recognizes the values filled in by the model itself. Keyword heuristics are no longer returned when the model does not give a valid value——
+        # The measured heuristic classifies empirical papers such as Choudhury 2020 and Blaurock 2024 as "reviews".
+        # will cut off more than 20% of the applicable weight. Rather fall back to a neutral "mix" (all rules apply, no false exclusions).
         raw_type_text = str(profile_out.get("paper_type") or "").strip()
         model_class = normalize_paper_type(raw_type_text, None)
-        paper_class = model_class or "混合"
+        paper_class = model_class or 'Mix'
         detail = str(profile_out.get("paper_type_detail") or "").strip()
         if detail:
             label = detail[:80]
@@ -533,9 +533,9 @@ def build_global_context(
         base_context["paper_profile"] = merged_profile
         base_context["review_profile"] = build_review_profile(label)
     else:
-        # 模型没返回可用画像：画像本身已由 context_incomplete 标记，类型一律按「混合」，
-        # 避免用不可靠的启发式去裁剪适用规则集。
-        base_context["paper_profile"]["paper_type"] = "混合"
+        # model did not return available images: the images themselves have been marked by context_incomplete, and the type must be "Mixed".
+        # Avoid using unreliable heuristics to tailor the set of applicable rules.
+        base_context["paper_profile"]["paper_type"] = 'Mix'
         base_context["paper_profile"]["paper_type_source"] = "fallback"
     if isinstance(agent_context, dict) and "reading_notes" in agent_context:
         base_context["reading_notes"] = agent_context["reading_notes"]

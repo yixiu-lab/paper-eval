@@ -17,9 +17,9 @@ def reflect_run(judgements: list[AgentJudgement], score_items: list[ScoreItem], 
             ReflectionIssue(
                 issue_type="evidence_missing",
                 severity="medium",
-                message=f"{len(missing)} 个指标缺少可用证据，报告应进入人工复核。",
+                message=f"{len(missing)} indicators lack available evidence and the report should be subject to manual review.",
                 related_ids=missing[:20],
-                suggested_action="补充 PDF 解析质量、检索策略或让 Verifier 重新定位证据。",
+                suggested_action='Supplement PDF parsing quality, search strategy or let Verifier relocate evidence.',
             )
         )
 
@@ -29,9 +29,9 @@ def reflect_run(judgements: list[AgentJudgement], score_items: list[ScoreItem], 
             ReflectionIssue(
                 issue_type="invalid_evidence_id",
                 severity="high",
-                message="发现 Agent 引用了不存在的证据 ID。",
+                message='It was discovered that the Agent referenced an evidence ID that does not exist.',
                 related_ids=invalid,
-                suggested_action="退回对应 Agent 输出并重新生成判断。",
+                suggested_action='returns the corresponding Agent output and regenerates the judgment.',
             )
         )
 
@@ -41,9 +41,9 @@ def reflect_run(judgements: list[AgentJudgement], score_items: list[ScoreItem], 
             ReflectionIssue(
                 issue_type="score_distribution",
                 severity="medium",
-                message="满足项比例过高，可能存在证据匹配过宽或规则区分度不足。",
+                message='The proportion of satisfied items is too high, and there may be evidence matching that is too wide or rule discrimination that is insufficient.',
                 related_ids=[],
-                suggested_action="抽样检查高分指标证据，必要时提高 evidence gate 阈值。",
+                suggested_action='Randomly check high-scoring indicator evidence and increase the evidence gate threshold if necessary.',
             )
         )
 
@@ -53,9 +53,9 @@ def reflect_run(judgements: list[AgentJudgement], score_items: list[ScoreItem], 
             ReflectionIssue(
                 issue_type="low_completeness",
                 severity="medium",
-                message="无法判断项过多，评分完整度偏低。",
+                message='There are too many items that cannot be judged, and the score completeness is low.',
                 related_ids=zero_available[:20],
-                suggested_action="优先改善章节识别、证据检索和规则关键词。",
+                suggested_action='Prioritize improving chapter identification, evidence retrieval and rule keywords.',
             )
         )
     return issues

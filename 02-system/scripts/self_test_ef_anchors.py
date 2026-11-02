@@ -1,25 +1,8 @@
-"""E/F 档位锚点自检：改动只在锚点层，机制字段与其它维度必须一字未动。
+"""Offline checks for the E/F judgment anchors and rule-profile consistency.
 
-这份自检是这次改动的守则，不是功能测试。它钉死四件事：
+The script checks rule structure, scoring roles, distinct judgment anchors, anchor length, and preservation of fields outside the intended scope. It makes no API calls.
 
-1. **不越界**：E/F 11 条规则的 `role` / `weight` / `cluster` / `score_mapping` / `applicable_type` /
-   `dimension_id` 全部硬编码了改动前的值，任何一条被改动都会让本自检失败。
-2. **不改别人**：A/B/C/D 全部 22 条规则、以及本次不在改动范围内的 F-LIMITATIONS-V1，
-   逐字段与**改动前的权威快照**比对（`评价规则库/_rules_v1_V15_pre_EF_backup.yaml`，父 agent 在两个
-   agent 动手之前复制的那一份）。比的是解析后的对象本身，不比哈希——哈希会因键序/实现细节产生假阳性，
-   而且硬编码的期望值读者看不出"要和哪份基线一致"。
-3. **档位形状正确**：基准项不设 satisfied，加分项六档齐全（与 rules.REQUIRED_JUDGEMENT_KEYS_BY_ROLE 一致）。
-4. **锚点可判别**：六个档位的锚点文本互不相同、每条 ≥ 25 字；不出现枚举式连接词；
-   加分规则的 satisfied 与 mostly 锚点字符重合度（Jaccard）低于 0.60。
-
-关于「放过的词」：本次只检查 `并`、`并且`、`且`、`全部`、`齐备`、`同时`、`以及`。
-`或` 与 `、` 一律放过——`uncertain` 档的六条锚点必须写成「解析缺失、候选证据过窄，或研究范式不适用」
-这类**互斥清单**，那是可选原因列表，不是「全部满足才算够」的枚举门槛。判定理由与报告里同样解释这一点。
-
-运行：
-    python ".\\scripts\\自检_EF档位锚点.py"
-
-离线，零 API 调用。成功 exit 0，失败抛 AssertionError。
+Run with: python scripts/self_test_ef_anchors.py
 """
 
 from __future__ import annotations
@@ -36,13 +19,13 @@ from paper_eval.rules import (  # noqa: E402
     validate_rule_profile,
 )
 
-RULES = Path(__file__).resolve().parents[1] / "评价规则库" / "rules_v1.yaml"
-# 改动前的权威快照：父 agent 在两个 agent 动手之前复制的规则库。
-SNAPSHOT = Path(__file__).resolve().parents[1] / "评价规则库" / "_rules_v1_V15_pre_EF_backup.yaml"
+RULES = Path(__file__).resolve().parents[1] / 'rules' / "rules_v1.yaml"
+# Authoritative snapshot before changes: The rule base copied by the parent agent before the two agents took action.
+SNAPSHOT = Path(__file__).resolve().parents[1] / 'rules' / "_rules_v1_V15_pre_EF_backup.yaml"
 
-# 本次改动范围内的 11 条规则（E 六条 + F 加分两条 + 两条基准项 + 观察项）。
-# F-LIMITATIONS-V1 不在其中：它三篇已判 mostly / mostly / partial，本来就在分档，
-# 且它是基准项（partial = mostly = 1.0），锚点没问题就不动。
+# 11 rules within the scope of this change (E six + F two extra points + two benchmark items + observation items).
+# F-LIMITATIONS-V1 is not among them: its three articles have been judged as mostly / mostly / partial, and it is originally divided into categories.
+# and it is the base item (partial = mostly = 1.0), the anchor point will not move if there is no problem.
 TARGET_RULE_IDS = (
     "E-RESULTS-COMPLETENESS-V1",
     "E-RESULTS-ALIGNMENT-V1",
@@ -57,13 +40,13 @@ TARGET_RULE_IDS = (
     "F-SOCIAL-LONGTERM-IMPACT-V1",
 )
 
-# 改动前的机制字段原值（硬编码守则）。来源：改动前的 rules_v1.yaml，逐条抄录。
+# The original value of the mechanism field before changes (hard-coded rules). Source: rules_v1.yaml before changes, copied item by item.
 EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
     "E-RESULTS-COMPLETENESS-V1": {
         "role": "baseline",
         "weight": 1.8,
         "cluster": "E-COMPLETENESS",
-        "applicable_type": "实证",
+        "applicable_type": 'Evidence',
         "dimension_id": "E",
         "score_mapping": {"mostly": 1.0, "partial": 1.0, "weak": 0.5, "not_satisfied": 0.0, "uncertain": None},
     },
@@ -71,7 +54,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "baseline",
         "weight": 3.6,
         "cluster": "E-ALIGNMENT",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "E",
         "score_mapping": {"mostly": 1.0, "partial": 1.0, "weak": 0.5, "not_satisfied": 0.0, "uncertain": None},
     },
@@ -79,7 +62,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 1.5,
         "cluster": "E-ROBUSTNESS",
-        "applicable_type": "实证",
+        "applicable_type": 'Evidence',
         "dimension_id": "E",
         "score_mapping": {
             "satisfied": 1.0,
@@ -94,7 +77,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "baseline",
         "weight": 3.6,
         "cluster": "E-STRENGTH",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "E",
         "score_mapping": {"mostly": 1.0, "partial": 1.0, "weak": 0.5, "not_satisfied": 0.0, "uncertain": None},
     },
@@ -102,7 +85,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 1.5,
         "cluster": "E-CONCLUSION",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "E",
         "score_mapping": {
             "satisfied": 1.0,
@@ -117,7 +100,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 3.0,
         "cluster": "E-DISCUSSION",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "E",
         "score_mapping": {
             "satisfied": 1.0,
@@ -132,7 +115,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "baseline",
         "weight": 1.0,
         "cluster": "F-REPRO-TRANSPARENCY",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "F",
         "score_mapping": {"mostly": 1.0, "partial": 1.0, "weak": 0.5, "not_satisfied": 0.0, "uncertain": None},
     },
@@ -140,7 +123,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "baseline",
         "weight": 1.0,
         "cluster": "F-REPRO-TRANSPARENCY",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "F",
         "score_mapping": {"mostly": 1.0, "partial": 1.0, "weak": 0.5, "not_satisfied": 0.0, "uncertain": None},
     },
@@ -148,7 +131,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 1.0,
         "cluster": "F-EXTERNAL",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "F",
         "score_mapping": {
             "satisfied": 1.0,
@@ -163,7 +146,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 1.0,
         "cluster": "F-PRACTICAL",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "F",
         "score_mapping": {
             "satisfied": 1.0,
@@ -178,7 +161,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
         "role": "bonus",
         "weight": 0.0,
         "cluster": "F-SOCIAL",
-        "applicable_type": "通用",
+        "applicable_type": 'General',
         "dimension_id": "F",
         "score_mapping": {
             "satisfied": 1.0,
@@ -191,7 +174,7 @@ EXPECTED_MECHANICS: dict[str, dict[str, object]] = {
     },
 }
 
-# 受保护的锚点字段：这些字段只有本次改动范围内的 11 条规则可以动。
+# Protected anchor fields: These fields can only be moved by the 11 rules within the scope of this change.
 PROTECTED_FIELDS = (
     "judgement_values",
     "retrieval_terms",
@@ -201,18 +184,18 @@ PROTECTED_FIELDS = (
     "mostly_note",
 )
 
-# 枚举式写法黑名单：这些词把档位变成「全部满足才算够」的清单，缺一项就掉档。
-BANNED_ENUMERATION_WORDS = ("并", "并且", "且", "全部", "齐备", "同时", "以及")
+# Enumeration-style blacklist: These words turn the gears into a list of "only if everything is satisfied". If one item is missing, the gear will be dropped.
+BANNED_ENUMERATION_WORDS = ('and', 'and', 'and', 'All', 'Complete', 'at the same time', 'and')
 
-# satisfied 与 mostly 的锚点文本字符重合度上限（Jaccard of character sets）。
-# 用来机械地保证最高档不是次高档的复述。
+# satisfied and mostly The upper limit of coincidence of anchor text characters (Jaccard of character sets).
+# is used to mechanically ensure that the highest gear is not a repeat of the second gear.
 MAX_SATISFIED_MOSTLY_OVERLAP = 0.60
 
 MIN_ANCHOR_CHARS = 25
 
 
 def field_value(rule, field: str):
-    """取字段值，把空字符串与 None 归一，避免 YAML 里 `key:` 与省略写成两种"没写"。"""
+    'takes the field value and normalizes the empty string with None to prevent `key:` and omission from being written as "not written" in YAML.'
     return getattr(rule, field) or None
 
 
@@ -225,16 +208,16 @@ def main() -> int:
     profile = load_rule_profile(RULES)
     rules = profile.rules_by_id
 
-    # 1) 规则库本身必须能加载并通过严格校验（权重加平、6:4、两池加平）
+    # 1) The rule base itself must be able to be loaded and pass strict verification (weighted equalization, 6:4, two pools equalized)
     errors = validate_rule_profile(profile)
     assert errors == [], errors
-    print(f"规则库校验：{len(profile.rules)} 条规则，validate_rule_profile 无错")
+    print(f"rule base verification: {len(profile.rules)} rules, validate_rule_profile is correct")
 
-    # 2) 改动范围内的 11 条规则必须全部存在
+    # 2) All 11 rules within the scope of change must exist
     missing = [rule_id for rule_id in TARGET_RULE_IDS if rule_id not in rules]
-    assert missing == [], f"缺少规则：{missing}"
+    assert missing == [], f"Missing rule: {missing}"
 
-    # 3) 不越界：role / weight / cluster / score_mapping / applicable_type / dimension_id 一字未动
+    # 3) Not out of bounds: role/weight/cluster/score_mapping/applicable_type/dimension_id Not a word is touched
     for rule_id in TARGET_RULE_IDS:
         rule = rules[rule_id]
         expected = EXPECTED_MECHANICS[rule_id]
@@ -247,29 +230,29 @@ def main() -> int:
             "score_mapping": dict(rule.score_mapping),
         }
         assert actual == expected, (
-            f"{rule_id} 的机制字段被改动了：\n  现在 {actual}\n  改动前 {expected}"
+            f"The mechanism field of {rule_id} was changed: \n Now {actual}\n Before change {expected}"
         )
-    print(f"不越界：{len(TARGET_RULE_IDS)} 条 E/F 规则的 role/weight/cluster/score_mapping/applicable_type/dimension_id 与改动前一致")
+    print(f"does not cross the boundary: the role/weight/cluster/score_mapping/applicable_type/dimension_id of {len(TARGET_RULE_IDS)} E/F rules are the same as before the change")
 
-    # 4) 档位形状：基准项 = 五档（不含 satisfied），加分项 = 六档（含 satisfied）
+    # 4) Gear shape: base item = fifth gear (excluding satisfied), bonus item = sixth gear (including satisfied)
     for rule_id in TARGET_RULE_IDS:
         rule = rules[rule_id]
         expected_keys = set(REQUIRED_JUDGEMENT_KEYS_BY_ROLE[rule.role])
         actual_keys = set(rule.judgement_values)
         assert actual_keys == expected_keys, (
-            f"{rule_id}（{rule.role}）档位键集合不对：\n  现在 {sorted(actual_keys)}\n  应为 {sorted(expected_keys)}"
+            f"{rule_id} ({rule.role}) The gear key set is wrong: \n Now {sorted(actual_keys)}\n should be {sorted(expected_keys)}"
         )
         actual_mapping_keys = set(rule.score_mapping)
         assert actual_mapping_keys == expected_keys, (
-            f"{rule_id} score_mapping 键集合不对：{sorted(actual_mapping_keys)}"
+            f"{rule_id} score_mapping key set is wrong: {sorted(actual_mapping_keys)}"
         )
         if rule.role == "baseline":
-            assert "satisfied" not in rule.judgement_values, f"{rule_id} 是基准项，不应有 satisfied 档"
-            assert "satisfied" not in rule.score_mapping, f"{rule_id} 是基准项，不应有 satisfied 分值"
+            assert "satisfied" not in rule.judgement_values, f"{rule_id} is the base item and should not have a satisfied file"
+            assert "satisfied" not in rule.score_mapping, f"{rule_id} is the benchmark item and should not have a satisfied score"
     bonus_count = sum(1 for rule_id in TARGET_RULE_IDS if rules[rule_id].role == "bonus")
-    print(f"档位形状：{len(TARGET_RULE_IDS) - bonus_count} 条基准项五档（不含 satisfied）、{bonus_count} 条加分项六档")
+    print(f"gear shape: {len(TARGET_RULE_IDS) - bonus_count} has five basic items (excluding satisfied), {bonus_count} has six extra points")
 
-    # 5) 禁用枚举式连接词：judgement_values / threshold / mostly_threshold / rationale
+    # 5) Disable enumeration connectives: judgment_values / threshold / mostly_threshold / rationale
     scanned = 0
     for rule_id in TARGET_RULE_IDS:
         rule = rules[rule_id]
@@ -288,24 +271,24 @@ def main() -> int:
             for word in BANNED_ENUMERATION_WORDS:
                 match = re.search(re.escape(word), text)
                 assert match is None, (
-                    f"{rule_id} 的 {field_name} 命中枚举式连接词「{word}」："
+                    f"{field_name} of {rule_id} hits the enumeration connective \"{word}\":"
                     f"…{text[max(0, match.start() - 8):match.start() + 10]}…"
                 )
             scanned += 1
-    print(f"禁用枚举式写法：扫过 {scanned} 个字段，未出现 {'/'.join(BANNED_ENUMERATION_WORDS)}")
+    print(f"Disable enumeration writing method: Scan {scanned} fields, {'/'.join(BANNED_ENUMERATION_WORDS)} does not appear")
 
-    # 6) 六个档位的锚点互不相同，且每条至少 25 字
+    # 6) The anchor points of the six levels are different from each other, and each one has at least 25 words.
     for rule_id in TARGET_RULE_IDS:
         rule = rules[rule_id]
         values = rule.judgement_values
-        assert len(set(values.values())) == len(values), f"{rule_id} 存在重复档位锚点（复制粘贴）"
+        assert len(set(values.values())) == len(values), f"{rule_id} Duplicate judgment anchors exist (copy and paste)"
         for key, text in values.items():
             assert len(text) >= MIN_ANCHOR_CHARS, (
-                f"{rule_id} 的 {key} 档锚点只有 {len(text)} 字，低于 {MIN_ANCHOR_CHARS} 字"
+                f"{rule_id} has only {len(text)} words, which is lower than {MIN_ANCHOR_CHARS} words."
             )
-    print(f"档位锚点：每条规则六档互不相同，且每条锚点 ≥ {MIN_ANCHOR_CHARS} 字")
+    print(f"Gear Anchor Point: The six gears of each rule are different from each other, and each anchor point ≥ {MIN_ANCHOR_CHARS} word")
 
-    # 7) 加分规则：satisfied 不是 mostly 的复述
+    # 7) Bonus rule: satisfied is not a retelling of mostly
     overlaps = {}
     for rule_id in TARGET_RULE_IDS:
         rule = rules[rule_id]
@@ -314,13 +297,13 @@ def main() -> int:
         score = jaccard(rule.judgement_values["satisfied"], rule.judgement_values["mostly"])
         overlaps[rule_id] = round(score, 3)
         assert score < MAX_SATISFIED_MOSTLY_OVERLAP, (
-            f"{rule_id} 的 satisfied 与 mostly 锚点字符重合度 {score:.3f} "
-            f"不低于 {MAX_SATISFIED_MOSTLY_OVERLAP}，最高档像次高档的复述"
+            f"{rule_id}'s satisfied and mostly anchor character coincidence degree {score:.3f}"
+            f"is not lower than {MAX_SATISFIED_MOSTLY_OVERLAP}, the highest grade is like a repeat of the next highest grade"
         )
-    print(f"satisfied ≠ mostly 复述：重合度上限 {MAX_SATISFIED_MOSTLY_OVERLAP}，实测 {overlaps}")
+    print(f"satisfied ≠ mostly Restatement: upper limit of overlap {MAX_SATISFIED_MOSTLY_OVERLAP}, actual measurement {overlaps}")
 
-    # 8) 其它维度与 F-LIMITATIONS 一字未动：逐字段与改动前的权威快照比对
-    assert SNAPSHOT.exists(), f"改动前的权威快照不存在：{SNAPSHOT}"
+    # 8) Other dimensions and F-LIMITATIONS remain unchanged: field by field comparison with the authoritative snapshot before the change
+    assert SNAPSHOT.exists(), f"The authoritative snapshot before the change does not exist: {SNAPSHOT}"
     snapshot = load_rule_profile(SNAPSHOT)
     snapshot_rules = snapshot.rules_by_id
     protected: list[str] = []
@@ -328,31 +311,32 @@ def main() -> int:
         if rule.rule_id in TARGET_RULE_IDS:
             continue
         protected.append(rule.rule_id)
-        assert rule.rule_id in snapshot_rules, f"{rule.rule_id} 不在改动前的快照里"
+        assert rule.rule_id in snapshot_rules, f"{rule.rule_id} is not in the snapshot before the change"
         before = snapshot_rules[rule.rule_id]
         for field in PROTECTED_FIELDS:
             now_value = field_value(rule, field)
             before_value = field_value(before, field)
             assert now_value == before_value, (
-                f"{rule.rule_id} 的 {field} 与改动前快照不一致——"
-                f"本次改动只允许动 E/F 的 {len(TARGET_RULE_IDS)} 条规则\n"
-                f"  现在 {now_value!r}\n  快照 {before_value!r}"
+                f"{field} of {rule.rule_id} is inconsistent with the snapshot before the change——"
+                f"This change only allows the {len(TARGET_RULE_IDS)} rules of E/F to be moved \n"
+                f"Now {now_value!r}\n Snapshot {before_value!r}"
             )
     print(
-        f"不碰别人：{len(protected)} 条规则（A/B/C/D 22 条 + F-LIMITATIONS-V1）的 "
-        f"{'/'.join(PROTECTED_FIELDS)} 与快照 {SNAPSHOT.name} 逐字段一致"
+        f"Don’t touch others: {len(protected)} rules (A/B/C/D 22 + F-LIMITATIONS-V1)"
+        f"{'/'.join(PROTECTED_FIELDS)} is consistent with snapshot {SNAPSHOT.name} field by field"
     )
 
-    # 8b) 反向检查：本次改动确实只落在允许的字段上（未触碰受保护的机制字段）
+    # 8b) Reverse check: This change indeed only falls on allowed fields (protected mechanism fields are not touched)
+# The protected field of
     for rule_id in TARGET_RULE_IDS:
         before = snapshot_rules[rule_id]
         for field in ("role", "weight", "cluster", "score_mapping", "applicable_type", "dimension_id"):
             assert getattr(rules[rule_id], field) == getattr(before, field), (
-                f"{rule_id} 的受保护字段 {field} 相对快照被改动"
+                f"{rule_id} {field} is modified relative to the snapshot"
             )
-    print(f"反向检查：{len(TARGET_RULE_IDS)} 条 E/F 规则的机制字段相对快照未变")
+    print(f"Reverse check: {len(TARGET_RULE_IDS)} mechanism fields of E/F rules remain unchanged compared to the snapshot")
 
-    # 9) 结构侧未被牵连：维度权重、两池、构念层、证据预算仍是改动前的值
+    # 9) The structural side is not affected: dimension weights, two pools, construct layers, and evidence budgets are still the values before the change
     dimension_weights = {item.dimension_id: item.weight for item in profile.dimensions}
     assert dimension_weights == {"A": 15.0, "B": 20.0, "C": 20.0, "D": 25.0, "E": 15.0, "F": 5.0}, dimension_weights
     assert (profile.baseline_pool, profile.bonus_pool) == (60.0, 40.0), (profile.baseline_pool, profile.bonus_pool)
@@ -360,9 +344,9 @@ def main() -> int:
     e_bonus = sum(rule.weight for rule in profile.rules if rule.dimension_id == "E" and rule.role == "bonus")
     f_bonus = sum(rule.weight for rule in profile.rules if rule.dimension_id == "F" and rule.role == "bonus")
     assert (e_bonus, f_bonus) == (6.0, 2.0), (e_bonus, f_bonus)
-    print(f"结构未动：维度权重 {dimension_weights}；两池 60/40；证据预算 10；E 加分池 {e_bonus}、F 加分池 {f_bonus}")
+    print(f"The structure remains unchanged: dimension weight {dimension_weights}; two pools 60/40; evidence budget 10; E bonus pool {e_bonus}, F bonus pool {f_bonus}")
 
-    print("E/F 档位锚点自检通过。")
+    print('E/F gear anchor point self-test passed.')
     return 0
 
 

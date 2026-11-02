@@ -11,12 +11,12 @@ from typing import Any
 
 FACETS = ["topic", "problem", "method", "data", "experiment", "contribution"]
 FACET_HINTS = {
-    "topic": ["title", "abstract", "introduction", "topic", "phenomenon", "主题", "现象"],
-    "problem": ["gap", "puzzle", "problem", "question", "paradox", "研究问题", "缺口"],
-    "method": ["method", "design", "measure", "model", "analysis", "方法", "设计", "测量"],
-    "data": ["data", "sample", "dataset", "interview", "survey", "数据", "样本"],
-    "experiment": ["result", "finding", "robust", "test", "table", "结果", "发现", "检验"],
-    "contribution": ["contribution", "theory", "implication", "novel", "advance", "贡献", "理论", "启示"],
+    "topic": ["title", "abstract", "introduction", "topic", "phenomenon", 'theme', 'phenomenon'],
+    "problem": ["gap", "puzzle", "problem", "question", "paradox", 'Research Question', 'notch'],
+    "method": ["method", "design", "measure", "model", "analysis", 'method', 'design', 'Measurement'],
+    "data": ["data", "sample", "dataset", "interview", "survey", 'data', 'sample'],
+    "experiment": ["result", "finding", "robust", "test", "table", 'results', 'found', 'inspection'],
+    "contribution": ["contribution", "theory", "implication", "novel", "advance", 'Contribution', 'Theory', 'Enlightenment'],
 }
 
 

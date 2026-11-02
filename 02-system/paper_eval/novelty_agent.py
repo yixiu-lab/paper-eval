@@ -1,23 +1,4 @@
-"""Novelty Verification Agent：拿外部文献证据给单条 claim 做**有限枚举**判断。
-
-它不产出自由分数，只允许在五个档里选一个：
-
-- `novel`                发表之前没有可比的已有研究
-- `partially_novel`      有新成分，但已有研究已覆盖其中一部分
-- `incremental`          主体已被做过，本文只做了增量
-- `already_established`  已被既有研究确立
-- `uncertain`            外部证据不足，判不了
-
-核心任务不是"总结相关文献"，而是回答：**相对发表之前的已有研究，这条贡献究竟新增了什么。**
-
-必须区分两件事：
-1. 作者自己声称创新（来自本文内部证据 `internal_evidence`）；
-2. 外部文献证据支持其创新（`supporting_papers` / `contradicting_papers`，来自 External Evidence Set）。
-两者冲突时以外部证据为准，并把冲突写进 reason。
-
-LLM 不可用（无 key / 离线 / 本地小模型调用失败）时不编造判断，产出 uncertain + needs_review，
-让 Harness 按"外部证据不足"处理。
-"""
+'Novelty Verification Agent: Use external documentary evidence to make **limited enumeration** judgment on a single claim.\n\nIt does not generate free scores and only allows you to choose one of five levels:\n\n- There is no comparable existing study before publication of `novel`\n- `partially_novel` has new ingredients, but some of them have been covered by existing research\n- `incremental` The main body has been done, this article only does the increment\n- `already_established` has been established by existing research\n- `uncertain` Insufficient external evidence, unable to make a verdict\n\nThe core task is not to "summarize relevant literature", but to answer: **Compared to the existing research before publication, what exactly does this contribution add? **\n\nTwo things must be distinguished:\n1. The author himself claims innovation (from internal evidence `internal_evidence` in this article);\n2. External documentary evidence supports its innovation (`supporting_papers` / `contradicting_papers`, from External Evidence Set).\nWhen there is a conflict between the two, external evidence shall prevail, and the conflict shall be written into reason.\n\nWhen LLM is unavailable (no key/offline/local small model call failure), no judgment will be made, and uncertain + needs_review will be output.\nLet Harness proceed with "insufficient external evidence."'
 
 from __future__ import annotations
 
@@ -31,33 +12,33 @@ from .external_retrieval import ExternalRetrievalConfig
 from .llm import AgentRuntimeConfig, call_plain_json
 from .models import Evidence
 
-# 创新性验证结论块用的 section 名。agents.py 的提示词按这个字符串识别 NOV-* 条目。
-NOVELTY_EVIDENCE_SECTION = "创新性验证 Agent 结论"
+# The section name used for the innovative verification conclusion block. The prompt word for agents.py identifies NOV-* entries by this string.
+NOVELTY_EVIDENCE_SECTION = 'Innovation Verification Agent Conclusion'
 NOVELTY_JUDGEMENTS = ("novel", "partially_novel", "incremental", "already_established", "uncertain")
-# 依赖外部证据才有意义的档位：外部证据不足时不允许落到这两档。
+# Levels that are meaningful only if external evidence is insufficient: falling into these two levels is not allowed when external evidence is insufficient.
 NOVELTY_POSITIVE = {"novel", "partially_novel"}
 
 NOVELTY_SYSTEM_PROMPT = (
-    "你是外部创新性验证 Agent。你的任务不是总结相关文献，而是回答一个具体问题："
-    "**相对于目标论文发表之前已经存在的相关研究，这条 claim 究竟新增了什么。**\n"
-    "你会收到：target_claim（待验证主张，含 claim_type / concepts / theory / mechanism / context）、"
-    "internal_evidence（本文内部证据，代表**作者自己的声称**）、external_evidence_set（真实检索到的、"
-    "发表于目标论文之前的候选文献，各带 relevance_score 与 retrieval_query）、"
-    "target_paper（目标论文元数据与发表年份）。\n"
-    "判断规则：\n"
-    "1) 只能依据给出的 external_evidence_set 判断外部文献情况。**不得**凭自己的知识声称某研究"
-    "『首次』『已确立』或『已有大量研究』；证据里没有就是没有。\n"
-    "2) 必须区分「作者声称创新」（internal_evidence 里的话）与「外部文献证据支持其创新」"
-    "（external_evidence_set 里能对照上的内容）。两者不一致时以外部证据为准。\n"
-    "3) external_evidence_set 为空或与 claim 明显无关时，judgment 只能是 uncertain。\n"
-    "4) 引用文献时必须用证据里给出的 external_evidence_id（XEV-*），supporting_papers / "
-    "contradicting_papers 里只能点名 external_evidence_set 中真实存在的标题或 DOI。\n"
-    "5) judgment 只允许：novel | partially_novel | incremental | already_established | uncertain。\n"
-    "6) 不允许输出任何自由分数；分数由 Harness 计算。\n"
-    "输出 JSON：{\"judgements\":[{\"claim_id\":\"原样返回\",\"judgment\":\"枚举值\","
-    "\"reason\":\"中文短评，说明相对既有研究新增了什么\",\"supporting_papers\":[\"标题或DOI\"],"
-    "\"contradicting_papers\":[\"标题或DOI\"],\"external_evidence_ids\":[\"XEV-1\"],"
-    "\"confidence\":0.0,\"needs_review\":true}]}。必须为每条输入 claim 返回一条判断。"
+    'You are an external innovation verification agent. Your task is not to summarize the relevant literature, but to answer a specific question:'
+    '**Compared to the related research that existed before the publication of the target paper, what exactly does this claim add? **'
+    'You will receive: target_claim (claim to be verified, including claim_type / concepts / theory / mechanism / context),'
+    'internal_evidence (internal evidence in this article, representing **the author’s own claims**), external_evidence_set (actually retrieved,'
+    'Candidate documents published before the target paper, each with relevance_score and retrieval_query),'
+    'target_paper (target paper metadata and publication year).'
+    'Judgment rules:'
+    '1) The status of external documents can only be determined based on the given external_evidence_set. **You may not** rely on your own knowledge to claim a certain research'
+    '"For the first time", "Established" or "There have been a lot of studies"; if it is not in the evidence, it means it is not there.'
+    '2) It is necessary to distinguish between "the author claims innovation" (words in internal_evidence) and "external documentary evidence supports his innovation"'
+    '(content that can be compared in external_evidence_set). If there is any inconsistency between the two, external evidence shall prevail.'
+    '3) When external_evidence_set is empty or obviously irrelevant to claim, judgment can only be uncertain.'
+    '4) When citing documents, you must use the external_evidence_id (XEV-*) given in the evidence, supporting_papers /'
+    'Only titles or DOIs that actually exist in external_evidence_set can be named in contradicting_papers.'
+    '5) judgment only allows: novel | partially_novel | incremental | already_established | uncertain.'
+    '6) No free scores are allowed to be output; scores are calculated by Harness.'
+    'Output JSON: {"judgements":[{"claim_id":"Return as is","judgment":"Enumeration value",'
+    '"reason":"Concise English review explaining what is new compared with prior research","supporting_papers":["Title or DOI"],'
+    '"contradicting_papers":["Title or DOI"],"external_evidence_ids":["XEV-1"],'
+    '"confidence":0.0,"needs_review":true}]}. A judgment must be returned for each input claim.'
 )
 
 
@@ -97,7 +78,7 @@ class NoveltyVerdict:
 
 
 def coverage_of_claim(claim_id: str, external_set: list[dict[str, Any]]) -> dict[str, Any]:
-    """某条 claim 的外部证据覆盖情况。Harness 靠它决定要不要下调置信度。"""
+    'External evidence coverage of a certain claim. Harness relies on it to decide whether to downgrade the confidence level.'
     works = [
         work
         for work in external_set
@@ -170,7 +151,7 @@ def normalize_novelty_output(
     external_set: list[dict[str, Any]],
     publication_year: int | None,
 ) -> list[NoveltyVerdict]:
-    """把模型输出收敛成受控结构：枚举值、证据 ID、supporting/contradicting 都按仓库核对。"""
+    'Converge model output into a controlled structure: enumeration values, evidence IDs, supporting/contradicting are all checked against the warehouse.'
     known_ids = {str(work.get("evidence_id") or "") for work in external_set}
     items = raw.get("judgements") if isinstance(raw, dict) else None
     by_claim: dict[str, dict[str, Any]] = {}
@@ -188,7 +169,7 @@ def normalize_novelty_output(
                 NoveltyVerdict(
                     claim_id=claim_id,
                     judgment="uncertain",
-                    reason="模型未返回该 claim 的创新性判断，按外部证据不足处理。",
+                    reason='The model does not return the innovativeness judgment of the claim and is treated as insufficient external evidence.',
                     confidence=0.0,
                     needs_review=True,
                     claim_type=str(getattr(claim, "claim_type", "")),
@@ -215,7 +196,7 @@ def normalize_novelty_output(
         notes: list[str] = []
         if unknown:
             needs_review = True
-            notes.append(f"引用了不存在的外部证据 ID：{', '.join(unknown)}")
+            notes.append(f"refers to non-existent external evidence ID: {', '.join(unknown)}")
 
         def backed(name: str) -> bool:
             lowered = str(name or "").strip().lower()
@@ -232,7 +213,7 @@ def normalize_novelty_output(
         if unbacked_support or unbacked_contra:
             needs_review = True
             notes.append(
-                "点名了 External Evidence Set 之外的文献："
+                'named documents outside the External Evidence Set:'
                 + "；".join([*unbacked_support, *unbacked_contra])[:120]
             )
         cited = [
@@ -240,10 +221,10 @@ def normalize_novelty_output(
             if str(work.get("evidence_id") or "") in referenced
         ]
         if judgment in NOVELTY_POSITIVE and not cited and not supporting:
-            notes.append("判novel但未给出任何支撑文献，置信度由 Harness 下调")
+            notes.append('is judged to be novel but no supporting documents are provided, and the confidence level is lowered by Harness.')
             needs_review = True
         if judgment in NOVELTY_POSITIVE and not coverage["paper_count"]:
-            notes.append("判novel但该 claim 没有任何外部对照文献，置信度由 Harness 下调")
+            notes.append('is judged novel but the claim does not have any external reference literature, and the confidence level is lowered by Harness.')
             needs_review = True
         if cited:
             ok, note = judgement_support_consistency(judgment, cited, str(row.get("reason") or ""))
@@ -252,7 +233,7 @@ def normalize_novelty_output(
                 needs_review = True
         reason = str(row.get("reason") or "").strip()
         if notes:
-            reason = f"{reason}（核对提示：{'；'.join(notes)}）"
+            reason = f"{reason} (check tip: {'；'.join(notes)})"
         verdicts.append(
             NoveltyVerdict(
                 claim_id=claim_id,
@@ -273,12 +254,12 @@ def normalize_novelty_output(
 
 
 def fallback_verdicts(claims: list[Any], external_set: list[dict[str, Any]], error: str) -> list[NoveltyVerdict]:
-    """外部验证不可用（无模型/离线）时的确定性降级：全部 uncertain + needs_review。"""
+    'Determination degradation when external validation is not available (no model/offline): all uncertain + needs_review.'
     return [
         NoveltyVerdict(
             claim_id=str(getattr(claim, "claim_id", "")),
             judgment="uncertain",
-            reason="创新性验证 Agent 不可用（或未取得可用外部证据），本次不对该 claim 做创新性判断。",
+            reason='The innovation verification agent is unavailable (or no available external evidence has been obtained), and no innovation judgment will be made on the claim this time.',
             external_evidence_ids=[],
             confidence=0.0,
             needs_review=True,
@@ -293,27 +274,23 @@ def fallback_verdicts(claims: list[Any], external_set: list[dict[str, Any]], err
 
 
 def verdict_blocks(verdicts: list[dict[str, Any]], paper_id: str) -> list[Evidence]:
-    """创新性验证结论 → 可引用证据块（NOV-*），插给依赖领域比较的规则做 B4 贡献判断。
-
-    这些块不是"证据"，是"已核对的判断"：写清档位、理由、引用了哪些外部证据 ID，
-    既让评分 Agent 不必自己重做比对，也让 Harness 能顺着 NOV-* → XEV-* → 外部论文一路追溯。
-    """
+    'Innovative verification conclusion → Quotable evidence block (NOV-*), inserted into rules that rely on field comparison to make B4 contribution judgments.\n\n    These blocks are not "evidence", but "checked judgments": write down the location, reasons, which external evidence IDs were cited,\n    This not only prevents the scoring agent from having to redo the comparison itself, but also allows Harness to trace back NOV-* → XEV-* → external papers.'
     blocks: list[Evidence] = []
     for index, row in enumerate(verdicts, start=1):
         lines = [
-            f"【创新性验证结论 NOV-{index}｜claim {row.get('claim_id')}｜{row.get('claim_type_label') or row.get('claim_type')}】",
-            f"判断：{row.get('judgment')}（置信度 {row.get('confidence')}；需复核 {row.get('needs_review')}）",
-            f"作者的主张（本文内部证据 {row.get('internal_evidence_id')}）：{row.get('author_claim')}",
-            f"外部文献对照结论：{row.get('reason')}",
-            f"引用的外部证据：{', '.join(str(item) for item in (row.get('external_evidence_ids') or [])) or '无'}",
+            f"【Innovative verification conclusion NOV-{index}｜claim {row.get('claim_id')}｜{row.get('claim_type_label') or row.get('claim_type')}】",
+            f"Judgment: {row.get('judgment')} (confidence {row.get('confidence')}; need to review {row.get('needs_review')})",
+            f"Author's assertion (internal evidence of this article {row.get('internal_evidence_id')}): {row.get('author_claim')}",
+            f"External literature comparison conclusion: {row.get('reason')}",
+            f"External evidence cited: {', '.join(str(item) for item in (row.get('external_evidence_ids') or [])) or 'None'}",
         ]
         if row.get("supporting_papers"):
-            lines.append(f"支持该判断的文献：{'；'.join(str(item) for item in row['supporting_papers'])}")
+            lines.append(f"Documents supporting this judgment: {'；'.join(str(item) for item in row['supporting_papers'])}")
         if row.get("contradicting_papers"):
-            lines.append(f"构成对照/反例的文献：{'；'.join(str(item) for item in row['contradicting_papers'])}")
+            lines.append(f"Documents constituting comparison/counterexample: {'；'.join(str(item) for item in row['contradicting_papers'])}")
         coverage = row.get("coverage") or {}
         lines.append(
-            f"外部证据覆盖：{coverage.get('paper_count', 0)} 篇（其中带年份 {coverage.get('prior_paper_count', 0)} 篇）"
+            f"External evidence coverage: {coverage.get('paper_count', 0)} articles (including {coverage.get('prior_paper_count', 0)} articles with year)"
         )
         text = "\n".join(lines)
         blocks.append(
@@ -341,11 +318,7 @@ def run_novelty_verification(
     retrieval_config: ExternalRetrievalConfig | None = None,
     progress_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
-    """跑创新性验证。返回 {"verdicts": [...], "unavailable": bool, "reason": str}。
-
-    只做一次批量调用（所有 claim 一起），失败即整体降级为 uncertain——不逐条重试，
-    因为"外部证据不足"本身就是允许的结论，重试只会烧调用。
-    """
+    'runs innovative verification. Return {"verdicts": [...], "unavailable": bool, "reason": str}.\n\n    Only make one batch call (all claims together). If it fails, the whole call will be downgraded to uncertain - no retrying one by one.\n    Because "insufficient external evidence" is itself a permissible conclusion, retrying will just burn the call.'
     if not claims:
         return {"verdicts": [], "unavailable": True, "reason": "no_claims"}
     if not external_set:
@@ -368,7 +341,7 @@ def run_novelty_verification(
         ],
     }
     if progress_callback:
-        progress_callback(f"创新性验证 Agent 正在比对 {len(claims)} 条 claim 与 {len(external_set)} 篇外部文献")
+        progress_callback(f"Innovation Verification Agent is comparing {len(claims)} claims with {len(external_set)} external documents")
     try:
         raw = call_plain_json(NOVELTY_SYSTEM_PROMPT, payload, config)
     except Exception as exc:

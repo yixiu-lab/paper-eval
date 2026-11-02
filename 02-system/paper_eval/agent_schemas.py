@@ -24,10 +24,10 @@ class AgentRuleInput(BaseModel):
     required_evidence: str
     evidence_location: list[str]
     observation_points: list[str]
-    # 规则角色：baseline（合格性门槛，合格即满分，只判缺口）或 bonus（加分项，只有 satisfied 拿满）。
+    # Rule role: baseline (eligibility threshold, passing means full points, only gaps will be judged) or bonus (additional points, only satisfied ones get full points).
     role: str = "baseline"
     allowed_judgements: list[str] = Field(default_factory=lambda: list(ALLOWED_JUDGEMENTS))
-    # 每条规则的档位定义。以前只存在规则库里、没有进入模型输入，模型只能靠通用话术猜档位。
+    # The gear level definition of each rule. In the past, it only existed in the rule base and did not enter the model input. The model could only guess the gear position by relying on common vocabulary.
     judgement_anchors: dict[str, str] = Field(default_factory=dict)
 
 

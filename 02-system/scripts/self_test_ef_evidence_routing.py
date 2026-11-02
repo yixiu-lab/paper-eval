@@ -1,23 +1,8 @@
-"""E/F 证据路由自检：两条"证据形态"通道必须都有确定性的入选路径。
+"""Offline checks for deterministic evidence routing in dimensions E and F.
 
-背景：E/F 的阅读包以前只由 `score_results_boundary_hits` 排序决定，而那套词全是
-"论文把结果写好了"的信号（results indicate / coefficient / robustness check /
-hypothesis supported）。按它排序，进包的一定是最像"好结果"的段落；而"没报数值""只给方向"
-"检验不显著""数据不可得""结论强过证据"这些能支撑低档的段落只能靠排序尾部的偶然进包。
-改法见 `paper_eval/agents.py` 的 `evidence_form_channels` / `guarantee_evidence_forms`。
+The checks verify that each E/F rule receives a non-empty, bounded evidence pack containing both high-support and low-support material, that repeated calls return the same evidence IDs, and that other dimensions retain their expected routing behavior.
 
-本自检钉四件事：
-  1) E/F 每条规则的包**非空**、**不超 limit**，并且"支持高档"与"支持低档"两类段落都出现；
-  2) 同等输入重复调用，包逐条相同（证据选择确定性，不靠 dict/set 顺序）；
-  3) 非 E/F 维度（D）的包逐条等于改动前的期望序列 —— 改动不外溢；
-  4) 模型真正看到的最终包（`build_dimension_reading_packs`）同样两类证据齐备。
-
-第 3 条的期望值是改动前跑 `python "scripts/自检_EF证据路由.py" --dump-d` 记下来的。
-如果 `评价规则库/rules_v1.yaml` 里 D 维的 retrieval_terms / evidence_location 改了，
-这个常量需要重新生成（这是刻意的：它就该在规则库变动时失败提醒）。
-
-运行：
-    python ".\scripts\自检_EF证据路由.py"
+Run with: python scripts/self_test_ef_evidence_routing.py
 """
 
 from __future__ import annotations
@@ -38,7 +23,7 @@ from paper_eval.llm import AgentRuntimeConfig  # noqa: E402
 from paper_eval.models import Evidence  # noqa: E402
 from paper_eval.rules import load_rule_profile  # noqa: E402
 
-RULES = ROOT / "评价规则库" / "rules_v1.yaml"
+RULES = ROOT / 'rules' / "rules_v1.yaml"
 LIMIT = 10
 AGENT_FOR_DIMENSION = {dimension: agent for agent in AGENTS for dimension in agent.dimension_ids}
 
@@ -55,7 +40,7 @@ def evidence(eid: str, page: int, section: str, text: str) -> Evidence:
     )
 
 
-# 支持**高档**的段落：把结果/数值/可得性/边界交代清楚的句子。
+# supports **high-end** paragraphs: sentences that clearly explain the results/values/availability/boundaries.
 HIGH_SUPPORT = [
     evidence(
         "EV-HI-STATS",
@@ -90,7 +75,7 @@ HIGH_SUPPORT = [
     ),
 ]
 
-# 支持**低档**的段落：作者自己写出"没做到"的地方（未报告 / 不显著 / 不可得 / 结论强过证据）。
+# Paragraphs that support **low-grade**: the author writes out what he "failed to do" (not reported/not significant/not available/the conclusion is stronger than the evidence).
 LOW_SUPPORT = [
     evidence(
         "EV-LO-NOTSIG",
@@ -138,13 +123,13 @@ LOW_SUPPORT = [
 LOW_SUPPORT_IDS = {item.evidence_id for item in LOW_SUPPORT}
 HIGH_SUPPORT_IDS = {item.evidence_id for item in HIGH_SUPPORT}
 
-# D 维回归锚点用的方法段：改动不该影响 D 的取证据。
+# Method section for D-dimensional regression anchor point: changes should not affect the evidence collection of D.
 METHOD_ITEMS = [
     evidence(
         f"EV-METHOD-{index}",
         4 + index,
         "Methods",
-        "研究程序与样本说明段。We collected survey data from respondents in a multi-wave panel; the "
+        'Research procedures and sample description section. We collected survey data from respondents in a multi-wave panel; the'
         "response rate and the sampling frame are described, every construct was measured with validated "
         "scales, and the identification strategy addresses endogeneity with instrumental variables. " * 2,
     )
@@ -156,7 +141,7 @@ FILLER = [
         f"EV-FILL-{index}",
         2 + index,
         "Introduction",
-        "背景铺垫段。The remaining sections of this manuscript proceed as follows and introduce each part "
+        'background paving section. The remaining sections of this manuscript proceed as follows and introduce each part'
         "of the argument in turn for the reader, without reporting any estimate or procedure. " * 2,
     )
     for index in range(4)
@@ -167,7 +152,7 @@ def build_pool() -> list[Evidence]:
     return [*FILLER, *METHOD_ITEMS, *HIGH_SUPPORT, *LOW_SUPPORT]
 
 
-# 改动前的 D 维期望序列（limit=10，池子固定）。生成方式见模块 docstring。
+# D-dimensional expected sequence before change (limit=10, fixed pool). See the module docstring for the generation method.
 EXPECTED_D_PACKS: dict[str, list[str]] = {
     "D-DESIGN-FIT-V1": ['EV-METHOD-0', 'EV-METHOD-1', 'EV-METHOD-2', 'EV-METHOD-3', 'EV-METHOD-4', 'EV-METHOD-5', 'EV-HI-BOUNDARY', 'EV-LO-NOTDESCRIBED', 'EV-FILL-2', 'EV-HI-AVAILABILITY'],
     "D-DATA-SAMPLE-V1": ['EV-METHOD-0', 'EV-METHOD-1', 'EV-METHOD-2', 'EV-METHOD-3', 'EV-METHOD-4', 'EV-METHOD-5', 'EV-HI-BOUNDARY', 'EV-LO-NOTDESCRIBED', 'EV-FILL-2', 'EV-HI-AVAILABILITY'],
@@ -191,34 +176,35 @@ def dump_d(profile) -> int:
 def main() -> int:
     profile = load_rule_profile(RULES)
     if "--dump-d" in sys.argv:
-        print("当前 D 维阅读包（改动前应为基准，改动后必须一致）：")
+        print('Current D-dimensional reading package (should be the baseline before modification and must be consistent after modification):')
         return dump_d(profile)
 
     pool = build_pool()
     ef_rules = [rule for rule in profile.rules if rule.dimension_id in {"E", "F"}]
-    assert ef_rules, "规则库里没有 E/F 规则，自检前提不成立"
+    assert ef_rules, 'There is no E/F rule in the rule base, and the self-test prerequisite is not established.'
 
-    # 1) E/F：非空、不超 limit、两类证据都出现
+    # 1) E/F: Not empty, not exceeding limit, both types of evidence appear
+# The reading package of
     for rule in ef_rules:
         agent = AGENT_FOR_DIMENSION[rule.dimension_id]
         pack = build_reading_pack(rule, pool, agent, LIMIT, None)
         ids = [item.evidence_id for item in pack]
-        assert pack, f"{rule.rule_id} 的阅读包为空"
-        assert len(pack) <= LIMIT, f"{rule.rule_id} 超发：{len(pack)}"
-        assert len(set(ids)) == len(ids), f"{rule.rule_id} 出现重复证据：{ids}"
+        assert pack, f"{rule.rule_id} is empty"
+        assert len(pack) <= LIMIT, f"{rule.rule_id} Super hair: {len(pack)}"
+        assert len(set(ids)) == len(ids), f"{rule.rule_id} Duplicate evidence appears: {ids}"
         high_present = HIGH_SUPPORT_IDS & set(ids)
         low_present = LOW_SUPPORT_IDS & set(ids)
-        assert high_present, f"{rule.rule_id} 的包里没有支持高档的段落：{ids}"
-        assert low_present, f"{rule.rule_id} 的包里没有支持低档的段落：{ids}"
+        assert high_present, f"{rule.rule_id} package does not support high-end paragraphs: {ids}"
+        assert low_present, f"{rule.rule_id} package does not support low-end paragraphs: {ids}"
 
-    # 2) 确定性：同输入两次调用逐条相同
+    # 2) Deterministic: Same as inputting two calls one by one
     for rule in ef_rules:
         agent = AGENT_FOR_DIMENSION[rule.dimension_id]
         first = [item.evidence_id for item in build_reading_pack(rule, pool, agent, LIMIT, None)]
         second = [item.evidence_id for item in build_reading_pack(rule, pool, agent, LIMIT, None)]
-        assert first == second, f"{rule.rule_id} 两次调用结果不同：{first} vs {second}"
+        assert first == second, f"{rule.rule_id} The results of the two calls are different: {first} vs {second}"
 
-    # 3) 模型真正看到的最终包（检索层开、重排关）也要两类齐备，且条数不缩水
+    # 3) The final package that the model actually sees (retrieval layer on, reordering off) must also have both types, and the number of items should not be reduced.
     config = AgentRuntimeConfig(
         evidence_retrieval_enabled=True,
         evidence_rerank_enabled=False,
@@ -232,43 +218,43 @@ def main() -> int:
         )[rule.rule_id]
         final_ids = [item.evidence_id for item in final_pack]
         assert len(final_ids) == len(legacy), (
-            f"{rule.rule_id} 最终包条数与旧启发式不一致：{len(final_ids)} vs {len(legacy)}"
+            f"{rule.rule_id} The final number of packets is inconsistent with the old heuristic: {len(final_ids)} vs {len(legacy)}"
         )
-        assert HIGH_SUPPORT_IDS & set(final_ids), f"{rule.rule_id} 最终包丢了支持高档的段落：{final_ids}"
-        assert LOW_SUPPORT_IDS & set(final_ids), f"{rule.rule_id} 最终包丢了支持低档的段落：{final_ids}"
+        assert HIGH_SUPPORT_IDS & set(final_ids), f"{rule.rule_id} The final package lost the paragraph supporting high-end: {final_ids}"
+        assert LOW_SUPPORT_IDS & set(final_ids), f"{rule.rule_id} The final package lost the paragraph supporting low-end: {final_ids}"
         again = build_dimension_reading_packs([rule], pool, agent, LIMIT, None, config=config)[rule.rule_id]
-        assert final_ids == [item.evidence_id for item in again], f"{rule.rule_id} 最终包不可复现"
+        assert final_ids == [item.evidence_id for item in again], f"{rule.rule_id} The final package cannot be reproduced"
 
-    # 4) 非 E/F 维度（D）逐条等于改动前的期望序列 —— 改动不外溢
+    # 4) The non-E/F dimension (D) is equal to the expected sequence before the change one by one - the change does not overflow
     d_rules = [rule for rule in profile.rules if rule.dimension_id == "D"]
-    assert EXPECTED_D_PACKS, "EXPECTED_D_PACKS 为空，请先跑 --dump-d 生成"
+    assert EXPECTED_D_PACKS, 'EXPECTED_D_PACKS is empty, please run --dump-d first to generate'
     assert {rule.rule_id for rule in d_rules} == set(EXPECTED_D_PACKS), (
-        "D 维规则集合变了，期望序列需要重新生成",
+        'The D-dimensional rule set has changed, and the expected sequence needs to be regenerated.\nThe reading package of',
         sorted(rule.rule_id for rule in d_rules),
     )
     for rule in d_rules:
         agent = AGENT_FOR_DIMENSION["D"]
         got = [item.evidence_id for item in build_reading_pack(rule, pool, agent, LIMIT, None)]
         assert got == EXPECTED_D_PACKS[rule.rule_id], (
-            f"{rule.rule_id} 的阅读包被 E/F 改动影响：{got} != {EXPECTED_D_PACKS[rule.rule_id]}"
+            f"{rule.rule_id} is affected by E/F changes: {got} != {EXPECTED_D_PACKS[rule.rule_id]}"
         )
 
-    # 5) 形态通道自身：只返回 E/F 的候选，且各自内部顺序确定
+    # 5) The morphological channel itself: only returns E/F candidates, and their internal order is determined
     sample_rule = ef_rules[0]
     channels = evidence_form_channels(sample_rule, pool)
     assert set(channels) == {"supports_high", "supports_low"}, sorted(channels)
-    assert channels["supports_high"] and channels["supports_low"], "形态通道为空"
+    assert channels["supports_high"] and channels["supports_low"], 'shape channel is empty'
     repeat = evidence_form_channels(sample_rule, pool)
     assert [item.evidence_id for item in channels["supports_high"]] == [
         item.evidence_id for item in repeat["supports_high"]
-    ], "support_high 通道顺序不稳定"
+    ], 'support_high channel sequence is unstable'
     assert [item.evidence_id for item in channels["supports_low"]] == [
         item.evidence_id for item in repeat["supports_low"]
-    ], "support_low 通道顺序不稳定"
+    ], 'support_low channel sequence is unstable'
 
     print(
-        f"E/F 证据路由自检通过：{len(ef_rules)} 条 E/F 规则的阅读包两类证据齐备、"
-        f"条数 ≤ {LIMIT}、重复调用逐条一致；{len(d_rules)} 条 D 规则阅读包与改动前完全相同。"
+        f"E/F evidence routing self-test passed: {len(ef_rules)} The reading package of E/F rules has two types of evidence,"
+        f"≤ {LIMIT}, repeated calls are consistent one by one; the {len(d_rules)} D rule reading package is exactly the same as before the change."
     )
     return 0
 

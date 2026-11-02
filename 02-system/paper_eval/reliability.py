@@ -1,23 +1,4 @@
-"""Evaluation Reliability Layer：判断「这次评价结果本身稳不稳、可信不可信」。
-
-定位（必须说清楚，否则很容易被误用）：
-
-- **纯后处理**。它不参与论文质量判断，不改变 `scorer.py` 的算分口径，不修改任何已有 Agent 的输出，
-  也不影响 `harness.evaluate_pdf` 的返回值结构——只是在评分结束之后读产物、算稳定性。
-- **不调用任何模型**。整层是确定性的：同一批 run 重新算一次，结论逐字节相同。
-  这不是"再请一个 Agent 评一遍"，而是"把已有判断记录拿来做方差分析"。
-- **不出总分**。运行稳定性 / 证据稳定性 / 判断稳定性 / 参数稳健性 是四个不同维度的问题，
-  强行合成一个数字只会引入一套新的主观权重。报告只给四个分项 + 警告清单 + 需复核项。
-
-四类检测（输入全部来自已有产物，见 `RunTrace`）：
-
-1. `run_variance`：同一篇论文多次运行的总分 / 维度 / 排名是否稳定（`run_variance`）
-2. `evidence_variance`：多次运行里 rule → evidence_ids 的召回是否稳定（`evidence_variance`）
-3. `judgment_variance`：同一 rule 上 Agent 判断档位的分布与一致率（`judgment_variance`）
-4. `calibration_uncertainty`：换一套档位映射重新算分，排序是否翻（见 reliability_diagnosis.py）
-
-证据稳定但判断不稳 → `agent_reasoning`；两者都不稳 → `retrieval_and_reasoning`。
-"""
+'Evaluation Reliability Layer: Determine "whether the evaluation result itself is stable and credible."\n\nPositioning (must be stated clearly, otherwise it can easily be misused):\n\n- **Pure post-processing**. It does not participate in the judgment of paper quality, does not change the scoring caliber of `scorer.py`, and does not modify the output of any existing Agent.\n  It does not affect the return value structure of `harness.evaluate_pdf` - it only reads the product after the scoring is completed to calculate stability.\n- **Does not call any models**. The entire layer is deterministic: the same batch of runs is recalculated and the conclusion is the same byte by byte.\n  This is not "asking another Agent to evaluate again", but "using the existing judgment records for variance analysis".\n- **No total score**. Operational stability/evidence stability/judgment stability/parameter robustness are issues in four different dimensions.\n  Forcing a number into one simply introduces a new set of subjective weights. The report only gives four sub-items + warning list + items that need to be reviewed.\n\nFour types of detection (inputs are all from existing products, see `RunTrace`):\n\n1. `run_variance`: Is the total score/dimension/ranking of the same paper run multiple times stable (`run_variance`)\n2. `evidence_variance`: Is the recall of rule → evidence_ids stable in multiple runs (`evidence_variance`)\n3. `judgment_variance`: Distribution and consistency rate of Agent judgment gears on the same rule (`judgment_variance`)\n4. `calibration_uncertainty`: Change the gear mapping and recalculate the points, and check whether the sorting is reversed (see reliability_diagnosis.py)\n\nThe evidence is stable but the judgment is unstable → `agent_reasoning`; both are unstable → `retrieval_and_reasoning`.'
 
 from __future__ import annotations
 
@@ -33,7 +14,7 @@ import yaml
 
 RELIABILITY_VERSION = "reliability-0.1"
 
-# 稳定性档位 → 0-1 表现分。只用于报告里给读者一个大数，不参与任何加权合成。
+# stability level → 0-1 performance points. It is only used to give readers a large number in reports and does not participate in any weighted synthesis.
 STABILITY_SCORE = {
     "high": 1.0,
     "medium": 0.6,
@@ -47,43 +28,39 @@ DIMENSION_IDS = ("A", "B", "C", "D", "E", "F")
 
 @dataclass(frozen=True)
 class ReliabilityConfig:
-    """所有阈值配置化。默认值取自项目中已记录的实测波动量级。"""
+    'All thresholds are configurable. The default value is taken from measured fluctuation magnitudes that have been recorded in the project.'
 
     enabled: bool = False
-    # 同一篇论文少于这个运行次数时，运行/证据/判断三块方差一律标 insufficient_data（不假装算得出来）
+    # When the same paper is run less than this number of times, the variances in the three blocks of running/evidence/judgment will be marked as insufficient_data (don’t pretend to calculate it)
     min_runs: int = 2
-    # 总分极差阈值（分）。规则库满分 100。
-    # 实测依据：Choudhury 四批重复跑 96.63 / 91.38 / 93.44 / 92.31，极差 5.25 分——那个量级已经足够翻转
-    # 「顶刊级 / 强刊边缘」的等级判定，所以默认阈值定在 5.0 分，与实测噪声同量级。
+    # Total score range threshold (points). The rule base has a perfect score of 100.
+    # Actual measurement basis: Choudhury repeated four batches of runs 96.63 / 91.38 / 93.44 / 92.31, a very poor score of 5.25 points - that level is enough to flip
+    # is used to determine the level of "top publication level/strong publication edge", so the default threshold is set at 5.0 points, which is of the same magnitude as the actual measured noise.
     run_variance_threshold: float = 5.0
-    # 维度得分极差阈值（分，按维度满分折算前的绝对分）
+    # Dimension score extreme difference threshold (points, absolute score before conversion from dimension full score)
     dimension_variance_threshold: float = 4.0
-    # 跨 run 的论文排序相关阈值（Spearman）：低于它就认为多篇论文的相对次序不稳
+    # Cross-run paper sorting correlation threshold (Spearman): below it, the relative order of multiple papers is considered unstable
     ranking_correlation_threshold: float = 0.8
-    # 证据交集阈值：低于它认为 Evidence Router / 检索不稳
+    # Evidence intersection threshold: lower than it considers Evidence Router/retrieval unstable
     evidence_overlap_threshold: float = 0.6
-    # 证据条数变异的容忍度（变异系数）
+    # Tolerance for variation in the number of evidence pieces (coefficient of variation)
     evidence_coverage_cv_threshold: float = 0.25
-    # 判断一致率阈值：低于它认为 Agent 在同一条规则上判断不稳
+    # Judgment consistency rate threshold: lower than it considers the Agent’s judgment on the same rule to be unstable
     judgment_agreement_threshold: float = 0.8
-    # 判断分布熵阈值（bit，5 档最大 2.32）：超过它就认为档位分散
+    # Judgment distribution entropy threshold (bit, 5th gear maximum 2.32): if it exceeds it, the gears are considered dispersed
     judgment_entropy_threshold: float = 1.0
-    # 校准敏感性：总分相对变化（|Δ| / 满分）超过它认为对映射敏感
+    # Calibration sensitivity: Relative change in total score (|Δ| / full score) exceeds what it considers sensitive to mapping
     calibration_score_delta_threshold: float = 0.05
-    # 校准敏感性：跨方案排序相关低于它认为排序不稳
+    # Calibration sensitivity: cross-scheme ranking correlation is lower than it considers ranking unstable
     calibration_ranking_correlation_threshold: float = 0.9
-    # 校准敏感性：Top-K 集合重合率低于它认为候选集不稳
+    # Calibration sensitivity: The Top-K set coincidence rate is lower than it considers the candidate set unstable
     calibration_topk_overlap_threshold: float = 0.8
-    # Top-K 取几篇（多篇论文批次里的排序稳定性）
+    # Top-K Select a few papers (sorting stability in batches of multiple papers)
     top_k: int = 5
 
 
 def load_reliability_config(path: str | Path | None) -> ReliabilityConfig:
-    """从配置文件顶层读 `reliability:` 段。
-
-    与 `external_retrieval` 同理，刻意放在 `agent_runtime` 之外：`AgentRuntimeConfig`
-    会把该段落的键直接展开成构造参数，多一个未知键就报错。
-    """
+    'Reads the `reliability:` section from the top level of the configuration file.\n\n    Same as `external_retrieval`, deliberately placed outside `agent_runtime`: `AgentRuntimeConfig`\n    The keys of the paragraph will be directly expanded into construction parameters. If there is an unknown key, an error will be reported.'
     if not path:
         return ReliabilityConfig()
     config_path = Path(path)
@@ -94,12 +71,12 @@ def load_reliability_config(path: str | Path | None) -> ReliabilityConfig:
     allowed = {item.name for item in fields(ReliabilityConfig)}
     unknown = sorted(set(values) - allowed)
     if unknown:
-        raise ValueError(f"reliability 配置含未知键: {unknown}")
+        raise ValueError(f"reliability configuration contains unknown key: {unknown}")
     return ReliabilityConfig(**values)
 
 
 # --------------------------------------------------------------------------------------
-# 运行 trace：一次评价里每一条判断的完整记录（reliability 层的唯一输入单元）
+# Run trace: a complete record of each judgment in an evaluation (the only input unit of the reliability layer)
 # --------------------------------------------------------------------------------------
 
 @dataclass
@@ -120,7 +97,7 @@ class RuleRecord:
 
 @dataclass
 class RunTrace:
-    """一次运行的判断记录 + 分数记录。字段对齐需求里的 trace 约定。"""
+    'Judgment record + score record for one run. Trace convention in field alignment requirements.'
 
     run_id: str
     paper_id: str
@@ -173,11 +150,7 @@ def _float_or_none(value: Any) -> float | None:
 
 
 def run_trace_from_report(report: dict[str, Any], source_path: str | Path = "") -> RunTrace:
-    """从 `build_report()` 产出的报告 JSON 建 RunTrace。
-
-    数据来源就是既有产物：`details[]` 里有 rule_id / judgement / confidence / evidence[]，
-    `summary` 里有总分与维度分。**不改报告格式**，只读。
-    """
+    'Build RunTrace from the report JSON output by `build_report()`.\n\n    The data source is the existing product: `details[]` contains rule_id / judgment / confidence / evidence[],\n    There are total scores and dimensional scores in `summary`. **Do not change report format**, read only.'
     run = report.get("run") or {}
     paper = report.get("paper") or {}
     summary = report.get("summary") or {}
@@ -242,7 +215,7 @@ def load_traces_from_reports(paths: Iterable[str | Path]) -> list[RunTrace]:
 
 
 def discover_report_paths(root: str | Path, pattern: str = "*_report.json") -> list[Path]:
-    """递归收集报告 JSON。默认跳过失败报告（没有 details 的那些）。"""
+    'Recursive collection report JSON. Failure reports (those without details) are skipped by default.'
     directory = Path(root)
     if not directory.exists():
         return []
@@ -250,10 +223,7 @@ def discover_report_paths(root: str | Path, pattern: str = "*_report.json") -> l
 
 
 def load_traces_from_db(db_path: str | Path, paper_id: str | None = None) -> list[RunTrace]:
-    """从 `storage.py` 的 SQLite 运行库读 run trace（离线重算的另一条入口）。
-
-    只读，不写库；`agent_judgements` / `score_items` 里已经有全部需要的字段。
-    """
+    'reads the run trace from the SQLite runtime library of `storage.py` (another entry for offline recalculation).\n\n    Read only, do not write to the library; `agent_judgements` / `score_items` already has all the required fields.'
     path = Path(db_path)
     if not path.exists():
         return []
@@ -300,7 +270,7 @@ def load_traces_from_db(db_path: str | Path, paper_id: str | None = None) -> lis
                     run_id=run_id,
                     paper_id=str(run["paper_id"]),
                     rule_records=records,
-                    total_score=None,   # 库里没有总分列：总分由 aggregate 现算，见 reliability_diagnosis
+                    total_score=None,   # There is no total score column in the library: the total score is calculated by aggregate, see reliability_diagnosis
                     dimension_scores=dimensions,
                     rule_profile=str(run["rule_profile"]),
                     model_version=str(model_versions.get("core_agents") or ""),
@@ -319,7 +289,7 @@ def group_by_paper(traces: Iterable[RunTrace]) -> dict[str, list[RunTrace]]:
 
 
 # --------------------------------------------------------------------------------------
-# 一、Run Variance：同一篇论文多次运行，总分 / 维度 / 排名稳不稳
+# 1. Run Variance: The same paper is run multiple times, and the total score/dimension/ranking is unstable.
 # --------------------------------------------------------------------------------------
 
 def _stability_from_range(value: float | None, threshold: float) -> str:
@@ -348,7 +318,7 @@ def _pairwise_jaccard(sets: list[set[str]]) -> float | None:
 
 
 def spearman(left: list[float], right: list[float]) -> float | None:
-    """Spearman 秩相关。并列值用平均秩。少于 2 个点或方差为 0 时返回 None。"""
+    'Spearman rank correlation. The average rank is used for parallel values. Returns None if there are fewer than 2 points or the variance is 0.'
     if len(left) != len(right) or len(left) < 2:
         return None
 
@@ -378,18 +348,14 @@ def spearman(left: list[float], right: list[float]) -> float | None:
 
 
 def run_variance(traces: list[RunTrace], config: ReliabilityConfig) -> dict[str, Any]:
-    """同一篇论文多次运行的总分 / 维度 / 等级稳定性。
-
-    ranking_change 需要"多篇论文"才能算，所以这里同时接收一个批次里的其他论文 trace：
-    单篇论文时返回 None，并在 notes 里说明，而不是编一个排名出来。
-    """
+    'Total score/dimension/level stability across multiple runs of the same paper.\n\n    Ranking_change requires "multiple papers" to be calculated, so here we also receive traces of other papers in a batch:\n    For a single paper, return None and explain it in notes instead of compiling a ranking.'
     scored = [trace for trace in traces if trace.total_score is not None]
     if len(scored) < max(2, config.min_runs):
         return {
             "run_count": len(traces),
             "scored_run_count": len(scored),
             "stability": "insufficient_data",
-            "note": f"可比较的运行次数不足（{len(scored)} < {max(2, config.min_runs)}）：单次运行无法判断运行稳定性。",
+            "note": f"Insufficient number of comparable runs ({len(scored)} < {max(2, config.min_runs)}): Operation stability cannot be judged in a single run.",
             "mean_score": scored[0].total_score if len(scored) == 1 else None,
             "std": None,
             "range": None,
@@ -464,13 +430,13 @@ def run_variance(traces: list[RunTrace], config: ReliabilityConfig) -> dict[str,
         ],
         "flags": flags,
         "ranking_change": None,
-        "ranking_note": "单篇论文的 ranking_change 需要批次内多篇论文：见 `batch_ranking_stability()`。",
+        "ranking_note": 'Ranking_change for a single paper requires multiple papers within a batch: see `batch_ranking_stability()`.',
     }
 
 
 def batch_ranking_stability(paper_traces: dict[str, list[RunTrace]], config: ReliabilityConfig) -> dict[str, Any]:
-    """批次级排序稳定性：把每个 run 看成一次完整排序，算两两 Spearman 与 Top-K 重合。"""
-    # 每个 run 位置 → {paper_id: score}，只保留同一次批次里共有的论文
+    'Batch-level sorting stability: Treat each run as a complete sorting, and calculate the overlap between Spearman and Top-K in pairs.'
+    # Each run position → {paper_id: score}, only the papers common to the same batch are retained
     run_scores: dict[str, dict[str, float]] = {}
     for paper_id, traces in paper_traces.items():
         for index, trace in enumerate(sorted(traces, key=lambda item: item.started_at or item.run_id)):
@@ -478,7 +444,7 @@ def batch_ranking_stability(paper_traces: dict[str, list[RunTrace]], config: Rel
                 continue
             run_scores.setdefault(f"{paper_id}#{index}", {})[paper_id] = float(trace.total_score)
 
-    # 批次概念：同一目录下的 run 才是一次排序。按 source_path 的目录分组。
+    # Batch concept: Runs in the same directory are sorted once. Group by directory of source_path.
     by_dir: dict[str, dict[str, float]] = {}
     for paper_id, traces in paper_traces.items():
         for trace in traces:
@@ -494,8 +460,8 @@ def batch_ranking_stability(paper_traces: dict[str, list[RunTrace]], config: Rel
             "checked": False,
             "stability": "insufficient_data",
             "note": (
-                "排序稳定性需要同一批次目录下至少 2 篇论文 × 至少 2 个批次；"
-                "当前批次不足以计算论文排序变化。"
+                'sorting stability requires at least 2 papers in the same batch directory × at least 2 batches;'
+                'The current batch is not sufficient to calculate paper ordering changes.'
             ),
             "pair_count": 0,
         }
@@ -506,7 +472,7 @@ def batch_ranking_stability(paper_traces: dict[str, list[RunTrace]], config: Rel
         return {
             "checked": False,
             "stability": "insufficient_data",
-            "note": "批次之间没有足够的共同论文（至少 2 篇）用于比较排序。",
+            "note": 'There are not enough common papers (at least 2) between batches for comparative ranking.',
             "pair_count": 0,
         }
 
@@ -547,7 +513,7 @@ def batch_ranking_stability(paper_traces: dict[str, list[RunTrace]], config: Rel
 
 
 # --------------------------------------------------------------------------------------
-# 二、Evidence Variance：多次运行里 rule → evidence_ids 召回稳不稳
+# 2. Evidence Variance: Is the recall of rule → evidence_ids stable during multiple runs?
 # --------------------------------------------------------------------------------------
 
 def evidence_variance(traces: list[RunTrace], config: ReliabilityConfig) -> dict[str, Any]:
@@ -556,14 +522,14 @@ def evidence_variance(traces: list[RunTrace], config: ReliabilityConfig) -> dict
         return {
             "run_count": len(traces),
             "stability": "insufficient_data",
-            "note": f"可比运行次数不足（{len(usable)} < {max(2, config.min_runs)}）：单次运行无法判断证据检索稳定性。",
+            "note": f"Insufficient number of comparable runs ({len(usable)} < {max(2, config.min_runs)}): A single run cannot judge the stability of evidence retrieval.",
             "evidence_overlap": None,
             "coverage_variance": None,
             "per_rule": [],
             "flags": [],
         }
 
-    # rule_id → 每个 run 的证据集合
+    # rule_id → Evidence collection for each run
     per_rule_sets: dict[str, list[set[str]]] = {}
     per_rule_counts: dict[str, list[int]] = {}
     per_rule_sections: dict[str, list[set[str]]] = {}
@@ -630,7 +596,7 @@ def evidence_variance(traces: list[RunTrace], config: ReliabilityConfig) -> dict
 
 
 # --------------------------------------------------------------------------------------
-# 三、Judgment Variance：同一 rule 上 Agent 判断稳不稳
+# 3. Judgment Variance: Whether the Agent’s judgment on the same rule is stable or not
 # --------------------------------------------------------------------------------------
 
 def _entropy_bits(counts: dict[str, int], total: int) -> float:
@@ -650,18 +616,13 @@ def judgment_variance(
     config: ReliabilityConfig,
     evidence_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """同一条 rule 的档位分布、一致率、熵，并给出不确定性来源归因。
-
-    归因规则（需求里的判定口径）：
-    - 证据稳、判断不稳 → `agent_reasoning`
-    - 证据不稳、判断不稳 → `retrieval_and_reasoning`
-    """
+    'The gear distribution, consistency rate, and entropy of the same rule, and attribution of uncertainty sources are given.\n\n    Attribution rules (judgment criteria in requirements):\n    - The evidence is stable but the judgment is unstable → `agent_reasoning`\n    - Unstable evidence and unstable judgment → `retrieval_and_reasoning`'
     usable = [trace for trace in traces if trace.rule_records]
     if len(usable) < max(2, config.min_runs):
         return {
             "run_count": len(traces),
             "stability": "insufficient_data",
-            "note": f"可比运行次数不足（{len(usable)} < {max(2, config.min_runs)}）：单次运行无法判断判断稳定性。",
+            "note": f"Insufficient number of comparable runs ({len(usable)} < {max(2, config.min_runs)}): The stability cannot be judged in a single run.",
             "mean_agreement": None,
             "per_rule": [],
             "source_of_uncertainty": "insufficient_data",
@@ -722,8 +683,8 @@ def judgment_variance(
 
     mean_agreement = sum(agree_rates) / len(agree_rates) if agree_rates else None
     flags: list[str] = []
-    # 只要有一条规则不稳就报出来：整体一致率会被大量稳定规则平均掉
-    #（实测 v23 四批：整体 0.90，但 C/D/E 上有规则一致率只有 0.5）。
+    # As long as one rule is unstable, it will be reported: the overall consistency rate will be averaged out by a large number of stable rules.
+    #(actual measurement of four batches of v23: overall 0.90, but the rule consistency rate on C/D/E is only 0.5).
     if mean_agreement is not None and mean_agreement < config.judgment_agreement_threshold:
         flags.append("judgment_instability")
     if unstable_rules:
@@ -751,7 +712,7 @@ def judgment_variance(
         "reasoning_only_rule_ids": reasoning_only,
         "retrieval_and_reasoning_rule_ids": retrieval_and_reasoning,
         "source_of_uncertainty": source_of_uncertainty,
-        # 按一致率升序：最不稳的排最前，报告里直接就是"该看哪几条"
+        # In ascending order according to the consistency rate: the most unstable ones are ranked first, and the report directly says "which ones should be looked at"
         "per_rule": sorted(per_rule, key=lambda item: item["agreement"]),
         "flags": flags,
     }
@@ -763,11 +724,7 @@ def stability_scores(
     judgment_result: dict[str, Any],
     calibration_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """把四块结论折算成 0-1 表现分，供报告读者快速比较。
-
-    **刻意不合成一个总分**：四个分项各自独立呈现，合成会引入新权重（需求里明确不要）。
-    数据不足的分项返回 None，而不是用 1.0 假装稳定。
-    """
+    'converts the four conclusions into 0-1 performance points for quick comparison by report readers.\n\n    **Deliberately not combined into one total score**: The four sub-items are presented independently, and combining them will introduce new weights (clearly not required in the requirements).\n    A breakdown with insufficient data returns None instead of pretending to be stable with 1.0.'
     return {
         "run_stability": STABILITY_SCORE.get(str(run_result.get("stability")), None),
         "evidence_stability": STABILITY_SCORE.get(str(evidence_result.get("stability")), None),
@@ -776,5 +733,5 @@ def stability_scores(
             None if not calibration_result or not calibration_result.get("checked")
             else STABILITY_SCORE.get(str(calibration_result.get("robustness")), None)
         ),
-        "note": "四个分项独立，不做加权合成；None 表示该维度数据不足，不代表稳定。",
+        "note": 'The four sub-items are independent and will not be weighted and combined; None means that there is insufficient data in this dimension and does not mean that it is stable.\nDetermination and reporting of',
     }

@@ -1,14 +1,4 @@
-"""Reliability 层的判定与报告：校准敏感性 + 不确定性来源诊断 + 最终报告组装。
-
-三块内容：
-
-1. **Calibration Uncertainty**：不重跑 Agent，把同一批 judgment 换几套档位映射重新算分，
-   看总分、维度、论文排序、Top-K 会不会翻。纯粹复用 `scorer.aggregate_scores`，
-   所以与线上算分口径逐位一致（不是另写一套算法）。
-2. **Reliability Diagnosis**：按需求给的四条判定规则定位不确定性来源并给建议。
-3. **Reliability Report**：组装成 `{run_variance, evidence_variance, judgment_variance,
-   calibration_uncertainty, overall_warning, needs_review}`，**不出总分**。
-"""
+'Reliability layer: calibration sensitivity + uncertainty source diagnosis + final report assembly.\n\nThree pieces of content:\n\n1. **Calibration Uncertainty**: Do not re-run the Agent, change the same batch of judgments to several sets of gear mappings and recalculate the points.\n   Look at the total score, dimensions, paper ordering, and whether Top-K can be read. Purely reuse `scorer.aggregate_scores`,\n   Therefore, it is consistent with the online scoring caliber bit by bit (not writing another set of algorithms).\n2. **Reliability Diagnosis**: Locate the sources of uncertainty and give suggestions based on the four judgment rules given by the requirements.\n3. **Reliability Report**: Assemble into `{run_variance, evidence_variance, judgment_variance,\n   calibration_uncertainty, overall_warning, needs_review}`, **no total score**.'
 
 from __future__ import annotations
 
@@ -31,28 +21,28 @@ from .rules import RuleProfile
 from .scorer import aggregate_scores, profile_score_mapping, score_judgements_with_scheme
 
 # --------------------------------------------------------------------------------------
-# 校准方案：三套替代 mapping
+# calibration scheme: three sets of alternative mapping
 # --------------------------------------------------------------------------------------
 #
-# 需求给的三套方案是「satisfied / partial / not_satisfied」三级，但本项目的标尺是五档
-# （基准项还分 mostly / weak）。这里按项目自己的口径展开成五档，保持方案之间的相对关系：
-#   Scheme A（literal）= 需求里最"陡"的那套，partial 明显低于 mostly（0.7 vs 0.85）
-#   Scheme B（low）    = 整体压低，放大档位差异
-#   Scheme C（high）   = 整体抬高，缩小档位差异
-# 三套都围绕规则库当前 mapping 摆动，用来回答"换一套同样合理的标尺，结论会不会翻"。
+# The three sets of solutions required are "satisfied / partial / not_satisfied" level three, but the scale of this project is level five.
+# (the benchmark items are also divided into mostly/weak). Here, it is expanded into five levels according to the caliber of the project itself, maintaining the relative relationship between the plans:
+#   Scheme A (literal) = the "steepest" scheme in demand, partial is significantly lower than mostly (0.7 vs 0.85)
+#   Scheme B (low) = overall reduction, amplifying gear differences
+#   Scheme C (high) = overall increase, narrowing the gear difference
+# The three sets all swing around the current mapping of the rule base, and are used to answer "if you change to a set of equally reasonable rulers, will the conclusion be reversed?"
 CALIBRATION_SCHEMES: dict[str, dict[str, Any]] = {
     "scheme_a_literal": {
-        "label": "Scheme A：satisfied 1.0 / partial 0.7 / not_satisfied 0.35（按需求口径展开到五档）",
+        "label": 'Scheme A: satisfied 1.0 / partial 0.7 / not_satisfied 0.35 (expanded to fifth gear according to demand)',
         "baseline": {"mostly": 0.85, "partial": 0.7, "weak": 0.45, "not_satisfied": 0.35},
         "bonus": {"satisfied": 1.0, "mostly": 0.7, "partial": 0.35, "weak": 0.0, "not_satisfied": 0.35},
     },
     "scheme_b_low": {
-        "label": "Scheme B：satisfied 1.0 / partial 0.6 / not_satisfied 0.25（整体压低）",
+        "label": 'Scheme B: satisfied 1.0 / partial 0.6 / not_satisfied 0.25 (overall depressed)',
         "baseline": {"mostly": 0.8, "partial": 0.6, "weak": 0.4, "not_satisfied": 0.25},
         "bonus": {"satisfied": 1.0, "mostly": 0.6, "partial": 0.3, "weak": 0.0, "not_satisfied": 0.25},
     },
     "scheme_c_high": {
-        "label": "Scheme C：satisfied 1.0 / partial 0.8 / not_satisfied 0.5（整体抬高）",
+        "label": 'Scheme C: satisfied 1.0 / partial 0.8 / not_satisfied 0.5 (overall elevation)',
         "baseline": {"mostly": 0.9, "partial": 0.8, "weak": 0.6, "not_satisfied": 0.5},
         "bonus": {"satisfied": 1.0, "mostly": 0.8, "partial": 0.5, "weak": 0.0, "not_satisfied": 0.5},
     },
@@ -60,11 +50,7 @@ CALIBRATION_SCHEMES: dict[str, dict[str, Any]] = {
 
 
 def _judgements_from_trace(trace: RunTrace, profile: RuleProfile | None = None) -> list[AgentJudgement]:
-    """RunTrace → AgentJudgement（只搬字段，不做任何判断）。
-
-    报告可能来自别的规则库版本（离线回放就是干这个的），出现当前规则库没有的 rule_id 时
-    直接跳过：校准重算必须按规则库取权重与角色，算不了的规则不能瞎赋权重。
-    """
+    'RunTrace → AgentJudgement (only moves fields, no judgment is made).\n\n    The report may come from another rule base version (offline playback is used for this), and a rule_id that does not exist in the current rule base appears.\n    Skip directly: Calibration recalculation must select weights and roles according to the rule base. Rules that cannot be calculated cannot be randomly assigned weights.'
     known = set(profile.rules_by_id) if profile is not None else None
     known_judgements = {item.value for item in Judgement}
     records = []
@@ -80,7 +66,7 @@ def _judgements_from_trace(trace: RunTrace, profile: RuleProfile | None = None) 
                 indicator_id=record.rule_id,
                 judgement=Judgement(record.judgement),
                 evidence_ids=list(record.evidence_ids),
-                reason="Reliability Layer 重算用：判断与理由原样取自该次运行的记录。",
+                reason='Reliability Layer For recalculation: the judgment and reasons are taken as they are from the record of the run.',
                 confidence=record.confidence,
                 needs_review=record.needs_review,
                 agent_version="reliability-replay",
@@ -97,7 +83,7 @@ def score_under_scheme(
     scheme: dict[str, Any] | None,
     out_of_scope_ids: set[str] | None = None,
 ) -> dict[str, Any]:
-    """某一套 mapping 下这篇论文的分数。`scheme=None` 表示用规则库自己的 mapping（基准）。"""
+    'The score of this paper under a certain set of mapping. `scheme=None` means using the rule base’s own mapping (baseline).'
     judgements = _judgements_from_trace(trace, profile)
     if scheme is None:
         items = score_judgements_with_scheme(
@@ -129,11 +115,7 @@ def calibration_uncertainty(
     out_of_scope_by_paper: dict[str, set[str]] | None = None,
     schemes: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """换 mapping 重算分：总分变化、维度变化、排序相关、Top-K 重合。
-
-    每个论文取"最近一次运行"的 judgment 记录来重算（同一批判断才算得干净）；
-    排序比较用批次内共有论文的分数向量。
-    """
+    'Change mapping to recalculate scores: total score changes, dimension changes, ranking correlation, Top-K overlap.\n\n    Each paper takes the judgment record of the "most recent run" to recalculate (the same batch of judgments is considered clean);\n    Ranking comparison uses the score vector of common papers within the batch.'
     active_schemes = schemes or CALIBRATION_SCHEMES
     latest: dict[str, RunTrace] = {}
     for paper_id, traces in paper_traces.items():
@@ -144,7 +126,7 @@ def calibration_uncertainty(
         return {
             "checked": False,
             "robustness": "insufficient_data",
-            "note": "没有可用于重算的判断记录。",
+            "note": 'There is no judgment record available for recalculation.',
             "schemes": [],
         }
 
@@ -266,7 +248,7 @@ def calibration_uncertainty(
     flags = ["calibration_sensitive"] if sensitive else []
     note = ""
     if not ranking_checked:
-        note = "本次只比较了总分与维度分：排序相关性需要同一批次至少 2 篇论文。"
+        note = 'This time only the total score and dimension score were compared: Ranking relevance requires at least 2 papers from the same batch.'
     return {
         "checked": True,
         "scheme_count": len(scheme_reports),
@@ -284,7 +266,7 @@ def calibration_uncertainty(
         "mean_ranking_correlation": round(mean_correlation, 4) if mean_correlation is not None else None,
         "min_ranking_correlation": round(min(ranking_correlations), 4) if ranking_correlations else None,
         "mean_top_k_overlap": round(mean_overlap, 4) if mean_overlap is not None else None,
-        # 别名，方便直接对上需求里的字段名
+        # alias, convenient for directly matching the field names in the requirements
         "score_difference": round(max_score_delta, 4),
         "ranking_correlation": round(mean_correlation, 4) if mean_correlation is not None else None,
         "robustness": robustness,
@@ -312,15 +294,15 @@ def calibration_uncertainty(
 
 
 # --------------------------------------------------------------------------------------
-# 诊断：不确定性来源 + 建议
+# Diagnosis: Sources of Uncertainty + Recommendations
 # --------------------------------------------------------------------------------------
 
 _RECOMMENDATIONS = {
-    "retrieval_instability": "增加检索候选（提高 evidence recall top-k / 加大 max_evidence_per_rule），并在检索层固定随机性；证据不稳时不要直接采信单次结果。",
-    "agent_reasoning": "同一条规则上判断反复，建议提高采样稳定性（temperature=0 / 多次投票取多数），并对高频翻转的规则补充更明确的档位锚点。",
-    "calibration_sensitive": "排序对档位映射敏感，建议重新校准 score_mapping / 权重，并报告跨方案的分数区间而不是单点分数。",
-    "evaluation_reliable": "四类指标均在阈值内：本次评价结果在重复运行与换映射下都稳定，可按单次结果使用。",
-    "insufficient_data": "可比较的运行次数不足：至少重跑同一篇论文 2 次（同一规则库版本）才能判断运行稳定性。",
+    "retrieval_instability": 'Increase search candidates (increase evidence recall top-k / increase max_evidence_per_rule), and fix randomness in the search layer; do not directly accept a single result when the evidence is unstable.',
+    "agent_reasoning": 'There are repeated judgments on the same rule. It is recommended to improve the sampling stability (temperature=0 / multiple votes to obtain the majority), and to add clearer gear anchor points to the high-frequency flipping rules.',
+    "calibration_sensitive": 'Ranking is sensitive to bin mapping, it is recommended to recalibrate score_mapping / weighting and report score intervals across schemes instead of single point scores.',
+    "evaluation_reliable": 'All four indicators are within the threshold: the evaluation results are stable under repeated runs and mapping changes, and can be used as a single result.',
+    "insufficient_data": 'Insufficient number of comparable runs: the same paper must be rerun at least 2 times (same rule base version) to judge run stability.',
 }
 
 
@@ -331,7 +313,7 @@ def diagnose_reliability(
     calibration_result: dict[str, Any],
     config: ReliabilityConfig,
 ) -> dict[str, Any]:
-    """按四类方差定位不确定性来源，给出建议与需复核清单。"""
+    'locates the sources of uncertainty according to the four types of variances, and gives suggestions and a review list.'
     run_flags = set(run_result.get("flags") or [])
     evidence_flags = set(evidence_result.get("flags") or [])
     judgment_flags = set(judgment_result.get("flags") or [])
@@ -344,75 +326,75 @@ def diagnose_reliability(
 
     if run_high and evidence_high:
         source = "retrieval_instability"
-        reason = "运行间总分波动大，且不同运行的证据召回不一致：不确定性主要来自检索层。"
+        reason = 'The total score fluctuates greatly between runs, and the evidence recall in different runs is inconsistent: the uncertainty mainly comes from the retrieval layer.'
     elif run_high and not evidence_high and judgment_high:
         source = "agent_reasoning"
-        reason = "证据召回稳定而判断档位反复：不确定性来自 Agent 推理，不是检索。"
+        reason = 'Evidence recall is stable but judgment gears are repetitive: uncertainty comes from Agent reasoning, not retrieval.'
     elif evidence_high and judgment_high and not run_high:
         source = "retrieval_and_reasoning"
-        reason = "证据与判断都不稳（总分尚未明显波动）：不确定性同时来自检索与推理，属于隐患。"
+        reason = 'Both evidence and judgment are unstable (the total score has not fluctuated significantly): uncertainty comes from both retrieval and reasoning, which is a hidden danger.'
     elif not run_high and calibration_high:
         source = "calibration_sensitive"
-        reason = "重复运行结果稳定，但换一套档位映射后排序/分数明显变化：不确定性来自评分规则本身。"
+        reason = 'The results of repeated runs are stable, but the ranking/score changes significantly after changing the gear mapping: the uncertainty comes from the scoring rules themselves.'
     elif insufficient:
         source = "insufficient_data"
-        reason = "可比较的运行次数不足，无法判断运行稳定性；校准敏感性结论仍然可用。"
+        reason = 'There are not enough comparable runs to judge run stability; calibration sensitivity conclusions are still available.'
     else:
         source = "evaluation_reliable"
-        reason = "四类指标均在阈值内。"
+        reason = 'All four indicators are within the threshold.'
 
     warnings: list[str] = []
     if run_flags & {"high_variance"}:
         warnings.append(
-            f"总分在不同运行间波动 {run_result.get('range')} 分（阈值 {run_result.get('threshold')}）："
-            "单次运行的分数不应作为定论。"
+            f"Total score fluctuates between runs {run_result.get('range')} score (threshold {run_result.get('threshold')}):"
+            'Scores from a single run should not be taken as conclusive.'
         )
     if "grade_flip" in run_flags:
         warnings.append(
-            "不同运行给出的质量等级/顶刊潜力判定不一致："
+            'The quality level/top publication potential judgment given by different runs is inconsistent:'
             + "、".join(str(item) for item in (run_result.get("grade_flip_detail") or []))
         )
     for dimension_id in run_result.get("dimension_flagged") or []:
         detail = (run_result.get("dimension_stability") or {}).get(dimension_id) or {}
         warnings.append(
-            f"维度 {dimension_id} 跨运行波动 {detail.get('range')} 分（阈值 {config.dimension_variance_threshold}）。"
+            f"dimension {dimension_id} fluctuates across runs by {detail.get('range')} points (threshold {config.dimension_variance_threshold})."
         )
     if "ranking_change" in run_flags:
         warnings.append(
-            f"批次内论文排序在不同运行间不稳定（Spearman {run_result.get('ranking_change_detail') or ''}）。"
+            f"Paper sorting within a batch is unstable between runs (Spearman {run_result.get('ranking_change_detail') or ''})."
         )
     if evidence_flags:
         warnings.append(
-            f"证据召回不稳定：平均交集 {evidence_result.get('evidence_overlap')}"
-            f"（阈值 {config.evidence_overlap_threshold}），"
-            f"最不稳的规则 {', '.join((evidence_result.get('unstable_rule_ids') or [])[:6]) or 'NA'}。"
+            f"Evidence recall is unstable: average intersection {evidence_result.get('evidence_overlap')}"
+            f"(threshold {config.evidence_overlap_threshold}),"
+            f"The most unstable rule {', '.join((evidence_result.get('unstable_rule_ids') or [])[:6]) or 'NA'}."
         )
     if judgment_flags:
         warnings.append(
-            f"判断档位不一致：平均一致率 {judgment_result.get('mean_agreement')}"
-            f"（阈值 {config.judgment_agreement_threshold}），"
-            f"最不稳的规则 {', '.join((judgment_result.get('unstable_rule_ids') or [])[:6]) or 'NA'}。"
+            f"Judgment gear inconsistency: average consistency rate {judgment_result.get('mean_agreement')}"
+            f"(threshold {config.judgment_agreement_threshold}),"
+            f"The most unstable rule {', '.join((judgment_result.get('unstable_rule_ids') or [])[:6]) or 'NA'}."
         )
     if judgment_result.get("reasoning_only_rule_ids"):
         warnings.append(
-            "证据稳定但判断翻转（source_of_uncertainty=agent_reasoning）："
+            'The evidence is stable but the judgment is reversed (source_of_uncertainty=agent_reasoning):'
             f"{', '.join(judgment_result['reasoning_only_rule_ids'][:6])}。"
         )
     if judgment_result.get("retrieval_and_reasoning_rule_ids"):
         warnings.append(
-            "证据与判断同时不稳（source_of_uncertainty=retrieval_and_reasoning）："
+            'The evidence and judgment are unstable at the same time (source_of_uncertainty=retrieval_and_reasoning):'
             f"{', '.join(judgment_result['retrieval_and_reasoning_rule_ids'][:6])}。"
         )
     if calibration_flags:
         warnings.append(
-            f"对档位映射敏感：最大总分变化 {calibration_result.get('max_abs_score_delta')} 分"
-            f"（相对 {calibration_result.get('max_score_delta_ratio')}），"
-            f"方案 {', '.join(calibration_result.get('sensitive_schemes') or [])} 下排序/分数变化超阈值。"
+            f"Sensitive to gear mapping: maximum total score change {calibration_result.get('max_abs_score_delta')} points"
+            f"(relative to {calibration_result.get('max_score_delta_ratio')}),"
+            f"Scheme {', '.join(calibration_result.get('sensitive_schemes') or [])} The order/score change exceeds the threshold."
         )
     if calibration_result.get("checked") and not calibration_result.get("ranking_correlation_checked"):
-        warnings.append(str(calibration_result.get("note") or "本次只比较了总分与维度分：排序相关性需要同一批次至少 2 篇论文。"))
+        warnings.append(str(calibration_result.get("note") or 'This time only the total score and dimension score were compared: Ranking relevance requires at least 2 papers from the same batch.'))
     elif not calibration_result.get("checked"):
-        warnings.append("本次没有可重算的判断记录，校准敏感性未检测（该结论缺失，不代表规则稳健）。")
+        warnings.append('There is no judgment record that can be recalculated this time, and the calibration sensitivity has not been tested (this conclusion is missing, which does not mean that the rules are robust).')
 
     needs_review: list[str] = []
     for rule_id in judgment_result.get("unstable_rule_ids") or []:
@@ -439,7 +421,7 @@ def diagnose_reliability(
 
 
 # --------------------------------------------------------------------------------------
-# 最终报告
+# Final Report
 # --------------------------------------------------------------------------------------
 
 def build_reliability_report(
@@ -451,13 +433,7 @@ def build_reliability_report(
     out_of_scope_by_paper: dict[str, set[str]] | None = None,
     schemes: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """组装 Evaluation Reliability Report。
-
-    报告结构（对齐需求）：
-    `{run_variance, evidence_variance, judgment_variance, calibration_uncertainty,
-      overall_warning, needs_review}`，另附 `reliability_report` 四个 0-1 分项与 `diagnosis`。
-    **没有总分字段**：四个分项各自独立。
-    """
+    'Assembly Evaluation Reliability Report.\n\n    Report structure (alignment requirements):\n    `{run_variance, evidence_variance, judgment_variance, calibration_uncertainty,\n      overall_warning, needs_review}`, plus four 0-1 sub-items `reliability_report` and `diagnosis`.\n    **No total score field**: the four sub-items are independent.'
     trace_list = list(traces)
     grouped = {}
     for trace in trace_list:
@@ -488,7 +464,7 @@ def build_reliability_report(
 
     overall_warning = list(diagnosis["warnings"])
     if not trace_list:
-        overall_warning.append("没有找到可分析的运行记录：Reliability Layer 本次未产生结论。")
+        overall_warning.append('No analyzable running records were found: Reliability Layer did not generate a conclusion this time.')
 
     return {
         "reliability_version": RELIABILITY_VERSION,
@@ -531,20 +507,20 @@ def build_reliability_report(
 
 
 def attach_reliability_to_report(report: dict[str, Any], reliability: dict[str, Any] | None) -> dict[str, Any]:
-    """把 Reliability Report 挂到既有评价报告上（新增一个键，不动任何已有键）。"""
+    'Link the Reliability Report to the existing evaluation report (add a new key and leave no existing keys unchanged).\nThe "Evaluation Reliability" section in the'
     if reliability is None:
         return report
     return {**report, "reliability_report": reliability}
 
 
 def render_reliability_markdown(reliability: dict[str, Any]) -> list[str]:
-    """报告里的「评价可靠性」段：四个分项 + 警告 + 需复核 + 审计链。"""
+    'report: four sub-items + warning + review required + audit chain.'
     if not reliability:
         return []
-    lines: list[str] = ["", "## 评价可靠性（Evaluation Reliability）"]
+    lines: list[str] = ["", '## Evaluation Reliability']
     scores = reliability.get("reliability_report") or {}
     lines.append(
-        "- 运行稳定性 {run}｜证据稳定性 {ev}｜判断稳定性 {jud}｜参数稳健性 {cal}（四个分项独立，不合成总分）".format(
+        '- Operation stability {run}｜Evidence stability {ev}｜Judgment stability {jud}｜Parameter robustness {cal} (the four sub-items are independent and not combined into the total score)'.format(
             run=_score_text(scores.get("run_stability")),
             ev=_score_text(scores.get("evidence_stability")),
             jud=_score_text(scores.get("judgment_stability")),
@@ -552,89 +528,89 @@ def render_reliability_markdown(reliability: dict[str, Any]) -> list[str]:
         )
     )
     lines.append(
-        f"- 分析范围：{reliability.get('analyzed_paper_count')} 篇论文 / {reliability.get('analyzed_run_count')} 次运行；"
-        f"焦点论文 {reliability.get('focus_paper_id')}"
+        f"- Analysis scope: {reliability.get('analyzed_paper_count')} papers / {reliability.get('analyzed_run_count')} runs;"
+        f"Focus Paper {reliability.get('focus_paper_id')}"
     )
     run = reliability.get("run_variance") or {}
     if run.get("mean_score") is not None and run.get("scored_run_count", 0) >= 2:
         lines.append(
-            f"- 总分：均值 {run.get('mean_score')}，标准差 {run.get('std')}，"
-            f"极差 {run.get('range')}（阈值 {run.get('threshold')}），区间 {run.get('min_score')}–{run.get('max_score')}"
+            f"- Total score: mean {run.get('mean_score')}, standard deviation {run.get('std')},"
+            f"Extremely poor {run.get('range')} (threshold {run.get('threshold')}), interval {run.get('min_score')}–{run.get('max_score')}"
         )
         for dimension_id, detail in (run.get("dimension_stability") or {}).items():
             lines.append(
-                f"  - 维度 {dimension_id}：均值 {detail.get('mean')}，极差 {detail.get('range')}，"
-                f"稳定性 {detail.get('stability')}"
+                f"- Dimension {dimension_id}: mean {detail.get('mean')}, range {detail.get('range')},"
+                f"Stability {detail.get('stability')}"
             )
     else:
-        lines.append(f"- 运行稳定性：{run.get('note') or '数据不足'}")
+        lines.append(f"- Operational stability: {run.get('note') or 'Insufficient data'}")
     ranking = run.get("ranking_change_detail") or {}
     if ranking.get("checked"):
         lines.append(
-            f"- 批次排序：{ranking.get('batch_count')} 个批次 × {ranking.get('paper_count')} 篇论文，"
-            f"平均 Spearman {ranking.get('mean_spearman')}（最低 {ranking.get('min_spearman')}），"
-            f"Top-{ranking.get('top_k')} 重合 {ranking.get('top_k_overlap')}，稳定性 {ranking.get('stability')}"
+            f"- Batch sorting: {ranking.get('batch_count')} batches × {ranking.get('paper_count')} papers,"
+            f"average Spearman {ranking.get('mean_spearman')} (minimum {ranking.get('min_spearman')}),"
+            f"Top-{ranking.get('top_k')} overlap {ranking.get('top_k_overlap')}, stability {ranking.get('stability')}"
         )
     evidence = reliability.get("evidence_variance") or {}
     if evidence.get("evidence_overlap") is not None:
         lines.append(
-            f"- 证据召回：平均交集 {evidence.get('evidence_overlap')}（阈值 {evidence.get('threshold')}），"
-            f"覆盖变异 {evidence.get('coverage_variance')}，稳定性 {evidence.get('stability')}"
+            f"- Evidence recall: average intersection {evidence.get('evidence_overlap')} (threshold {evidence.get('threshold')}),"
+            f"covers variation {evidence.get('coverage_variance')}, stability {evidence.get('stability')}"
         )
     judgment = reliability.get("judgment_variance") or {}
     if judgment.get("mean_agreement") is not None:
         lines.append(
-            f"- 判断一致率：平均 {judgment.get('mean_agreement')}（阈值 {judgment.get('threshold')}），"
-            f"稳定性 {judgment.get('stability')}；不确定性来源 {judgment.get('source_of_uncertainty') or 'NA'}"
+            f"- Judgment consistency rate: average {judgment.get('mean_agreement')} (threshold {judgment.get('threshold')}),"
+            f"Stability {judgment.get('stability')}; source of uncertainty {judgment.get('source_of_uncertainty') or 'NA'}"
         )
     for item in (judgment.get("per_rule") or [])[:8]:
         lines.append(
-            f"  - {item.get('rule_id')}：一致率 {item.get('agreement')}，"
-            f"分布 {item.get('distribution')}，熵 {item.get('entropy')}"
-            + (f"，来源 {item['source_of_uncertainty']}" if item.get("source_of_uncertainty") else "")
+            f"- {item.get('rule_id')}: Consistency rate {item.get('agreement')},"
+            f"distribution {item.get('distribution')}, entropy {item.get('entropy')}"
+            + (f", source {item['source_of_uncertainty']}" if item.get("source_of_uncertainty") else "")
         )
     calibration = reliability.get("calibration_uncertainty") or {}
     if calibration.get("checked"):
         lines.append(
-            f"- 校准敏感性：{calibration.get('scheme_count')} 套备选 mapping，"
-            f"最大总分变化 {calibration.get('max_abs_score_delta')} 分"
-            f"（相对 {calibration.get('max_score_delta_ratio')}），"
-            f"平均排序相关 {calibration.get('mean_ranking_correlation')}，"
-            f"Top-K 重合 {calibration.get('mean_top_k_overlap')}，稳健性 {calibration.get('robustness')}"
+            f"- Calibration sensitivity: {calibration.get('scheme_count')} set of alternative mappings,"
+            f"Maximum total score change {calibration.get('max_abs_score_delta')} points"
+            f"(relative to {calibration.get('max_score_delta_ratio')}),"
+            f"average sorting related {calibration.get('mean_ranking_correlation')},"
+            f"Top-K coincidence {calibration.get('mean_top_k_overlap')}, robustness {calibration.get('robustness')}"
         )
         for scheme in calibration.get("schemes") or []:
             lines.append(
-                f"  - {scheme.get('scheme')}：Δ总分 {scheme.get('score_delta')}"
-                f"（相对 {scheme.get('score_delta_ratio')}），Δ维度 {scheme.get('dimension_delta')}"
-                f"（{scheme.get('dimension_id')}），排序相关 {scheme.get('ranking_correlation')}"
-                f"，Top-K 重合 {scheme.get('top_k_overlap')}"
-                + ("；**超阈值**" if scheme.get("sensitive") else "")
+                f"- {scheme.get('scheme')}: ΔTotal Score {scheme.get('score_delta')}"
+                f"(relative to {scheme.get('score_delta_ratio')}), Δ dimension {scheme.get('dimension_delta')}"
+                f"({scheme.get('dimension_id')}), sort related {scheme.get('ranking_correlation')}"
+                f", Top-K overlap {scheme.get('top_k_overlap')}"
+                + ('; **Exceeding threshold**' if scheme.get("sensitive") else "")
             )
     diagnosis = reliability.get("diagnosis") or {}
     lines.append("")
     lines.append(
-        f"**不确定性来源：{diagnosis.get('main_uncertainty_source')}** —— {diagnosis.get('reason')}"
+        f"**Uncertainty source: {diagnosis.get('main_uncertainty_source')}** —— {diagnosis.get('reason')}"
     )
-    lines.append(f"**建议：**{diagnosis.get('recommendation')}")
+    lines.append(f"**Suggestion:**{diagnosis.get('recommendation')}")
     if reliability.get("overall_warning"):
         lines.append("")
-        lines.append("**警告**")
+        lines.append('**WARNING**')
         for warning in reliability["overall_warning"]:
             lines.append(f"- {warning}")
     if reliability.get("needs_review"):
         lines.append("")
-        lines.append("**需人工复核：**" + "、".join(str(item) for item in reliability["needs_review"]))
-    lines.extend(["", "### 可靠性审计链（Score → Judgment → Evidence → Reliability Diagnosis）"])
+        lines.append('**Requires manual review:**' + "、".join(str(item) for item in reliability["needs_review"]))
+    lines.extend(["", '### Reliability audit chain (Score → Judgment → Evidence → Reliability Diagnosis)'])
     for run in (reliability.get("runs") or [])[:12]:
         lines.append(
-            f"- {run.get('run_id')}（论文 {run.get('paper_id')}，{run.get('rule_profile')}，"
-            f"总分 {run.get('total_score')}）→ 见该次运行报告的判断与证据；"
-            f"来源 {run.get('source_path')}"
+            f"- {run.get('run_id')} (papers {run.get('paper_id')}, {run.get('rule_profile')},"
+            f"Total score {run.get('total_score')}) → See the judgment and evidence of the operation report;"
+            f"Source {run.get('source_path')}"
         )
     return lines
 
 
 def _score_text(value: Any) -> str:
     if value is None:
-        return "数据不足"
+        return 'Insufficient data\nThere are risks in full text analysis of'
     return f"{float(value):.2f}"
