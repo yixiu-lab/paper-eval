@@ -26,7 +26,6 @@ PaperEval operationalizes structured evaluation criteria as rule-level judgments
 6. **Produce inspectable outputs.** Each run can produce JSON, Markdown, and HTML reports, a run manifest, and a trace bundle. Reports connect scores to criteria, evidence, rationales, validation results, and review flags; optional reliability diagnostics summarize variation across saved runs. See [reports and run records](../02-system/README.md#8-reports-run-records-and-reliability-analysis).
 
 
-The main research artifact is the [system architecture, Python implementation, and command-line workflow](../02-system/README.md). The local Web/API prototype is outside this repository's research-artifact scope.
 
 
 ## Experimental evidence

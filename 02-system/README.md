@@ -152,7 +152,7 @@ Validate the profile before a run:
 python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 ```
 
-Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and example settings are in [`configs/`](configs). Credentials are supplied through local environment configuration rather than committed files. The local Web/API prototype is not part of this repository; the CLI, rule profile, prompts, and reusable evaluation modules constitute the current system artifact.
+Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and example settings are in [`configs/`](configs). Credentials are supplied through local environment configuration rather than committed files. The CLI, rule profile, prompts, and reusable evaluation modules constitute the current system artifact.
 
 ## 10. Architecture-to-code map
 
