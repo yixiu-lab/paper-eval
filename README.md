@@ -24,7 +24,7 @@ PaperEval turns a research-paper PDF into an inspectable sequence of evidence-ba
 - **Review and validate:** specialist Reviewer agents assess assigned rules and return structured judgments, rationales, confidence, and evidence references. The Harness checks schemas and evidence IDs, validates external-evidence conditions, retries selected uncertain items, and flags cases for human inspection. A unified-Reviewer configuration is also supported.
 - **Aggregate and report:** deterministic scoring applies the selected rule profile to applicable judgments and records completeness and uncertainty. Reports can include dimension and total scores, evidence references, review flags, parse diagnostics, run manifests, and trace records. Optional reliability analysis compares saved runs without changing the current score.
 
-See the [system overview and reviewer reading path](02-system/README.md) and the [technical architecture](02-system/technical-appendix.md).
+See the [system and technical approach](02-system/README.md) for the architecture, workflow, code map, and command-line instructions.
 
 ## Experimental evidence
 
