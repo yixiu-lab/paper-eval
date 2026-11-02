@@ -14,18 +14,18 @@ This directory organizes the PaperEval analyses in the order used by the experim
 
 ## 1. Corpus and journal/source score profile
 
-The experiment covers **200 papers**. It produced completed scores for **198 papers** under the same model and calibrated criteria; two were blocked before scoring by PDF parsing. Across the 198 completed reports, the mean total score was **76.60** (SD 8.57), the median was **76.43**, and the range was **49.63–95.78**. The paper index records journal and DOI metadata where available.
+The experiment covers **200 papers**, all scored under the same model and calibrated criteria. Across the 200 reports, the mean total score was **76.67** (SD 8.57), the median was **76.49**, and the range was **49.63–95.78**. The paper index records journal and DOI metadata where available.
 
 The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [outcome table](../04-data/paper-outcomes.csv); paper counts and the aggregate score summary are in the [data overview](../04-data/README.md#evaluation-results). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same evaluation program.
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|
-| A. Research question and positioning | 12.86 | 1.75 |
-| B. Theoretical contribution and novelty | 14.60 | 3.94 |
-| C. Theoretical rigor and hypothesis logic | 15.24 | 1.70 |
-| D. Research design | 19.64 | 3.32 |
-| E. Results and evidence | 11.01 | 1.68 |
-| F. Discussion, boundaries, and integration | 3.04 | 0.88 |
+| A. Research question and positioning | 12.87 | 1.75 |
+| B. Theoretical contribution and novelty | 14.62 | 3.94 |
+| C. Theoretical rigor and hypothesis logic | 15.23 | 1.69 |
+| D. Research design | 19.66 | 3.33 |
+| E. Results and evidence | 11.03 | 1.68 |
+| F. Discussion, boundaries, and integration | 3.05 | 0.88 |
 
 Dimension maxima differ, so these means describe the observed score profile and should not be read as a ranking of dimension importance. Journal/source groups are also uneven, with most containing only one to four papers; their score summaries are descriptive rather than journal quality rankings.
 

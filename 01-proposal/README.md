@@ -25,7 +25,7 @@ The study has three objectives:
 
 ## Empirical strategy
 
-The experiment covers **200 papers**. It produced 198 completed scores under the same calibrated criteria and scoring model; two papers were blocked before scoring by PDF parsing. Analyses examine model behavior, workflow structure, repeatability, evidence handling, retrieval, and Harness validation. The [data overview](../04-data/README.md#evaluation-results) defines the outcomes and released materials.
+The experiment covers **200 papers**, all with completed scores under the same calibrated criteria and scoring model. Analyses examine model behavior, workflow structure, repeatability, evidence handling, retrieval, and Harness validation. The [data overview](../04-data/README.md#evaluation-results) defines the outcomes and released materials.
 
 The experiment records follow the sequence and evidence available in the current manuscript. Each study page describes its comparison and links to the corresponding results:
 

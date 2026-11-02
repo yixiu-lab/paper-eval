@@ -38,7 +38,7 @@ The result is a report and run record that connect criteria, evidence, judgments
 
 ## Empirical scope
 
-PaperEval's experiment covers **200 papers**. The workflow produced 198 completed scores under the same calibrated criteria and scoring model; two papers were blocked before scoring by PDF parsing. The experiments examine score variation across models and runs, workflow structure, evidence handling, retrieval, and Harness validation. Results and supporting records are organized in the [experiment README](03-experiments/README.md).
+PaperEval's experiment covers **200 papers**, and all 200 have completed scores under the same calibrated criteria and scoring model. The experiments examine score variation across models and runs, workflow structure, evidence handling, retrieval, and Harness validation. Results and supporting records are organized in the [experiment README](03-experiments/README.md).
 
 ## System and technical approach
 
@@ -56,7 +56,7 @@ See the [system and technical approach](02-system/README.md) for the architectur
 
 The experiment evaluates 200 papers. Analyses below reuse papers across model, run, and workflow comparisons; those repeated records do not increase the paper count. The [experiment README](03-experiments/README.md) provides the detailed ordered index.
 
-1. **Paper assessment and score profile.** The experiment evaluated **200 papers**. The workflow completed scores for 198; two were blocked before scoring by PDF parsing. Across the 198 completed reports, the mean total score was **76.60** (SD 8.57), the median was **76.43**, and the range was **49.63–95.78**. Six-dimension summaries and title-free outcomes are in the [data overview](04-data/README.md#evaluation-results) and [outcome table](04-data/paper-outcomes.csv).
+1. **Paper assessment and score profile.** All **200 papers** have completed reports. The mean total score is **76.67** (SD 8.57), the median is **76.49**, and the range is **49.63–95.78**. Six-dimension summaries and title-free outcomes are in the [data overview](04-data/README.md#evaluation-results) and [outcome table](04-data/paper-outcomes.csv).
 
 2. **Exploratory model comparison.** The current manuscript compares five models on three shared papers with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Because evidence was re-extracted and retrieval rerun, the comparison is descriptive and combines model and evidence variation. See the [five-model comparison](03-experiments/cross-model-results.md).
 
