@@ -90,11 +90,32 @@ For each rule, the evidence router uses the rule definition, section expectation
 
 Each package gives a reviewer the rule identifier and criterion, relevant paper context, selected evidence text, page and section metadata, and evidence IDs. The reviewer therefore evaluates a bounded question against traceable passages rather than producing only a paper-level impression. Evidence selection and payload construction are implemented in [`paper_eval/agents.py`](paper_eval/agents.py); context-level routing is implemented in [`paper_eval/paper_context.py`](paper_eval/paper_context.py).
 
+![Schematic trace from paper evidence through rule-level judgment to score aggregation](.assets/evidence-to-judgment-trace.png)
+
+*Figure. Evidence-to-judgment trace. The paper excerpts, prior-work labels, and example scores shown in the diagram are illustrative.*
+
 ## 5. Claim-led external grounding
 
 When enabled by runtime configuration, the external-grounding path extracts claims from the paper profile and source passages. Claim types include the research problem, gap, theory, contribution, and related assertions; each claim retains its source evidence ID and may include concepts, theory, mechanism, context, keywords, and publication year. Claim-derived queries retrieve candidate related works from configured scholarly metadata providers. The implementation supports Crossref, OpenAlex, and Semantic Scholar, with provider status, failures, query details, and cache state represented in retrieval output.
 
 Candidate records are normalized and deduplicated, filtered against the target paper's publication year when available, and reranked using claim and paper context. The selected prior works are converted into external evidence records with stable evidence IDs and metadata. These records can support A/B judgments about the research gap and contribution. External validation checks evidence coverage and citation conditions; a positive comparison-dependent judgment without required external support can be changed to uncertain or flagged for review.
+
+```mermaid
+flowchart LR
+    C[Paper claims] --> Q[Claim-derived queries]
+    Q --> X[Crossref]
+    Q --> O[OpenAlex]
+    Q --> S[Semantic Scholar]
+    X --> N[Normalize and deduplicate]
+    O --> N
+    S --> N
+    N --> F[Publication-time and metadata filters]
+    F --> R[Relevance reranking]
+    R --> E[External evidence records with source IDs]
+    E --> J[Comparison-dependent judgments]
+```
+
+This diagram describes the current multi-provider retrieval path. Provider availability and retrieval settings depend on the run configuration.
 
 Social-relevance grounding is a separate optional evidence input. When enabled, issue-grounding passages are added to the shared evidence collection for the F dimension. External literature and issue-grounding records enter through the same evidence interface as paper passages; they do not create additional scoring dimensions or independent final scores.
 
@@ -121,6 +142,26 @@ The Harness is the deterministic control layer between model judgments and repor
 7. **Reflection and process audit.** Generate review issues from judgment/evidence/score patterns and run a separate audit of the scoring process. These outputs support reviewer inspection and do not replace the rule-level score calculation.
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
+
+The validation and scoring path can be summarized as follows:
+
+```mermaid
+flowchart LR
+    J[Reviewer judgments] --> S[Schema validation]
+    E[Internal and optional external evidence] --> R[Evidence reference and external-evidence checks]
+    P[Active rule profile] --> G[Evidence gate and review flags]
+    S --> G
+    R --> G
+    G --> U{Uncertain items?}
+    U -- Yes --> T[Second evidence pass]
+    T --> S
+    U -- No --> C[Deterministic score aggregation]
+    P --> C
+    C --> O[Dimension scores, total score, completeness, and run record]
+    O -. Optional post-run analysis .-> L[Repeatability and reliability diagnosis]
+```
+
+The source methods document also contains a Harness diagram. The flow above reflects the current implementation: calibration sensitivity is handled by optional post-run reliability analysis, rather than as a gate that changes every judgment.
 
 ## 8. Reports, run records, and reliability analysis
 
