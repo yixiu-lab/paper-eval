@@ -2,7 +2,13 @@
 
 ### An evidence-grounded workflow for AI-assisted research assessment
 
-PaperEval is a research system and empirical study of how AI agents can assess scholarly papers through explicit criteria, traceable evidence, and inspectable judgments. The project focuses on management and AI-HRM research. It treats paper assessment as a measurement workflow: a score should be traceable to the criteria applied, the evidence considered, the judgment made for each criterion, and the software that validates and aggregates those judgments.
+## Abstract
+
+PaperEval investigates how artificial intelligence can support the assessment of management research through explicit evaluation criteria, traceable evidence, and inspectable judgments. Rather than relying on a single summary or overall score, the system translates a structured evaluation framework into rule-level assessments. For each paper, it links judgments to relevant passages, records the evidence and rationale behind them, and uses deterministic software to validate evidence references and aggregate scores into a report for researcher review.
+
+The empirical program examines how assessment outcomes vary across models and repeated runs, how reviewer configurations and workflow components shape results, how the system handles paper and external evidence, and which conditions warrant human review. By connecting criteria, evidence, judgments, validation, and scores in a traceable workflow, PaperEval provides a basis for examining both assessment outcomes and the process through which they are produced.
+
+The project focuses on management and AI-HRM research. It treats paper assessment as a measurement workflow: a score should be traceable to the criteria applied, the evidence considered, the judgment made for each criterion, and the software that validates and aggregates those judgments.
 
 ## Research motivation
 

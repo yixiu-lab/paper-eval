@@ -2,9 +2,11 @@
 
 ### An evidence-grounded workflow for studying AI-assisted research assessment
 
-PaperEval examines AI-based assessment of management research through explicit criteria, traceable evidence, and inspectable judgments. Its studies examine score variation across models and repeated runs, the effect of workflow components, evidence-handling behavior, and conditions that require human review.
+## Abstract
 
-PaperEval operationalizes structured evaluation criteria as rule-level judgments. Each judgment is connected to paper evidence, checked by deterministic software, and aggregated into a report that researchers can inspect.
+PaperEval investigates how artificial intelligence can support the assessment of management research through explicit evaluation criteria, traceable evidence, and inspectable judgments. Rather than relying on a single summary or overall score, the system translates a structured evaluation framework into rule-level assessments. For each paper, it links judgments to relevant passages, records the evidence and rationale behind them, and uses deterministic software to validate evidence references and aggregate scores into a report for researcher review.
+
+The empirical program examines how assessment outcomes vary across models and repeated runs, how reviewer configurations and workflow components shape results, how the system handles paper and external evidence, and which conditions warrant human review. By connecting criteria, evidence, judgments, validation, and scores in a traceable workflow, PaperEval provides a basis for examining both assessment outcomes and the process through which they are produced.
 
 ## System workflow
 
