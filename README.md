@@ -49,7 +49,7 @@ The archive also contains a 10-paper API batch, two journal-gradient samples cov
 1. [Project overview](01-proposal/README.md)
 2. [System architecture and implementation](02-system/README.md)
 3. [Experiment catalog and study summaries](03-experiments/README.md)
-4. [Data and experimental materials](04-data/README.md)
+4. [Data and experimental materials](04-data/README.md) — audit data, sample index, and redistributable sample PDFs.
 
 ## Run the command-line workflow
 

@@ -65,5 +65,5 @@ Additional records include a **10-paper** API batch, two journal-gradient sample
 
 - [System architecture and technical method](../02-system/technical-appendix.md) — system layers, evidence flow, validation, and scoring.
 - [Experiment catalog](../03-experiments/experiment-catalog.md) — study families, sample sizes, and summary outcomes.
-- [Data and experimental materials](../04-data/README.md) — corpus audit, outcome table, and study samples.
+- [Data and experimental materials](../04-data/README.md) — corpus audit, outcomes, study samples, and sample-paper PDFs.
 - [Ethics and data handling](../05-ethics-access/README.md) — study materials, data flows, and human responsibility.
