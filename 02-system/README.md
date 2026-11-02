@@ -147,6 +147,10 @@ The Harness is the deterministic control layer between model judgments and repor
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
 
+![Harness validation and aggregation from the methods manuscript](.assets/harness-validation-aggregation.png)
+
+*Figure. Harness validation and aggregation sketch from the methods manuscript. The calibration panel refers to optional post-run calibration sensitivity analysis; it is not a runtime gate that changes judgments.*
+
 The validation and scoring path can be summarized as follows:
 
 ```mermaid
