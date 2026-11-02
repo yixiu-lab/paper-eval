@@ -16,7 +16,7 @@ This directory organizes the PaperEval experiments in the order used by the curr
 
 PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
 
-The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-data/paper-outcomes.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-data/corpus-audit.md). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same broader evaluation program.
+The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [outcome table](../04-data/paper-outcomes.csv); corpus counts and the aggregate score summary are in the [data overview](../04-data/README.md#corpus-results). Related journal/source analyses are documented in [historical experiment evidence](experiment-evidence.md) and linked to the same broader evaluation program.
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|

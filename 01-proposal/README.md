@@ -36,7 +36,7 @@ The current experiment manuscript reports results in the sequence below. Each ex
 
 
 
-PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and configuration. The manuscript also reports A–F dimension summaries and journal/source composition. See the [audit record](../04-data/corpus-audit.md) and [title-free outcomes](../04-data/paper-outcomes.csv).
+PaperEval completed scoring for **144 papers**. Two additional unique papers were blocked before scoring by PDF parsing. Across the 144 completed reports, the mean total score was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. These are descriptive scores for the audited corpus and configuration. The manuscript also reports A–F dimension summaries and journal/source composition. See the [data overview](../04-data/README.md#corpus-results) and [title-free outcomes](../04-data/paper-outcomes.csv).
 
 
 

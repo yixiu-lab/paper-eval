@@ -10,7 +10,7 @@ The research archive contains trace records, run-level diagnostics, and claim-le
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| Corpus and journal/source score profile | 144 papers scored | Two additional papers were blocked before scoring; source composition and dimension summaries | [Audit and title-free outcomes](../04-data/corpus-audit.md) |
+| Corpus and journal/source score profile | 144 papers scored | Two additional papers were blocked before scoring; source composition and dimension summaries | [Data overview and title-free outcomes](../04-data/README.md#corpus-results) |
 | Cross-model exploratory comparison | Three shared papers × five models × two recorded runs (30 scores) | Model means range from 77.91 to 89.99; evidence was not fixed between runs, so results are descriptive | [Five-model comparison](cross-model-results.md) |
 | Reviewer structure comparison | Five papers, four evaluation structures | Full PaperEval, unified Reviewer, Reviewer-only, and direct scoring conditions are summarized descriptively | [Module ablations](module-ablation.md) |
 | Harness fault injection | 180 injected faulty outputs and 40 clean controls across nine fault types | Deterministic checks detected all injected faults; 88.9% were automatically contained and 11.1% routed for review | [Robustness experiments](robustness-experiments.md) |
