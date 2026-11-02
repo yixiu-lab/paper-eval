@@ -13,3 +13,5 @@ uploads/
 *.log
 *.aux
 *.out
+02-system/rules/规则设计说明.md
+02-system/rules/external_retrieval_rules_v1.yaml

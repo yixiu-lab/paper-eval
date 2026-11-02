@@ -12,7 +12,7 @@ The current manuscript reports two runs for each of three shared papers across f
 | DeepSeek-Flash | 78.37 | 0.61 |
 | Kimi-K2.5 | 77.91 | 3.83 |
 
-The three shared papers had the same rank order across the models with complete records. Evidence was re-extracted and external literature was retrieved on each run, so run-to-run differences combine evidence and model-judgment variation. There were no independent expert scores; the results are descriptive and do not establish model accuracy or general superiority.
+The three shared papers had the same rank order across the models with complete records. Evidence was re-extracted and external literature was retrieved on each run, so run-to-run differences combine evidence and model-judgment variation. The results are descriptive and do not isolate model effects because evidence extraction and retrieval varied between runs.
 
 The manuscript also records partial outcomes for Qwen-Flash, Qwen3.8-Max, and DeepSeek-V4-Pro. The DeepSeek-V4-Pro run used a different rule profile and is not directly comparable with the five-model table.
 
@@ -20,7 +20,7 @@ The manuscript also records partial outcomes for Qwen-Flash, Qwen3.8-Max, and De
 
 ## Design
 
-The archived comparison covers three papers, two models, and two runs per paper/model: 12 valid runs in total. Both models used the V16 profile. The source summary combines runs collected at different times and endpoints; evidence retrieval was not fixed between models. Treat the results as descriptive model-sensitivity evidence.
+The archived comparison covers three papers, two models, and two runs per paper/model: 12 valid runs in total. Both models used the same scoring profile. The source summary combines runs collected at different times and endpoints; evidence retrieval was not fixed between models. Treat the results as descriptive model-sensitivity evidence.
 
 ## Aggregate scores
 

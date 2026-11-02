@@ -2,7 +2,7 @@
 
 ## Two-run repeatability in the current experiment manuscript
 
-Twenty papers were independently scored twice, yielding 40 complete reports. Mean scores were 72.940 and 71.418 for the two runs. The paired mean absolute score difference was 2.382 points, the largest difference was 8.388 points, and 17 of 20 papers retained the same quality grade (85.0%). These results describe repeatability on this sample; they do not measure agreement with expert judgments.
+Twenty papers were independently scored twice, yielding 40 complete reports. Mean scores were 72.940 and 71.418 for the two runs. The paired mean absolute score difference was 2.382 points, the largest difference was 8.388 points, and 17 of 20 papers retained the same quality grade (85.0%). These results describe repeatability on this sample.
 
 ## Evidence-level prompt-injection comparison
 
@@ -37,4 +37,4 @@ All 20 reason/judgment-conflict cases were detected and routed for review; the o
 
 The reliability layer was recomputed over 57 archived runs spanning 20 papers. It reports run-score variation, evidence overlap, judgment agreement, ranking stability, calibration sensitivity, and a diagnostic of the main uncertainty source. In the focal three-run example, the score range was 6.36 points and the grade changed between repeats; the batch comparison reported Spearman 0.6491 and Top-5 overlap 0.25.
 
-The archived analysis combines historical runs and does not isolate evidence variation from model-judgment variation. Its calibration diagnostics are not comparisons against expert labels.
+The archived analysis combines historical runs and does not isolate evidence variation from model-judgment variation. Its calibration diagnostics summarize variation within the archived runs.

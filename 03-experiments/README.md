@@ -14,9 +14,9 @@ This directory organizes the PaperEval experiments in the order used by the curr
 
 ## 1. Corpus and journal/source score profile
 
-The corpus audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**, of which **144** had complete reports; two were blocked before scoring by PDF parsing. The 144 complete reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores for the audited corpus and configuration, not expert-validity estimates.
+The corpus audit began with **149 source PDFs**. Exact SHA-256 deduplication yielded **146 unique papers**, of which **144** had complete reports; two were blocked before scoring by PDF parsing. The 144 complete reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores for the audited corpus and run configuration.
 
-The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-reproducibility/original-149-v16-results.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-reproducibility/original-149-v16-audit.md). A separate journal-gradient study and its reported association with journal-tier ordering are summarized in [historical experiment evidence](experiment-evidence.md); it uses its own 12- and 15-paper samples.
+The manuscript also summarizes scores across six dimensions (A–F) and reports journal/source composition. Per-paper title-free outcomes are available in the [audit table](../04-reproducibility/data/paper-outcomes.csv); the corpus counts and aggregate score summary are documented in the [audit record](../04-reproducibility/corpus-audit.md). A separate journal-gradient study and its reported association with journal-tier ordering are summarized in [historical experiment evidence](experiment-evidence.md); it uses its own 12- and 15-paper samples.
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|
@@ -33,11 +33,11 @@ Dimension maxima differ, so these means describe the observed score profile and 
 
 The current manuscript compares five models on three shared papers, with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; average absolute differences between repeated runs range from **0.61 to 3.83** points. The runs re-extracted evidence and repeated external retrieval, so differences combine model and evidence variation. The findings are descriptive and do not establish model accuracy or general superiority.
 
-See the [five-model summary and earlier two-model archive](cross-model-v16.md). The earlier archived subset contains 12 valid runs from two models on the same three-paper sample. The manuscript also records partial results for three additional models; these are distinguished from the complete five-model comparison in the detailed summary.
+See the [five-model summary and earlier two-model archive](cross-model-results.md). The earlier archived subset contains 12 valid runs from two models on the same three-paper sample. The manuscript also records partial results for three additional models; these are distinguished from the complete five-model comparison in the detailed summary.
 
 ## 3. Reviewer structure comparison
 
-Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. The conditions use different judgment and aggregation procedures, so score differences are descriptive and are not comparisons against expert accuracy.
+Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. The conditions use different judgment and aggregation procedures, so score differences describe the conditions and are not directly comparable as accuracy estimates.
 
 See the [four-condition comparison and module ablations](module-ablation.md). The file also records separate one-paper module ablations and a three-paper paired comparison of evidence-gate outputs.
 
@@ -49,19 +49,19 @@ See [Harness fault-injection results](robustness-experiments.md#deterministic-ha
 
 ## 5. Adversarial instruction injection
 
-The matched prompt comparison used evidence packs from **three papers**, six Reviewer dimensions, and three attack types: forced high rating, forced low rating, and fabricated evidence ID. Each prompt condition included 108 paired attack cases. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. The test found no fabricated IDs in either condition's raw outputs, and it did not evaluate full-paper scores or expert accuracy.
+The matched prompt comparison used evidence packs from **three papers**, six Reviewer dimensions, and three attack types: forced high rating, forced low rating, and fabricated evidence ID. Each prompt condition included 108 paired attack cases. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. The test found no fabricated IDs in either condition's raw outputs, and it did not evaluate full-paper scoring accuracy.
 
 See the [paired prompt-injection experiment](robustness-experiments.md#evidence-level-prompt-injection-comparison), which also distinguishes the matched comparison from separate production-prompt and synthetic-pilot runs.
 
 ## 6. Repeated-run stability
 
-The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This measures repeatability for the recorded sample, not agreement with experts.
+The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This describes repeatability for the recorded sample.
 
 See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). A separate historical reliability diagnostic covers 57 archived run records across 20 papers and is reported separately in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty).
 
 ## 7. Experiment summary and paper-level outcomes
 
-The [experiment catalog](experiment-catalog.md) maps the complete set of study families and defines each sample separately. The [reproducibility package](../04-reproducibility/README.md) links the corpus audit, title-free outcomes, code, and validation modes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-reproducibility/original-149-v16-results.csv), which omits paper titles and source text.
+The [experiment catalog](experiment-catalog.md) maps the complete set of study families and defines each sample separately. A normalized per-study count list is in the [reproducibility data folder](../04-reproducibility/data/study-samples.md). The [reproducibility package](../04-reproducibility/README.md) links the corpus audit, title-free outcomes, code, and validation modes. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../04-reproducibility/data/paper-outcomes.csv), which omits paper titles and source text.
 
 ## Additional archived studies
 

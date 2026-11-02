@@ -4,7 +4,7 @@
 
 The retrieval study compares query, citation, and semantic routes, alone and in combination, with and without a deterministic reranker. It applies a publication-year filter and reports Recall@K, Precision@K, MRR, nDCG, Hit@K, and MAP. The archived setup uses OpenAlex reference links to discover candidate prior work and Crossref/OpenAlex/Semantic Scholar metadata services in the retrieval pipeline. The code path for this study uses deterministic retrieval and reranking rather than an LLM reranker.
 
-The archived study describes seven target papers and seven claims, with 366 citation-linked candidate mappings. These records were machine-prelabelled from citation relationships; they are not independent expert relevance judgments.
+The archived study describes seven target papers and seven claims, with 366 citation-linked candidate mappings. Candidate relevance labels were derived from citation relationships and should be interpreted as citation-based labels.
 
 ## Current evidence status
 

@@ -1,11 +1,10 @@
-rule_profile_id: MGMT-LIT-EVAL-V1
+﻿rule_profile_id: MGMT-LIT-EVAL-V1
 rule_profile_name: 管理学文献质量评价首版规则
-version: V16
-status: draft
+version: current
+status: active
 scoring_scale: 100
 # 两池标尺：基准池是「达到发表水准」的基准分，加分池是超过合格才拿得到的分数。两者相加 = scoring_scale。
 # 基准池 60：各方面都合格的论文正好 60 分，与「60 分及格」的直观一致；超出合格的部分放进加分池。
-# V13 起额外强制：每个维度都必须 基准:加分 = 6:4（即 Σ该维基准规则权重 = 0.6 × 维度权重）。
 # 原因：scorer 的维度满分是摊分出来的（pool × 该维规则权重 / 池总权重），不是直接取维度权重；
 # 只有每维 6:4 时摊分结果才等于声明的维度权重。V12 下 B 满分 25.26/声明 20、D 21.95/25 就是这个缺口。
 scoring_pools:
@@ -13,11 +12,10 @@ scoring_pools:
   bonus: 40
 # 证据预算随规则库版本化：分数绝对值依赖每条规则的证据条数（实测 10→20 段整体上移约 7 分），
 # 不能悄悄改，否则历史分数与专家标注的可比性会静默失效。
-# V15 补充：上面这条只挡住了「条数」变化。V15 改的是**选哪 10 条**（关键词表去污染 + C/D 专属召回 +
 # 每规则 retrieval_terms + 可选检索层），条数不变但分数会变——预算治理必须同时盯「条数」与「选择逻辑」。
 evidence_budget:
   max_evidence_per_rule: 10
-judgement_policy: Agent 只输出档位与证据；权重、分值映射和全部算术由 Harness 按规则库声明确定性执行。 总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分。 权重分三层且逐层精确求和：Σ维度权重 = Σ构念权重 = Σ规则份额；加不平由 validate_rule_profile 拒绝。 维度满分由两池摊分得出（基准池 60 × 该维基准规则权重 / Σ基准规则权重 + 加分池 40 × 该维加分规则权重 / Σ加分规则权重），因此每个维度必须满足 基准:加分 = 6:4，此时维度满分才等于声明的维度权重。 每条规则的 role 决定它是基准项还是加分项（一个构念不跨角色）：基准项衡量「够不够发表水准」，**合格即满分**——mostly 与 partial 同记 1.0，只有 weak 0.5 / not_satisfied 0.0 扣分，且不设 satisfied；加分项衡量「有没有超出合格」，只有 satisfied 记 1.0（mostly 0.5 / partial 0.25 / weak·not_satisfied 0.0），只加分不扣分。 每条规则另有 retrieval_terms（英文检索词），供证据选择使用：规则锚点是中文、被评论文是英文，拿中文搜英文正文恒不命中。 score_mapping 是唯一的档位分值真源。 标尺版本 MGMT-SCALE-V5；无法判断不进分子也不进分母（宽松口径）。
+judgement_policy: Agent 只输出档位与证据；权重、分值映射和全部算术由 Harness 按规则库声明确定性执行。 总分 = 基准池 × 基准达成率 + 加分池 × 加成分 = 60 × 基准达成率 + 40 × 加成分。 权重分三层且逐层精确求和：Σ维度权重 = Σ构念权重 = Σ规则份额；加不平由 validate_rule_profile 拒绝。 维度满分由两池摊分得出（基准池 60 × 该维基准规则权重 / Σ基准规则权重 + 加分池 40 × 该维加分规则权重 / Σ加分规则权重），因此每个维度必须满足 基准:加分 = 6:4，此时维度满分才等于声明的维度权重。 每条规则的 role 决定它是基准项还是加分项（一个构念不跨角色）：基准项衡量「够不够发表水准」，**合格即满分**——mostly 与 partial 同记 1.0，只有 weak 0.5 / not_satisfied 0.0 扣分，且不设 satisfied；加分项衡量「有没有超出合格」，只有 satisfied 记 1.0（mostly 0.5 / partial 0.25 / weak·not_satisfied 0.0），只加分不扣分。 每条规则另有 retrieval_terms（英文检索词），供证据选择使用：规则锚点是中文、被评论文是英文，拿中文搜英文正文恒不命中。 score_mapping 是唯一的档位分值真源。 标尺由规则库声明的 score_mapping 确定；无法判断不进分子也不进分母（宽松口径）。
 dimensions:
 - dimension_id: A
   dimension_name: 选题价值与问题定位
@@ -245,7 +243,7 @@ rules:
   - Colquitt & George 2011
   - Grant & Pollock 2011
   - Tihanyi 2020
-  status: draft
+  status: active
   cluster: A-TOPIC
   retrieval_terms:
   - important
@@ -299,7 +297,7 @@ rules:
   - Grant & Pollock 2011
   - Hollenbeck 2008
   - Colquitt & George 2011
-  status: draft
+  status: active
   cluster: A-GAP
   retrieval_terms:
   - research gap
@@ -350,7 +348,7 @@ rules:
   - 章凯等 2023
   - Bono & McNamara 2011
   - Grant & Pollock 2011
-  status: draft
+  status: active
   cluster: A-QUESTION
   retrieval_terms:
   - research question
@@ -404,7 +402,7 @@ rules:
   - Sparrowe & Mayer 2011
   - Grant & Pollock 2011
   - Hollenbeck 2008
-  status: draft
+  status: active
   cluster: A-LIT
   retrieval_terms:
   - literature review
@@ -455,7 +453,7 @@ rules:
   source_reference:
   - Colquitt & George 2011
   - Tihanyi 2020
-  status: draft
+  status: active
   cluster: A-SCOPE
   retrieval_terms:
   - scope
@@ -509,7 +507,7 @@ rules:
   - Shaw et al. 2018
   - Sparrowe & Mayer 2011
   - Nadkarni et al. 2018
-  status: draft
+  status: active
   cluster: B-INTEGRATION
   retrieval_terms:
   - theoretical integration
@@ -561,7 +559,7 @@ rules:
   - Nadkarni et al. 2018
   - Bansal et al. 2018
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: B-NOVELTY
   retrieval_terms:
   - new construct
@@ -615,7 +613,7 @@ rules:
   - Davis 1971
   - Tihanyi 2020
   - Colquitt & George 2011
-  status: draft
+  status: active
   cluster: B-INTERESTING
   retrieval_terms:
   - counterintuitive
@@ -667,7 +665,7 @@ rules:
   - Colquitt & George 2011
   - Grant & Pollock 2011
   - Geletkanycz & Tepper 2012
-  status: draft
+  status: active
   cluster: B-DIALOGUE
   retrieval_terms:
   - theoretical contribution
@@ -719,7 +717,7 @@ rules:
   - 章凯等 2023
   - Shaw et al. 2018
   - Zhang & Shaw 2012
-  status: draft
+  status: active
   cluster: C-CONCEPT
   retrieval_terms:
   - we define
@@ -770,7 +768,7 @@ rules:
   source_reference:
   - 章凯等 2023
   - Sparrowe & Mayer 2011
-  status: draft
+  status: active
   cluster: C-PREMISE
   retrieval_terms:
   - premise
@@ -821,7 +819,7 @@ rules:
   - 章凯等 2023
   - Sparrowe & Mayer 2011
   - Bansal et al. 2018
-  status: draft
+  status: active
   cluster: C-REASONING
   retrieval_terms:
   - we argue
@@ -872,7 +870,7 @@ rules:
   source_reference:
   - Sparrowe & Mayer 2011
   - Grant & Pollock 2011
-  status: draft
+  status: active
   cluster: C-HYPOTHESIS
   retrieval_terms:
   - hypothesis
@@ -926,7 +924,7 @@ rules:
   - Sparrowe & Mayer 2011
   - Shaw et al. 2018
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: C-BOUNDARY
   retrieval_terms:
   - boundary condition
@@ -981,7 +979,7 @@ rules:
   - Sparrowe & Mayer 2011
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
-  status: draft
+  status: active
   cluster: C-ALTERNATIVE
   retrieval_terms:
   - alternative explanation
@@ -1035,7 +1033,7 @@ rules:
   source_reference:
   - 'Colquitt & George 2011（AMJ Part 3: Setting the hook）'
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: C-WRITING
   retrieval_terms:
   - we first
@@ -1088,7 +1086,7 @@ rules:
   - Bono & McNamara 2011
   - 章凯等 2023
   - Bansal et al. 2018
-  status: draft
+  status: active
   cluster: D-DESIGN
   retrieval_terms:
   - research design
@@ -1143,7 +1141,7 @@ rules:
   - Zhang & Shaw 2012
   - Bono & McNamara 2011
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: D-DATA
   retrieval_terms:
   - sample
@@ -1195,7 +1193,7 @@ rules:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: D-MEASUREMENT
   retrieval_terms:
   - measurement
@@ -1248,7 +1246,7 @@ rules:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: D-MODEL
   retrieval_terms:
   - identification
@@ -1300,7 +1298,7 @@ rules:
   - 章凯等 2023
   - Zhang & Shaw 2012
   - Bansal et al. 2018
-  status: draft
+  status: active
   cluster: D-EXECUTION
   retrieval_terms:
   - procedure
@@ -1351,7 +1349,7 @@ rules:
   source_reference:
   - Bansal et al. 2018
   - Bono & McNamara 2012
-  status: draft
+  status: active
   cluster: D-QUAL
   retrieval_terms:
   - qualitative
@@ -1404,7 +1402,7 @@ rules:
   source_reference:
   - Zhang & Shaw 2012
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: E-COMPLETENESS
   retrieval_terms:
   - results
@@ -1457,7 +1455,7 @@ rules:
   source_reference:
   - Zhang & Shaw 2012
   - Geletkanycz & Tepper 2012
-  status: draft
+  status: active
   cluster: E-ALIGNMENT
   retrieval_terms:
   - results
@@ -1510,7 +1508,7 @@ rules:
   - Bono & McNamara 2011
   - Zhang & Shaw 2012
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: E-ROBUSTNESS
   retrieval_terms:
   - robustness check
@@ -1564,7 +1562,7 @@ rules:
   - 章凯等 2023
   - Bansal et al. 2018
   - Geletkanycz & Tepper 2012
-  status: draft
+  status: active
   cluster: E-STRENGTH
   retrieval_terms:
   - evidence
@@ -1619,7 +1617,7 @@ rules:
   - 章凯等 2023
   - Geletkanycz & Tepper 2012
   - Tihanyi 2020
-  status: draft
+  status: active
   cluster: E-CONCLUSION
   retrieval_terms:
   - we conclude
@@ -1671,7 +1669,7 @@ rules:
   source_reference:
   - Geletkanycz & Tepper 2012
   - Grant & Pollock 2011
-  status: draft
+  status: active
   cluster: E-DISCUSSION
   retrieval_terms:
   - discussion
@@ -1722,7 +1720,7 @@ rules:
   source_reference:
   - 章凯等 2023
   - Zhang & Shaw 2012
-  status: draft
+  status: active
   cluster: F-REPRO-TRANSPARENCY
   retrieval_terms:
   - procedure
@@ -1774,7 +1772,7 @@ rules:
   source_reference:
   - 章凯等 2023
   - Zhang & Shaw 2012
-  status: draft
+  status: active
   cluster: F-REPRO-TRANSPARENCY
   retrieval_terms:
   - data availability
@@ -1826,7 +1824,7 @@ rules:
   - Geletkanycz & Tepper 2012
   - Zhang & Shaw 2012
   - 章凯等 2023
-  status: draft
+  status: active
   cluster: F-LIMITATIONS
   retrieval_terms:
   - limitations
@@ -1880,7 +1878,7 @@ rules:
   source_reference:
   - 章凯等 2023
   - Bono & McNamara 2011
-  status: draft
+  status: active
   cluster: F-EXTERNAL
   retrieval_terms:
   - external validity
@@ -1935,7 +1933,7 @@ rules:
   - Tihanyi 2020
   - Colquitt & George 2011
   - Geletkanycz & Tepper 2012
-  status: draft
+  status: active
   cluster: F-PRACTICAL
   retrieval_terms:
   - practical implications

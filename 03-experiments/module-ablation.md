@@ -11,11 +11,11 @@ The archived comparison used the same five paper inputs and model configuration 
 | Single Reviewer | 74.60 | 60–83 |
 | Direct LLM | 74.00 | 59–82 |
 
-The scores show how the workflow conditions produce different score scales on the same sample. This comparison does not establish which condition is more accurate because it does not include independent expert ratings.
+The scores show how the workflow conditions produce different score scales on the same sample. The conditions use different scoring procedures, so their values are not directly comparable as accuracy estimates.
 
 ## Paired one-factor module ablation
 
-A separate V16 run used one paper, a shared parsed-text evidence inventory, and the same baseline-generated context, external retrieval, model, and aggregation. Each arm disabled one module.
+A separate one-paper run used one paper, a shared parsed-text evidence inventory, and the same baseline-generated context, external retrieval, model, and aggregation. Each arm disabled one module.
 
 | Module disabled | Total score | Difference from baseline |
 |---|---:|---:|

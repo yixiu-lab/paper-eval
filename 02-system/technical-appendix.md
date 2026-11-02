@@ -2,7 +2,7 @@
 
 ## 1. System overview
 
-PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps a versioned domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
+PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
 
 The core processing chain is:
 
@@ -25,11 +25,11 @@ flowchart LR
     N --> O[Optional reliability diagnosis]
 ```
 
-The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies versioned score mappings, computes scores, and records the run trace.
+The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
 
 ## 2. Rule profile: the domain adaptation layer
 
-The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The current checked-in profile is **V16**, with 34 rules across six dimensions. Its fingerprint is SHA-256 `811f6c0d992460113a88e66bcb37a4124da046b7c0d5b6725e1d653549284c0f`; the [V16 rule file](rules/rules_v1.yaml) is versioned with the artifact, and the [Excel scoring-rule workbook](rules/PaperEval_V16_scoring_rules.xlsx) provides a reviewer-friendly tabular view.
+The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The scoring profile contains 34 rules across six dimensions. The [rule file](rules/rules_v1.yaml) defines the operational profile, and the [scoring rules overview](rules/README.md) links to the full [English scoring workbook](rules/scoring_rules.xlsx).
 
 | Dimension | Reviewer responsibility |
 | --- | --- |
@@ -42,7 +42,7 @@ The rule profile defines what the system evaluates. It contains dimensions, rule
 
 The profile separates a 60-point baseline pool from a 40-point bonus pool. The scorer maps rule judgments to construct-level rates, then aggregates available constructs according to the profile. Uncertain judgments contribute to completeness and review reporting; they are not silently treated as low-quality judgments. Rules outside a paper's recognized scope are excluded from the applicable score and recorded as out of scope. The aggregation implementation is in [`paper_eval/scorer.py`](paper_eval/scorer.py); the profile and validation logic are in [`paper_eval/rules.py`](paper_eval/rules.py).
 
-The profile is the intended adaptation boundary: a new research domain can replace its dimensions, rules, evidence requirements, weights, and calibration mappings while retaining the PDF-to-report workflow. The historical run identifier `MGMT-LIT-EVAL-V1:V16` is retained in run records for provenance; the system and repository name is PaperEval.
+The profile is the intended adaptation boundary: a new research domain can replace its dimensions, rules, evidence requirements, weights, and calibration mappings while retaining the PDF-to-report workflow. Run records retain the profile identifier used for provenance; the system and repository name is PaperEval.
 
 ## 3. PDF parsing and paper representation
 
@@ -85,14 +85,14 @@ The Harness is the deterministic control layer between model judgments and repor
 3. **Evidence-strength review flags.** Inspect whether cited passages provide substantive support or only a mention. Weak support, a rationale that conflicts with a high judgment, or too few cited passages can trigger human-review flags. These flags preserve the judgment and make the issue visible for review.
 4. **External evidence validation.** Check the external evidence used for comparison-dependent rules, including availability, citation references, and temporal constraints where the target publication year is known. Findings are attached to the report and review queue.
 5. **Uncertain-item retry.** Revisit uncertain rules with a second evidence pack, then validate the resulting judgment.
-6. **Deterministic scoring.** Apply V16 score mappings and construct weights, handle out-of-scope rules, aggregate the two pools, and report completeness and uncertainty separately.
+6. **Deterministic scoring.** Apply the selected profile score mappings and construct weights, handle out-of-scope rules, aggregate the two pools, and report completeness and uncertainty separately.
 7. **Reflection and process audit.** Generate review issues from judgment/evidence/score patterns and run a separate audit of the scoring process. These outputs support reviewer inspection and do not replace the rule-level score calculation.
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
 
 ## 8. Reports, run records, and reliability analysis
 
-Each run can produce a JSON report, a Markdown report, and an HTML report, together with a run manifest and a SQLite trace bundle. The report includes the paper profile, active rule-profile version, parse diagnostics, dimension and total scores, rule-level judgment details, rationale, cited and candidate evidence, page coverage, review flags, external retrieval and validation records, reflection issues, and any consistency or audit findings. Trace events record workflow stages and key counts/settings so a run can be inspected in sequence.
+Each run can produce a JSON report, a Markdown report, and an HTML report, together with a run manifest and a SQLite trace bundle. The report includes the paper profile, active rule profile, parse diagnostics, dimension and total scores, rule-level judgment details, rationale, cited and candidate evidence, page coverage, review flags, external retrieval and validation records, reflection issues, and any consistency or audit findings. Trace events record workflow stages and key counts/settings so a run can be inspected in sequence.
 
 An optional reliability layer reads prior reports for the same paper and the current in-memory report. It diagnoses score and judgment variation, evidence overlap, ranking stability, and calibration sensitivity. It is post-processing: it appends a reliability report and does not change the current run's judgments or scores. With insufficient repeated runs, the report indicates that reliability cannot yet be estimated.
 
@@ -103,13 +103,13 @@ Key modules: [`paper_eval/report.py`](paper_eval/report.py), [`paper_eval/html_r
 The public research artifact is the Python package and command-line workflow. A single-paper run is invoked as follows:
 
 ```bash
-python -m paper_eval.cli evaluate --pdf <PDF_PATH> --rules <V16_RULE_PROFILE> --out <OUTPUT_DIR> --agent-config configs/agent_runtime.example.yaml
+python -m paper_eval.cli evaluate --pdf <PDF_PATH> --rules rules/rules_v1.yaml --out <OUTPUT_DIR> --agent-config configs/agent_runtime.example.yaml
 ```
 
 Validate the profile before a run:
 
 ```bash
-python -m paper_eval.cli validate-rules --rules <V16_RULE_PROFILE>
+python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 ```
 
 Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and example settings are in [`configs/`](configs). Credentials are supplied through local environment configuration rather than committed files. The local Web/API prototype is not part of this repository; the CLI, rule profile, prompts, and reusable evaluation modules constitute the current system artifact.
@@ -127,8 +127,21 @@ Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and e
 | Reflection, process audit, and consistency | [`paper_eval/reflection.py`](paper_eval/reflection.py), [`paper_eval/audit_agent.py`](paper_eval/audit_agent.py), [`paper_eval/consistency.py`](paper_eval/consistency.py) |
 | Reports, storage, and reliability | [`paper_eval/report.py`](paper_eval/report.py), [`paper_eval/storage.py`](paper_eval/storage.py), [`paper_eval/reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) |
 
-## 11. Current empirical anchor
+## 11. Related research records
 
-V16 is the profile used in the documented 149-source-PDF audit: 146 unique papers after exact deduplication, 144 complete reports, and two papers blocked before scoring by PDF parsing. The audit details and title-free outcomes are documented in the [reproducibility materials](../04-reproducibility/original-149-v16-audit.md). Other model, robustness, uncertainty, ablation, and retrieval experiments are indexed in the [experiment catalog](../03-experiments/experiment-catalog.md).
+Study-level results are organized in the [experiment catalog](../03-experiments/README.md). The corpus audit and title-free outcomes are documented in the [reproducibility materials](../04-reproducibility/README.md). This appendix describes the technical artifact and does not restate those study results.
 
-The historical profile identifier is preserved in run provenance. The named system, public repository, and reviewer-facing architecture in this appendix are **PaperEval**.
+
+## 12. Study-to-implementation and outcome map
+
+| Research component | Implementation | Public study record | Interpretation boundary |
+| --- | --- | --- | --- |
+| PDF parsing and corpus scoring | [`pdf_parser.py`](paper_eval/pdf_parser.py), [`rules.py`](paper_eval/rules.py), [`scorer.py`](paper_eval/scorer.py) | [Corpus audit](../04-reproducibility/corpus-audit.md), [paper outcomes](../04-reproducibility/data/paper-outcomes.csv) | The corpus record contains completed scores and parser-blocked cases; it does not include source PDFs. |
+| Rule-based evidence assembly and reviewer judgments | [`agents.py`](paper_eval/agents.py), [`paper_context.py`](paper_eval/paper_context.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Reviewer-structure comparison](../03-experiments/module-ablation.md) | The comparison is descriptive across workflow conditions and does not establish accuracy against independent ratings. |
+| Model and run variability | [`llm.py`](paper_eval/llm.py), [`harness.py`](paper_eval/harness.py), [`scorer.py`](paper_eval/scorer.py) | [Model comparison](../03-experiments/cross-model-results.md), [repeatability results](../03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) | Model comparisons also varied evidence extraction and retrieval; repeated-run results are limited to the recorded sample. |
+| Harness validation and evidence gating | [`schema_validation.py`](paper_eval/schema_validation.py), [`evidence_gate.py`](paper_eval/evidence_gate.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../03-experiments/robustness-experiments.md#deterministic-harness-fault-injection) | The study uses injected machine-checkable faults, not a natural error-rate sample. |
+| Evidence-boundary instruction handling | [`agents.py`](paper_eval/agents.py), reviewer prompts in [`prompts/`](prompts/) | [Prompt-injection results](../03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) | The public results describe a limited paired prompt study. The archived attack templates and full prompt-condition artifacts are not included in this repository. |
+| Claim-led related-work retrieval | [`claim_extraction.py`](paper_eval/claim_extraction.py), [`external_retrieval.py`](paper_eval/external_retrieval.py), [`external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../03-experiments/retrieval-evaluation.md) | Candidate labels were machine-prelabelled; the archived claim-count mismatch remains unresolved, so no aggregate performance estimate is reported. |
+| Reports and reproducibility traces | [`report.py`](paper_eval/report.py), [`storage.py`](paper_eval/storage.py), [`reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Reproducibility data index](../04-reproducibility/data/README.md), [reliability diagnostics](../03-experiments/robustness-experiments.md#reliability-and-uncertainty-diagnostics) | Full-text traces and paper PDFs are not part of this public artifact. |
+
+This map distinguishes implemented code from empirical evidence. A linked experiment supports only the stated test and sample; it is not evidence for capabilities or conditions that the study did not evaluate.
