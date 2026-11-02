@@ -47,7 +47,7 @@ DIMENSION_IDS = ("A", "B", "C", "D", "E", "F")
 
 @dataclass(frozen=True)
 class ReliabilityConfig:
-    """所有阈值配置化。默认值取自项目里已知的实测波动量级（见 technical doc 的 V16 重标定记录）。"""
+    """所有阈值配置化。默认值取自项目中已记录的实测波动量级。"""
 
     enabled: bool = False
     # 同一篇论文少于这个运行次数时，运行/证据/判断三块方差一律标 insufficient_data（不假装算得出来）

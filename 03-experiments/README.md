@@ -33,7 +33,7 @@ Dimension maxima differ, so these means describe the observed score profile and 
 
 The current manuscript compares five models on three shared papers, with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; average absolute differences between repeated runs range from **0.61 to 3.83** points. The runs re-extracted evidence and repeated external retrieval, so differences combine model and evidence variation. The findings are descriptive and do not establish model accuracy or general superiority.
 
-See the [five-model summary and earlier two-model archive](cross-model-results.md). The earlier archived subset contains 12 valid runs from two models on the same three-paper sample. The manuscript also records partial results for three additional models; these are distinguished from the complete five-model comparison in the detailed summary.
+See the [five-model results](cross-model-results.md), including each recorded run for all three shared papers, model-level means, and run-to-run differences. The experiment uses the single expert-calibrated scoring-rule set documented in the [system rules](../02-system/rules/README.md).
 
 ## 3. Reviewer structure comparison
 

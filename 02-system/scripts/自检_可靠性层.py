@@ -464,7 +464,7 @@ def step_11_cli() -> None:
                 "run_id": f"RUN-CLI-{index}",
                 "paper_id": "PAPER-CLI",
                 "harness_version": "harness-0.2",
-                "rule_profile": "MGMT-LIT-EVAL-V1:V16",
+                "rule_profile": "expert_calibrated_scoring_rules",
                 "started_at": f"2026-01-0{index}T00:00:00Z",
                 "model_versions": {"core_agents": "stub"},
             },

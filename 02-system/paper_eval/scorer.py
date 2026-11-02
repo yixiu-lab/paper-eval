@@ -64,10 +64,12 @@ REQUIRED_KEYS_BY_ROLE = {
 # 顶刊跃迁门槛：基准项不能有短板，且加分项要明显超出。
 # 旧口径「每个维度达到维度权重 70%」是在五档等距标尺下定的，两池机制下语义已不适用。
 #
-# V16 重标定（2026-09-28）。判据与局限必须一起读：
-# - 项目**没有真值**（evaluation/expert_benchmark_20.csv 尚未标注），所以阈值不是"拟合到正确答案"，
-#   而是按**可复现性**选的：同一个规则库版本的多次重复跑，同一篇论文的判定不应翻转。
-#   依据是 V16 的四批重复跑（runs/v23、v23b、v23c、v23d，三篇 AI-HRM 实证论文）。
+# Empirical threshold calibration (2026-09-28). Read the criteria with their limits:
+# - The project has no gold-standard labels for this threshold; values were selected for repeat-run stability.
+# - Evidence comes from four batches of repeated runs on three AI-HRM empirical papers.
+# - Observed bonus-rate ranges: Choudhury 0.784–0.916, Blaurock 0.491–0.541, Cheng 0.427–0.455.
+# - The 0.65 / 0.30 thresholds provide a minimum margin of 0.109 (about 4.4 points).
+# - This margin remains below the between-batch variation for an individual paper; report ranges for repeated runs.
 # - 实测加分率区间：Choudhury 0.784–0.916、Blaurock 0.491–0.541、Cheng 0.427–0.455。
 #   旧值 0.60 / 0.35 虽是 0 翻转，但离 Blaurock 上界只有 0.059（≈2.4 分），随时会被噪声推过线。
 #   0.65 / 0.30 把最小裕度提到 0.109（≈4.4 分），是这批数据能达到的最宽裕度。
@@ -89,7 +91,8 @@ SCALE_ANCHOR = "两池标尺：基准池 60 分（基准项合格即满分，只
 
 # 等级带：基准分 60 = 各方面都合格 = 达到发表水准；低于它说明基准项出现短板。
 #
-# V16 重标定。旧值 (93, 85, 75) 实测**不稳定**：Choudhury 四批总分 91.375 / 92.313 / 93.437 / 96.625
+# Grade thresholds were selected from the archived repeated runs. Previous values (93, 85, 75) were unstable:
+# Choudhury scores across four batches were 91.375 / 92.313 / 93.437 / 96.625.
 # 骑在 93 上，等级在「顶刊级 ↔ 强刊/顶刊边缘」之间翻转。
 # 新值按"离所有论文所有批次的总分都尽量远"选（0 翻转的候选有 3454 个，必须挑平台中部而不是边缘）：
 #   Choudhury [91.375, 96.625]｜Blaurock [79.625, 81.625]｜Cheng [77.078, 78.203]

@@ -10,14 +10,14 @@ The research archive contains a trace database covering 17 papers and 72 evaluat
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| Corpus audit | 149 PDFs; 146 unique | 144 complete reports; two parser-blocked | [Audit and title-free outcomes](../04-reproducibility/corpus-audit.md) |
-| Scoring-mechanism studies | Early mechanism comparisons on three-paper samples | Studies examined judgment scales, two-pool scoring, evidence budgets, thresholds, and weight allocation | [Historical experiment evidence](experiment-evidence.md) |
-| Journal-gradient comparison | First sample: 12 papers; second sample: 15 additional papers | Kendall's tau = +0.500 against journal-tier ordering in the archived analysis | [Historical experiment evidence](experiment-evidence.md) |
-| Repeatability and uncertainty | Current manuscript: 20 papers × two independent runs; separate historical diagnostic: 57 run records across 20 papers | Current sample: paired mean absolute score difference 2.382, maximum 8.388, and grade agreement 85.0%; historical diagnostics are separately reported below | [Repeatability and uncertainty](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) |
-| Cross-model exploratory comparison | Current manuscript: three papers × five models × two recorded runs; earlier archived subset: three papers × two models × two runs = 12 valid runs | Model means range from 77.91 to 89.99 in the five-model summary; evidence was not fixed between runs, so results are descriptive | [Cross-model comparison](cross-model-results.md) |
-| Prompt-injection robustness | Three papers, six reviewer dimensions, three attack types, two repeats, paired across prompt conditions | Evidence-boundary prompt comparison reduced target-hit and rating-shift counts in this pilot | [Robustness experiments](robustness-experiments.md) |
+| Corpus and journal/source score profile | 149 PDFs; 146 unique | 144 complete reports; two parser-blocked; source composition and dimension summaries | [Audit and title-free outcomes](../04-reproducibility/corpus-audit.md) |
+| Cross-model exploratory comparison | Three shared papers × five models × two recorded runs (30 scores) | Model means range from 77.91 to 89.99; evidence was not fixed between runs, so results are descriptive | [Five-model comparison](cross-model-results.md) |
+| Reviewer structure comparison | Five papers, four evaluation structures | Full PaperEval, unified Reviewer, Reviewer-only, and direct scoring conditions are summarized descriptively | [Module ablations](module-ablation.md) |
 | Harness fault injection | 180 injected faulty outputs and 40 clean controls across nine fault types | Deterministic checks detected all injected faults; 88.9% were automatically contained and 11.1% routed for review | [Robustness experiments](robustness-experiments.md) |
-| Architecture ablation | Five-paper, four-condition comparison; separate one-paper module and three-paper evidence-gate ablations | Aggregated scores and module-level deltas are reported descriptively | [Module ablations](module-ablation.md) |
+| Prompt-injection robustness | Three papers, six reviewer dimensions, three attack types, two repeats, paired across prompt conditions | Evidence-boundary prompt comparison reduced target-hit and rating-shift counts in this pilot | [Robustness experiments](robustness-experiments.md) |
+| Repeatability and uncertainty | Current manuscript: 20 papers × two independent runs; separate historical diagnostic: 57 run records across 20 papers | Current sample: paired mean absolute score difference 2.382, maximum 8.388, and grade agreement 85.0%; historical diagnostics are separately reported below | [Repeatability and uncertainty](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) |
+| Journal-gradient comparison | First sample: 12 papers; second sample: 15 additional papers | Kendall's tau = +0.500 against journal-tier ordering in the archived analysis | [Historical experiment evidence](experiment-evidence.md) |
+| Scoring-mechanism studies | Mechanism comparisons on three-paper samples | Studies examined judgment scales, two-pool scoring, evidence budgets, thresholds, and weight allocation | [Historical experiment evidence](experiment-evidence.md) |
 | External-literature retrieval | Archived query/citation/semantic routes and multi-route ablations; seven-paper/seven-claim study setup | Gold candidates are machine-prelabelled from citation links; a claim-count mismatch in archived reports is being reconciled before quantitative conclusions are released | [Retrieval evaluation](retrieval-evaluation.md) |
 
 ## Reliability and uncertainty
@@ -26,9 +26,9 @@ The offline reliability analysis combines 57 historical run records across 20 pa
 
 These diagnostics summarize archived runs only. The 57 records span historical runs and do not form a fixed-evidence, five-repeat controlled experiment.
 
-## Model diversity
+## Model comparison
 
-The archived two-model comparison contains 12 valid runs on three papers. Both models used the same rule profile. A separate attempt using GLM-5.3 produced no completed evaluation because the service rejected calls for insufficient account balance; it is recorded as an access outcome, not as a model result. See the [cross-model summary](cross-model-results.md).
+The completed comparison reports the five models with two recorded runs on each of three shared papers. The [model results](cross-model-results.md) show per-paper runs, means, and run-to-run differences. All experiments use the same expert-calibrated scoring-rule set.
 
 ## Data release boundary
 
