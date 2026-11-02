@@ -6,7 +6,7 @@ This note summarizes the reconciliation of the source-paper corpus and its evalu
 
 The audit used the scoring profile maintained with the PaperEval system. Historical run settings are recorded in local run manifests and are not reproduced here.
 
-The title-free [paper-level outcomes](data/paper-outcomes.csv) list each unique source paper by a checksum-derived identifier. Paper titles, journal names, local paths, and source text are omitted.
+The title-free [paper-level outcomes](paper-outcomes.csv) list each unique source paper by a checksum-derived identifier. Paper titles, journal names, local paths, and source text are omitted.
 
 ## Corpus coverage
 

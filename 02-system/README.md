@@ -17,7 +17,7 @@ PaperEval is a command-line research artifact for evaluating scholarly papers th
 - Read the [technical appendix](technical-appendix.md) for the architecture, evidence flow, validation stages, and code map.
 - Inspect [`paper_eval/`](paper_eval/) for the implementation.
 - Review the [scoring rules overview](rules/README.md), the [operational rule profile](rules/rules_v1.yaml), and the [complete English scoring table](rules/scoring_rules.xlsx).
-- See the [experiment catalog](../03-experiments/README.md) and [reproducibility materials](../04-reproducibility/README.md) for study results and run records.
+- See the [experiment catalog](../03-experiments/README.md) and [data materials](../04-data/README.md) for study results and released outcomes.
 - See the [ethics and data-access statement](../05-ethics-access/README.md) for data handling and access scope.
 
 ## Run the command-line workflow

@@ -35,7 +35,7 @@ The current experiment manuscript reports results in the sequence below. Each ex
 
 
 
-The audit began with **149 source PDFs**, which yielded **146 unique papers** after exact deduplication. It produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. The completed reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores for the audited corpus and configuration. The manuscript also reports A–F dimension summaries and journal/source composition. See the [audit record](../04-reproducibility/corpus-audit.md) and [title-free outcomes](../04-reproducibility/data/paper-outcomes.csv).
+The audit began with **149 source PDFs**, which yielded **146 unique papers** after exact deduplication. It produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. The completed reports had a mean total score of **76.46** (SD 7.64), a median of **76.19**, and a range of **49.63–95.78**. These are descriptive scores for the audited corpus and configuration. The manuscript also reports A–F dimension summaries and journal/source composition. See the [audit record](../04-data/corpus-audit.md) and [title-free outcomes](../04-data/paper-outcomes.csv).
 
 
 
@@ -59,11 +59,11 @@ Twenty papers were scored independently twice, producing **40 complete reports**
 
 
 
-Additional records include a **10-paper** API batch, two journal-gradient samples with **27 papers** combined, a **17-paper** trace database, a separate reliability diagnostic with 57 historical runs across 20 papers, and a seven-paper/seven-claim retrieval setup with 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. Per-study paper counts are itemized in the [study sample index](../04-reproducibility/data/study-samples.md). See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
+Additional records include a **10-paper** API batch, two journal-gradient samples with **27 papers** combined, a **17-paper** trace database, a separate reliability diagnostic with 57 historical runs across 20 papers, and a seven-paper/seven-claim retrieval setup with 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. Per-study paper counts are itemized in the [study sample index](../04-data/study-samples.md). See the [historical experiment index](../03-experiments/experiment-evidence.md), [experiment catalog](../03-experiments/experiment-catalog.md), and [retrieval record](../03-experiments/retrieval-evaluation.md).
 
 
 
 - [System architecture and technical method](../02-system/technical-appendix.md) — system layers, evidence flow, validation, and scoring.
 - [Experiment catalog](../03-experiments/experiment-catalog.md) — study families, sample sizes, and summary outcomes.
-- [Reproducibility materials](../04-reproducibility/README.md) — source code, audit records, outcome table, and validation modes.
+- [Data and experimental materials](../04-data/README.md) — corpus audit, outcome table, and study samples.
 - [Ethics and data handling](../05-ethics-access/README.md) — study materials, data flows, and human responsibility.

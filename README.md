@@ -30,7 +30,7 @@ See the [system overview and reviewer reading path](02-system/README.md) and the
 
 The current experiment manuscript presents the studies in the sequence below. Each study has its own sample and comparison; samples overlap and must not be added to estimate a project-wide count of unique papers. The [experiment README](03-experiments/README.md) provides the detailed ordered index.
 
-1. **Corpus and journal/source score profile.** The audit began with **149 source PDFs**, yielding **146 unique papers** after exact deduplication. It produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. The mean score across completed reports was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. Six-dimension summaries and title-free paper outcomes are in the [audit record](04-reproducibility/corpus-audit.md) and [outcome table](04-reproducibility/data/paper-outcomes.csv).
+1. **Corpus and journal/source score profile.** The audit began with **149 source PDFs**, yielding **146 unique papers** after exact deduplication. It produced **144 complete reports**; two papers were blocked before scoring by PDF parsing. The mean score across completed reports was **76.46** (SD 7.64), the median was **76.19**, and the range was **49.63–95.78**. Six-dimension summaries and title-free paper outcomes are in the [audit record](04-data/corpus-audit.md) and [outcome table](04-data/paper-outcomes.csv).
 
 2. **Exploratory model comparison.** The current manuscript compares five models on three shared papers with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Because evidence was re-extracted and retrieval rerun, the comparison is descriptive and combines model and evidence variation. See the [five-model comparison](03-experiments/cross-model-results.md).
 
@@ -42,14 +42,14 @@ The current experiment manuscript presents the studies in the sequence below. Ea
 
 6. **Repeated-run stability.** Twenty papers were scored independently twice, yielding **40 complete reports**. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. See the [two-run results](03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
 
-The archive also contains a 10-paper API batch, two journal-gradient samples covering 27 papers, a 17-paper trace database (72 runs), a separate reliability diagnostic using 57 historical runs across 20 papers, and a retrieval study with seven target papers, seven claims, and 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. Per-study paper and run counts are listed in the [study sample index](04-reproducibility/data/study-samples.md); samples overlap and are not summed into a project-wide total. Further details are in the [experiment catalog](03-experiments/experiment-catalog.md), [historical experiment evidence](03-experiments/experiment-evidence.md), and [retrieval record](03-experiments/retrieval-evaluation.md).
+The archive also contains a 10-paper API batch, two journal-gradient samples covering 27 papers, a 17-paper trace database (72 runs), a separate reliability diagnostic using 57 historical runs across 20 papers, and a retrieval study with seven target papers, seven claims, and 366 citation-linked candidate mappings. Retrieval candidates were machine-prelabelled from citations, and the archived aggregate has a claim-count mismatch; no overall retrieval-performance estimate is reported. Per-study paper and run counts are listed in the [study sample index](04-data/study-samples.md); samples overlap and are not summed into a project-wide total. Further details are in the [experiment catalog](03-experiments/experiment-catalog.md), [historical experiment evidence](03-experiments/experiment-evidence.md), and [retrieval record](03-experiments/retrieval-evaluation.md).
 
 ## Reading path
 
 1. [Project overview](01-proposal/README.md)
 2. [System architecture and implementation](02-system/README.md)
 3. [Experiment catalog and study summaries](03-experiments/README.md)
-4. [Corpus audit and reproduction materials](04-reproducibility/README.md)
+4. [Data and experimental materials](04-data/README.md)
 
 ## Run the command-line workflow
 
