@@ -1,6 +1,6 @@
 # Corpus Audit
 
-This note summarizes the reconciliation of the source-paper corpus and its evaluation records. Source PDFs, extracted full text, and paper-linked reports remain in the research workspace.
+This note summarizes the reconciliation of the source-paper corpus and its evaluation records. The repository provides title-free outcomes and the subset of source PDFs with a Creative Commons license identified in the available PDF copy.
 
 ## Rule profile and run configuration
 
@@ -20,4 +20,4 @@ The sample consists of published empirical research in AI and human resource man
 
 ## Public data scope
 
-The repository includes aggregate descriptions and title-free outcomes. Source PDFs and paper-level traces are not included.
+The repository includes aggregate descriptions, title-free outcomes, a source-file inventory, and 29 unchanged PDFs with an identified Creative Commons license. The remaining source PDFs and paper-level report files are not included in this release.
