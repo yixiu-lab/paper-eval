@@ -38,8 +38,6 @@ The paper index records **73 named journal or source groups** for 194 papers; si
 
 ### 3.3 Robustness results
 
-Robustness analyses examine model and reviewer configuration, Harness checks, evidence-boundary instructions, and repeated runs. Five models were compared on three shared papers; their means range from **77.91 to 89.99**, while mean absolute run differences range from **0.61 to 3.83** points. Four reviewer configurations were compared on five papers, with mean scores of **79.50**, **74.60**, **57.93**, and **74.00**. The Harness detected **180/180** injected machine-checkable faults across nine classes, and all **40** clean controls passed. In a paired prompt study, evidence-boundary instructions reduced target-reaching attacks from **4/108** to **0/108**. Across 20 papers scored twice, the paired mean absolute score difference was **2.382** points and **17/20** retained the same quality grade.
-
 Detailed records: [five-model comparison](02-experiments/cross-model-results.md), [reviewer structure comparison](02-experiments/module-ablation.md), [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [evidence-boundary prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [repeated-run stability](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
 
 ## Data and materials
