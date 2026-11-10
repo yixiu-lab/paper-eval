@@ -66,13 +66,6 @@ Focused comparisons reuse papers from the study corpus; their repeated records a
 
 The data section contains the outcome table, the paper index covering all 200 evaluated papers, and sample PDFs with explicit redistribution licenses. The [data overview](03-data/README.md) describes the released materials and score summaries. Reusable experimental code is indexed in the [experiment README](02-experiments/README.md#experiment-code).
 
-## Repository structure
-
-1. [System and technical approach](01-system/README.md)
-2. [Experiments and results](02-experiments/README.md)
-3. [Data and research materials](03-data/README.md)
-4. [Ethics and data access](04-ethics-access/README.md)
-
 ## Run the command-line workflow
 
 Run commands from [`01-system/`](01-system/):
