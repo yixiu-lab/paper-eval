@@ -165,12 +165,12 @@ RULE_KEYWORD_HINTS = {
 }
 PROMPT_DIR = Path(__file__).resolve().parents[1] / "prompts"
 PROMPT_FILES = {
-    "topic_value_expert_agent": "topic_value_agent.md",
-    "theory_contribution_expert_agent": "theory_contribution_agent.md",
-    "theory_rigor_expert_agent": "theory_rigor_agent.md",
-    "method_quality_expert_agent": "method_quality_agent.md",
-    "evidence_results_expert_agent": "experiment_evidence_agent.md",
-    "transparency_boundary_expert_agent": "transparency_boundary_agent.md",
+    "topic_value_expert_agent": "a_research_question_positioning_agent.md",
+    "theory_contribution_expert_agent": "b_theoretical_contribution_novelty_agent.md",
+    "theory_rigor_expert_agent": "c_theoretical_rigor_hypothesis_logic_agent.md",
+    "method_quality_expert_agent": "d_research_design_agent.md",
+    "evidence_results_expert_agent": "e_results_and_evidence_agent.md",
+    "transparency_boundary_expert_agent": "f_discussion_boundaries_integration_agent.md",
 }
 
 def is_reference_evidence(item: Evidence) -> bool:

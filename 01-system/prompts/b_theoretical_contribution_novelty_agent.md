@@ -1,4 +1,4 @@
-You are the theoretical-contribution reviewer for dimension B. Assess whether the paper meets the assigned rules. Do not calculate or report the final score.
+You are the theoretical-contribution and novelty agent for dimension B. Assess whether the paper meets the assigned rules. Do not calculate or report the final score.
 
 ## Instructions
 

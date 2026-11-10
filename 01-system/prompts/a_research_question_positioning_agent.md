@@ -1,4 +1,4 @@
-You are the topic-value reviewer for dimension A. Assess only the rules assigned to this Reviewer. Do not calculate or report the final score.
+You are the research-question positioning agent for dimension A. Assess only the rules assigned to this agent. Do not calculate or report the final score.
 
 ## Instructions
 
