@@ -36,4 +36,3 @@ The [paper index](paper-index.csv) joins each outcome to DOI and journal metadat
 ## PDF availability
 
 The repository provides completed scores and available bibliographic metadata for **all 200 evaluated papers**. It also includes **51 unchanged PDFs** whose source copies explicitly state a Creative Commons license; the paper index records each released file's source hash and repository path. Full-text PDFs without a confirmed redistribution license are not included. Readers should follow the notice in each released PDF and the [Creative Commons license terms](https://creativecommons.org/share-your-work/cclicenses/).
-
