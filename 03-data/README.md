@@ -16,8 +16,6 @@ The final set contains papers with analyzable full text. Two entries whose local
 
 All **200 papers** have completed scores under the revised integer-weight profile. For readability, score values in the narrative are rounded to whole points: mean **77** (SD **9**), median **76**, and range **50–96**. Exact recalculated values remain in the CSV files. The totals were calculated from 6,800 archived rule-level judgments; the underlying model judgments were not rerun.
 
-Using the 2026 Financial Times 50 (FT50) list as a transparent journal-grouping criterion, **29 of the 200 papers** were published across **eight listed journals**, including *Management Science* (15 papers) and *Academy of Management Journal* (4 papers). See the [2026 FT50 journal list](https://www.ualberta.ca/en/business/research/publications/top-journals-business-management-list.html).
-
 The outcome table includes dimension scores A–F, the total score, the recorded model, the scoring profile, the calculation basis, and whether the associated local report passed the project checks. It omits titles, local paths, and source text. Each paper is identified by a checksum-derived ID.
 
 ## Outcome fields
