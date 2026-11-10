@@ -1,4 +1,4 @@
-# Exploratory Comparison Across Five Models
+# Cross-model results
 
 ## Study design
 

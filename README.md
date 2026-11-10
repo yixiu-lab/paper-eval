@@ -30,7 +30,7 @@ The 200 evaluated papers cover **73 journals and publication sources**. The comp
 
 ### 3.3 Robustness results
 
-Detailed records: [five-model comparison](02-experiments/cross-model-results.md), [reviewer structure comparison](02-experiments/module-ablation.md), [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [evidence-boundary prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [repeated-run stability](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
+Detailed records: [Cross-model results](02-experiments/cross-model-results.md), [reviewer structure comparison](02-experiments/module-ablation.md), [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [evidence-boundary prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [repeated-run stability](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
 
 ## Data and materials
 

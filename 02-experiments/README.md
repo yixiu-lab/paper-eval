@@ -100,7 +100,7 @@ The 200 evaluated papers cover **73 named journals and publication sources**. Th
 
 The focused studies examine how scores respond to model choice, reviewer organization, input instructions, and repeated execution, and test whether the Harness enforces machine-checkable constraints. These analyses use overlapping paper samples and are reported separately from the 200-paper corpus summary.
 
-### Cross-model comparison
+### Cross-model results
 
 The study compares five models on three shared papers, with two runs per model and paper. Model means range from **77.91 to 89.99**. Mean absolute run-to-run differences range from **0.61 to 3.83** points: DeepSeek-Flash and Qwen3.7-Flash show the smallest average differences, while Qwen3.8-Flash and Kimi-K2.5 show the largest. Every run rebuilt its evidence input, so the observed variation describes the complete assessment workflow.
 
@@ -122,7 +122,7 @@ Public GPQA Diamond results provide an external scientific-reasoning reference: 
 
 The public scores do not align monotonically with observed run-to-run differences. Qwen3.8-Flash-Next has the highest listed GPQA score but a high observed mean difference (3.83 points), while DeepSeek-Flash has a slightly lower public score and the lowest observed difference (0.61). Qwen3.7-Flash has the lowest listed GPQA score but the second-lowest observed difference (1.11). The capability–stability relationship therefore remains a testable hypothesis. Testing it requires pinned model snapshots, fixed papers and evidence, a common repeated-run protocol, and an independent capability measure.
 
-See the [five-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in the [system rules](../01-system/rules/README.md).
+See [Cross-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in the [system rules](../01-system/rules/README.md).
 
 ### Reviewer structure comparison
 
