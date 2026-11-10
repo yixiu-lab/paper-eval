@@ -1,7 +1,5 @@
 # PaperEval
 
-### An evidence-grounded workflow for AI-assisted research assessment
-
 ## Research background
 
 Assessment of management research draws on human judgment about the importance of a research question, theoretical contribution, rigor, research design, evidence, and implications. These judgments are made from different parts of a paper and need to be connected to the evidence that supports them. PaperEval studies how to make this assessment process explicit and inspectable: criteria guide the review, paper passages support rule-level judgments, and deterministic software calculates the reported scores.
