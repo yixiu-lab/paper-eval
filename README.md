@@ -4,8 +4,6 @@ Peer review is where AI’s “more versus better” problem is most acute. Manu
 
 We study a different object: not a faster reviewer, but a verifiable review infrastructure. PaperEval translates management scholarship’s quality standards into explicit, versioned, machine-checkable scoring rules; anchors judgments to citable evidence from the paper and, for comparison-dependent criteria, prior literature; and passes judgments through a deterministic validation layer that can reject or downgrade unsupported outputs and route cases for human review. The output is an audit trail: for each rule, a judgment tier, rationale, evidence IDs, and review status that others can inspect. Judgments become falsifiable claims rather than impressions.
 
-The contribution spans two types of work named in the call. As reusable research infrastructure, PaperEval is a multi-agent workflow that scholars can run, fork, and recalibrate for their fields. As critical, boundary-setting work, it documents system behavior under adversarial inputs, missing evidence, and validation controls. Initial validation focuses on AI-enabled human resource management (AI-HRM) and algorithmic management, an interdisciplinary area spanning AI, organizational behavior, and algorithmic governance.
-
 ## Technical approach
 
 PaperEval turns a paper PDF into rule-level judgments and a score report. The method follows the sequence below; each heading links to the matching section in the full [Technical Approach](01-system/README.md).

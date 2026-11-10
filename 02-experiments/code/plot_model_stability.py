@@ -102,7 +102,7 @@ def create_figure(output: Path) -> None:
 
 
 def main() -> None:
-    default_output = Path(__file__).resolve().parents[2] / "04-ethics-access" / ".assets" / "experiments" / "model-capability-stability-hypothesis.png"
+    default_output = Path(__file__).resolve().parents[2] / "03-data" / "figures" / "experiments" / "model-capability-stability-hypothesis.png"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=default_output)
     args = parser.parse_args()
