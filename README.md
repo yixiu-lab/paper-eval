@@ -26,7 +26,7 @@ The evaluation contains completed score records for **200 papers**. Archived rul
 
 ### 3.2 Journal score aggregation results
 
-The 200 evaluated papers cover **73 journals and publication sources**. Table 5 presents their scores in descending order by mean score. See the [journal score aggregation](02-experiments/README.md#2-journal-score-aggregation-results).
+The 200 evaluated papers cover **73 journals and publication sources**. The complete journal score table is sorted in descending order by mean score in the [experiment README](02-experiments/README.md#2-journal-score-aggregation-results).
 
 ### 3.3 Robustness results
 
