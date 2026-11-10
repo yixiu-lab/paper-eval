@@ -28,17 +28,39 @@ PaperEval turns a paper PDF into rule-level judgments and a score report. The me
 
 ## Experimental results
 
-PaperEval reports completed score records for **200 papers**. The archived rule-level judgments were reaggregated using the revised integer weights; the model was not rerun for this recalculation. Rounded to whole points for presentation, the mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. Exact per-paper results and dimension summaries are available in the [data overview](03-data/README.md#evaluation-results) and [outcome table](03-data/paper-outcomes.csv).
+The experimental results below follow the manuscript sequence. The [experiment README](02-experiments/README.md) links each section to its study record, while the [experiment catalog](02-experiments/experiment-catalog.md) indexes the broader study program.
 
-The experimental program examines model and run variation, reviewer configurations, evidence handling, retrieval, and Harness validation. Focused comparisons reuse papers from the study corpus; their repeated records are not added to the corpus count. The [experiment README](02-experiments/README.md) presents the studies in manuscript order.
+### 3.1 Paper total score results
 
-1. **Model comparison.** Five models were compared on three shared papers, with two recorded runs for each paper–model pair. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Public GPQA scores do not align monotonically with these run differences, so the capability–stability relationship remains a testable hypothesis. See the [five-model comparison](02-experiments/cross-model-results.md).
-2. **Reviewer structure comparison.** Four conditions were compared on five papers: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. See the [comparison and module ablations](02-experiments/module-ablation.md).
-3. **Harness validation.** In a deterministic fault-injection test, the Harness detected **180/180** injected machine-checkable faults across nine classes; all **40 clean controls** passed. See [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
-4. **Evidence-level instruction injection.** In a paired prompt study with three papers and 108 attack cases per condition, adding an evidence-boundary instruction reduced attacks reaching their target from **4/108** to **0/108**. See the [prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
-5. **Repeated-run stability.** Twenty papers were scored independently twice. The paired mean absolute score difference was **2.382** points, and **17/20 papers** retained the same quality grade. See the [repeatability results](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
+The evaluation contains completed score records for **200 papers**. Archived rule-level judgments were aggregated using the integer weights; the model was not rerun for this recalculation. The mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. The [data overview](03-data/README.md#evaluation-results) and [outcome table](03-data/paper-outcomes.csv) provide dimension summaries and paper-level scores.
 
-See the [experiment catalog](02-experiments/experiment-catalog.md) for study designs, samples, and links to each result.
+### 3.2 Journal score aggregation results
+
+The paper index records **73 named journal or source groups** for 194 papers; six papers have no source field and are shown separately in Table 5. The table summarizes every group by descending mean score, with sample size, mean and standard deviation, median, and range. The corpus includes **29 papers across eight journals** on the 2026 Financial Times 50 list, including 15 in *Management Science* and four in *Academy of Management Journal*. See the [journal aggregation section](02-experiments/README.md#2-journal-score-aggregation-results) and the [paper index](03-data/paper-index.csv).
+
+### 3.3 Cross-model comparison
+
+Five models were compared on three shared papers, with two recorded runs for each paper–model pair. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Public GPQA scores do not align monotonically with these run differences, so the capability–stability relationship remains a testable hypothesis. See the [five-model comparison](02-experiments/cross-model-results.md).
+
+### 3.4 Reviewer structure comparison
+
+Four conditions were compared on five papers: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. See the [comparison and module ablations](02-experiments/module-ablation.md).
+
+### 3.5 Harness validation and fault injection
+
+In a deterministic fault-injection test, the Harness detected **180/180** injected machine-checkable faults across nine classes; all **40 clean controls** passed. See [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
+
+### 3.6 Evidence-boundary prompt injection
+
+In a paired prompt study with three papers and 108 attack cases per condition, adding an evidence-boundary instruction reduced attacks reaching their target from **4/108** to **0/108**. See the [prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
+
+### 3.7 Independent repeated-run stability
+
+Twenty papers were scored independently twice. The paired mean absolute score difference was **2.382** points, and **17/20 papers** retained the same quality grade. See the [repeatability results](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
+
+### 3.8 Experiment summary and paper-level outcomes
+
+Focused comparisons reuse papers from the study corpus; their repeated records are not added to the corpus count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs, samples, and detailed results. Paper-level scores are available in the [outcome table](03-data/paper-outcomes.csv).
 
 ## Data and materials
 
