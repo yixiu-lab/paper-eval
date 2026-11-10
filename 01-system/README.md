@@ -1,4 +1,4 @@
-# System and Technical Approach
+# Technical Approach
 
 This page is the system entry point for reviewers and collaborators. It combines the architecture, evaluation workflow, implementation map, and command-line usage.
 
@@ -121,45 +121,20 @@ python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 
 Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and example settings are in [`configs/`](configs). Credentials are supplied through local environment configuration rather than committed files. The CLI, rule profile, prompts, and reusable evaluation modules constitute the current system artifact.
 
-## 10. Architecture-to-code map
+## 10. Architecture-to-code and study-outcome map
 
-| System layer | Main implementation |
-| --- | --- |
-| Command-line interface and run coordination | [`paper_eval/cli.py`](paper_eval/cli.py), [`paper_eval/harness.py`](paper_eval/harness.py) |
-| PDF parsing and evidence records | [`paper_eval/pdf_parser.py`](paper_eval/pdf_parser.py), [`paper_eval/models.py`](paper_eval/models.py) |
-| Paper profile and evidence routing | [`paper_eval/paper_context.py`](paper_eval/paper_context.py), [`paper_eval/agents.py`](paper_eval/agents.py) |
-| Claim extraction and prior-work retrieval | [`paper_eval/claim_extraction.py`](paper_eval/claim_extraction.py), [`paper_eval/external_retrieval.py`](paper_eval/external_retrieval.py) |
-| Reviewer workflow and orchestration | [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), [`paper_eval/llm.py`](paper_eval/llm.py) |
-| Validation, evidence gate, and aggregation | [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py), [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py), [`paper_eval/scorer.py`](paper_eval/scorer.py) |
-| Reflection, process audit, and consistency | [`paper_eval/reflection.py`](paper_eval/reflection.py), [`paper_eval/audit_agent.py`](paper_eval/audit_agent.py), [`paper_eval/consistency.py`](paper_eval/consistency.py) |
-| Reports, storage, and reliability | [`paper_eval/report.py`](paper_eval/report.py), [`paper_eval/storage.py`](paper_eval/storage.py), [`paper_eval/reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) |
+| System layer | Main implementation | Related study or data record |
+| --- | --- | --- |
+| Command-line interface and run coordination | [`paper_eval/cli.py`](paper_eval/cli.py), [`paper_eval/harness.py`](paper_eval/harness.py), [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py) | [Experiment catalog](../02-experiments/experiment-catalog.md) |
+| PDF parsing, paper profile, and evidence routing | [`paper_eval/pdf_parser.py`](paper_eval/pdf_parser.py), [`paper_eval/models.py`](paper_eval/models.py), [`paper_eval/paper_context.py`](paper_eval/paper_context.py), [`paper_eval/agents.py`](paper_eval/agents.py) | [Data overview](../03-data/README.md#evaluation-results), [paper outcomes](../03-data/paper-outcomes.csv) |
+| Rule profile and deterministic scoring | [`paper_eval/rules.py`](paper_eval/rules.py), [`paper_eval/scorer.py`](paper_eval/scorer.py) | [Scoring rules](rules/README.md), [paper outcomes](../03-data/paper-outcomes.csv) |
+| Claim extraction and prior-work retrieval | [`paper_eval/claim_extraction.py`](paper_eval/claim_extraction.py), [`paper_eval/external_retrieval.py`](paper_eval/external_retrieval.py), [`paper_eval/external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../02-experiments/retrieval-evaluation.md) |
+| Reviewer workflow and model calls | [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), [`paper_eval/agents.py`](paper_eval/agents.py), [`paper_eval/llm.py`](paper_eval/llm.py) | [Reviewer structure comparison](../02-experiments/module-ablation.md), [five-model comparison](../02-experiments/cross-model-results.md) |
+| Harness validation and evidence gating | [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py), [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py), [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [instruction-injection results](../02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) |
+| Reflection, process audit, and consistency | [`paper_eval/reflection.py`](paper_eval/reflection.py), [`paper_eval/audit_agent.py`](paper_eval/audit_agent.py), [`paper_eval/consistency.py`](paper_eval/consistency.py) | [Experiment catalog](../02-experiments/experiment-catalog.md) |
+| Reports, run traces, and reliability | [`paper_eval/report.py`](paper_eval/report.py), [`paper_eval/storage.py`](paper_eval/storage.py), [`paper_eval/reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Data index](../03-data/README.md), [repeatability and reliability results](../02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) |
 
-## 11. Related research records
-
-Study-level results are organized in the [experiment catalog](../02-experiments/README.md). The corpus audit and title-free outcomes are documented in the [data section](../03-data/README.md). This document describes the technical artifact and does not restate those study results.
-
-
-## 12. Study-to-implementation and outcome map
-
-| Research component | Implementation | Public study record | Interpretation boundary |
-| --- | --- | --- | --- |
-| PDF parsing and paper scoring | [`pdf_parser.py`](paper_eval/pdf_parser.py), [`rules.py`](paper_eval/rules.py), [`scorer.py`](paper_eval/scorer.py) | [Data overview](../03-data/README.md#evaluation-results), [paper outcomes](../03-data/paper-outcomes.csv) | The outcomes contain completed scores for all 200 papers. The data section includes 51 unchanged source PDFs whose copies state a Creative Commons license. |
-| Rule-based evidence assembly and reviewer judgments | [`agents.py`](paper_eval/agents.py), [`paper_context.py`](paper_eval/paper_context.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Reviewer-structure comparison](../02-experiments/module-ablation.md) | The comparison is descriptive across workflow conditions and does not establish accuracy against independent ratings. |
-| Model and run variability | [`llm.py`](paper_eval/llm.py), [`harness.py`](paper_eval/harness.py), [`scorer.py`](paper_eval/scorer.py) | [Model comparison](../02-experiments/cross-model-results.md), [repeatability results](../02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) | Model comparisons also varied evidence extraction and retrieval; repeated-run results are limited to the recorded sample. |
-| Harness validation and evidence gating | [`schema_validation.py`](paper_eval/schema_validation.py), [`evidence_gate.py`](paper_eval/evidence_gate.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../02-experiments/robustness-experiments.md#deterministic-harness-fault-injection) | The study uses injected machine-checkable faults, not a natural error-rate sample. |
-| Evidence-boundary instruction handling | [`agents.py`](paper_eval/agents.py), reviewer prompts in [`prompts/`](prompts/) | [Prompt-injection results](../02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) | The public results describe a limited paired prompt study. The archived attack templates and full prompt-condition artifacts are not included in this repository. |
-| Claim-led related-work retrieval | [`claim_extraction.py`](paper_eval/claim_extraction.py), [`external_retrieval.py`](paper_eval/external_retrieval.py), [`external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../02-experiments/retrieval-evaluation.md) | Candidate labels were machine-prelabelled; the archived claim-count mismatch remains unresolved, so no aggregate performance estimate is reported. |
-| Reports and run traces | [`report.py`](paper_eval/report.py), [`storage.py`](paper_eval/storage.py), [`reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Data index](../03-data/README.md), [reliability diagnostics](../02-experiments/robustness-experiments.md#reliability-and-uncertainty-diagnostics) | Paper-linked full-text traces and source-paper PDFs are not part of this public artifact. |
-
-This map distinguishes implemented code from empirical evidence. A linked experiment supports only the stated test and sample; it is not evidence for capabilities or conditions that the study did not evaluate.
-
-## 13. Reviewer reading path
-
-1. [Experiments and results](../02-experiments/README.md)
-2. [Data and sample materials](../03-data/README.md)
-3. [Ethics and data access](../04-ethics-access/README.md)
-
-## 14. Repository contents
+## 11. Repository contents
 
 - [`paper_eval/`](paper_eval/): parsing, retrieval, reviewer orchestration, validation, scoring, reporting, and reliability modules.
 - [`rules/`](rules/): the operational rule profile and complete English scoring table.
