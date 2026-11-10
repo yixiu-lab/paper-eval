@@ -25,11 +25,6 @@ PaperEval turns a paper PDF into rule-level judgments and a score report. The me
 5. [Claim-led external grounding](01-system/README.md#5-claim-led-external-grounding). When enabled, claims from the paper guide prior-work retrieval; selected records are linked to their source and supplied as external evidence for comparison-dependent rules.
 6. [Specialist review and judgment protocol](01-system/README.md#6-specialist-review-and-judgment-protocol). Six specialist Reviewers assess assigned dimensions and return structured rule judgments, rationales, confidence, and evidence references; a unified-Reviewer configuration is also available.
 7. [Harness: validation, gating, and aggregation](01-system/README.md#7-harness-validation-gating-and-aggregation). Deterministic checks validate schemas and evidence references, flag selected cases for review, retry uncertain items, and calculate dimension and total scores.
-8. [Reports, run records, and reliability analysis](01-system/README.md#8-reports-run-records-and-reliability-analysis). Reports connect judgments to evidence and scores; run records preserve workflow details, while optional reliability analysis compares saved runs.
-9. [Execution interface and artifact boundary](01-system/README.md#9-execution-interface-and-artifact-boundary). The command-line interface, example configurations, prompts, and package dependencies support execution of the published workflow.
-10. [Architecture-to-code map](01-system/README.md#10-architecture-to-code-map). The code map connects each system layer to its implementation modules.
-
-Additional sections cover the [study-to-implementation and outcome map](01-system/README.md#12-study-to-implementation-and-outcome-map) and [repository contents](01-system/README.md#14-repository-contents).
 
 ## Experimental results
 
