@@ -43,4 +43,4 @@ The repository provides completed scores and available bibliographic metadata fo
 
 The experiment section includes scripts for the deterministic Harness fault-injection analysis and for recomputing descriptive statistics from the outcome table. See [`02-experiments/code/`](../02-experiments/README.md#experiment-code).
 
-See the [system overview](../01-system/README.md) for the scoring workflow and the [ethics and data-access statement](../04-ethics-access/README.md) for the project's data-handling description.
+See [Technical Approach](../01-system/README.md) for the scoring workflow and the [ethics and data-access statement](../04-ethics-access/README.md) for the project's data-handling description.

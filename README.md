@@ -77,4 +77,4 @@ python -m paper_eval.cli --help
 python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 ```
 
-For single-paper evaluation, use the commands in the [system documentation](01-system/README.md). Model-backed runs use a configured provider; record the provider and model, code revision, criteria, retrieval settings, and run status for each evaluation.
+For single-paper evaluation, use the commands in the [Technical Approach](01-system/README.md). Model-backed runs use a configured provider; record the provider and model, code revision, criteria, retrieval settings, and run status for each evaluation.
