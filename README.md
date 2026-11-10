@@ -1,14 +1,12 @@
 # PaperEval
 
-Assessment of management research draws on human judgment about the importance of a research question, theoretical contribution, rigor, research design, evidence, and implications. These judgments are made from different parts of a paper and need to be connected to the evidence that supports them. PaperEval studies how to make this assessment process explicit and inspectable: criteria guide the review, paper passages support rule-level judgments, and deterministic software calculates the reported scores.
+## 1. Core Contribution: From Faster Reviewers to Verifiable Review
 
-The project uses one calibrated scoring-rule set with 34 rules across six dimensions. The rules translate paper-quality criteria into specific checks, evidence requirements, judgment anchors, and score mappings. PaperEval applies those rules through an AI-assisted workflow and preserves the evidence and reasoning behind each reported judgment.
+Peer review is where AI’s “more versus better” problem is most acute. Manuscript volumes are rising faster than reviewer capacity, and early evidence from *Organization Science* links higher submission volume after the arrival of generative AI with declining writing quality ([Gartenberg et al., 2026](https://pubsonline.informs.org/doi/10.1287/orsc.2026.ed.v37.n3)). Large language models (LLMs) can extract structured information from publications and generate feedback that overlaps substantially with human reviews ([Liang et al., 2024](https://doi.org/10.1056/AIoa2400196)); separate work has examined ChatGPT’s ability to predict peer-review outcomes ([Thelwall & Yaghi, 2024](https://arxiv.org/abs/2411.09763)). Yet the naive recipe—give a model a paper and ask for a score—can produce generic judgments, uncited evidence, author claims treated as facts, and outputs that are difficult to reproduce or audit. Scaling that recipe would scale these failures.
 
-## Research questions
+We study a different object: not a faster reviewer, but a verifiable review infrastructure. PaperEval translates management scholarship’s quality standards into explicit, versioned, machine-checkable scoring rules; anchors judgments to citable evidence from the paper and, for comparison-dependent criteria, prior literature; and passes judgments through a deterministic validation layer that can reject or downgrade unsupported outputs and route cases for human review. The output is an audit trail: for each rule, a judgment tier, rationale, evidence IDs, and review status that others can inspect. Judgments become falsifiable claims rather than impressions.
 
-1. **Human assessment:** How can the multidimensional judgments involved in human paper review be represented as explicit, evidence-linked criteria?
-2. **AI scoring:** How can an AI workflow apply these criteria to paper evidence and produce traceable rule-level judgments and scores?
-3. **Journal and source comparison:** How are the resulting score profiles distributed across journals and publication sources in the evaluated corpus?
+The contribution spans two types of work named in the call. As reusable research infrastructure, PaperEval is a multi-agent workflow that scholars can run, fork, and recalibrate for their fields. As critical, boundary-setting work, it documents system behavior under adversarial inputs, missing evidence, and validation controls. Initial validation focuses on AI-enabled human resource management (AI-HRM) and algorithmic management, an interdisciplinary area spanning AI, organizational behavior, and algorithmic governance.
 
 ## Technical approach
 
@@ -44,18 +42,14 @@ The data section contains the outcome table, the paper index covering all 200 ev
 
 ## Run the command-line workflow
 
-### 1. Get the project and open its system folder
+Clone the repository and enter the system folder:
 
-Clone the repository, then move into the system folder:
-
-```bash
+```text
 git clone https://github.com/yixiu-lab/paper-eval.git
 cd paper-eval/01-system
 ```
 
-### 2. Install the requirements
-
-Create a Python environment, activate it, and install the packages.
+Create a virtual environment, install dependencies, set `OPENAI_API_KEY`, validate the rules, then run the evaluation. Replace the PDF path and key with your own. Do not commit API keys.
 
 **Windows PowerShell:**
 
@@ -63,6 +57,9 @@ Create a Python environment, activate it, and install the packages.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+$env:OPENAI_API_KEY = "YOUR_API_KEY"
+python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
+python -m paper_eval.cli evaluate --pdf "C:\path\to\paper.pdf" --rules rules/rules_v1.yaml --out "runs\paper-001" --agent-config configs/agent_runtime.example.yaml
 ```
 
 **macOS or Linux:**
@@ -71,49 +68,9 @@ python -m pip install -r requirements.txt
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 3. Check the command and scoring rules
-
-Display the available commands and validate the included rule profile:
-
-```bash
-python -m paper_eval.cli --help
+export OPENAI_API_KEY="YOUR_API_KEY"
 python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
-```
-
-### 4. Configure the model and API key
-
-The example runtime uses an OpenAI-compatible endpoint and reads its key from the `OPENAI_API_KEY` environment variable. Set the key in your current terminal session, replacing the placeholder with your own key. Keep the key out of the repository.
-
-**Windows PowerShell:**
-
-```powershell
-$env:OPENAI_API_KEY = "your-key"
-```
-
-**macOS or Linux:**
-
-```bash
-export OPENAI_API_KEY="your-key"
-```
-
-To use another compatible service, make a local copy of the [example runtime configuration](01-system/configs/agent_runtime.example.yaml), set its provider, endpoint, model name, and key environment-variable name, then pass that file to `--agent-config`. See [Technical Approach](01-system/README.md#9-execution-interface-and-artifact-boundary) for the full command reference.
-
-### 5. Evaluate one paper
-
-Replace the PDF path and output folder with your own paths. The command writes the evaluation reports and run records to the output folder.
-
-**Windows PowerShell:**
-
-```powershell
-python -m paper_eval.cli evaluate --pdf "C:\path\to\paper.pdf" --rules rules/rules_v1.yaml --out "runs\paper-001" --agent-config configs/agent_runtime.example.yaml
-```
-
-**macOS or Linux:**
-
-```bash
 python -m paper_eval.cli evaluate --pdf "/path/to/paper.pdf" --rules rules/rules_v1.yaml --out "runs/paper-001" --agent-config configs/agent_runtime.example.yaml
 ```
 
-Record the provider and model, code revision, rule profile, retrieval settings, and run status with each evaluation. For the full command reference and output description, see [Technical Approach](01-system/README.md#9-execution-interface-and-artifact-boundary).
+For other compatible providers or available options, see the [runtime configuration](01-system/configs/agent_runtime.example.yaml) and [Technical Approach](01-system/README.md#9-execution-interface-and-artifact-boundary).
