@@ -29,7 +29,7 @@ PaperEval turns a paper PDF into rule-level judgments and a score report. The me
 9. [Execution interface and artifact boundary](01-system/README.md#9-execution-interface-and-artifact-boundary). The command-line interface, example configurations, prompts, and package dependencies support execution of the published workflow.
 10. [Architecture-to-code map](01-system/README.md#10-architecture-to-code-map). The code map connects each system layer to its implementation modules.
 
-Additional sections cover [related research records](01-system/README.md#11-related-research-records), the [study-to-implementation and outcome map](01-system/README.md#12-study-to-implementation-and-outcome-map), the [reviewer reading path](01-system/README.md#13-reviewer-reading-path), and [repository contents](01-system/README.md#14-repository-contents).
+Additional sections cover the [study-to-implementation and outcome map](01-system/README.md#12-study-to-implementation-and-outcome-map) and [repository contents](01-system/README.md#14-repository-contents).
 
 ## Experimental results
 
