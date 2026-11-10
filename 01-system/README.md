@@ -6,7 +6,7 @@ This page is the system entry point for reviewers and collaborators. It combines
 
 PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
 
-![PaperEval overview from the methods manuscript](../05-ethics-access/.assets/system/system-overview-from-method.png)
+![PaperEval overview from the methods manuscript](../04-ethics-access/.assets/system/system-overview-from-method.png)
 
 *Figure. Conceptual PaperEval overview from the methods manuscript. The displayed score values and report examples are illustrative. Runtime validation is detailed in Section 7; calibration and reliability analysis is a separate post-run step described in Section 8.*
 
@@ -14,7 +14,7 @@ The workflow proceeds from PDF parsing and profile construction through rule-spe
 
 The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
 
-## 2. Rule profile: the domain adaptation layer
+## 2. Rule profile
 
 The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The scoring profile contains 34 rules across six dimensions. The [rule file](rules/rules_v1.yaml) defines the operational profile, and the [scoring rules overview](rules/README.md) links to the full [English scoring workbook](rules/scoring_rules.xlsx).
 
@@ -45,7 +45,7 @@ For each rule, the evidence router uses the rule definition, section expectation
 
 Each package gives a reviewer the rule identifier and criterion, relevant paper context, selected evidence text, page and section metadata, and evidence IDs. The reviewer therefore evaluates a bounded question against traceable passages rather than producing only a paper-level impression. Evidence selection and payload construction are implemented in [`paper_eval/agents.py`](paper_eval/agents.py); context-level routing is implemented in [`paper_eval/paper_context.py`](paper_eval/paper_context.py).
 
-![Schematic trace from paper evidence through rule-level judgment to score aggregation](../05-ethics-access/.assets/system/evidence-to-judgment-trace.png)
+![Schematic trace from paper evidence through rule-level judgment to score aggregation](../04-ethics-access/.assets/system/evidence-to-judgment-trace.png)
 
 *Figure. Evidence-to-judgment trace. The paper excerpts, prior-work labels, and example scores shown in the diagram are illustrative.*
 
@@ -55,7 +55,7 @@ When enabled by runtime configuration, the external-grounding path extracts clai
 
 Candidate records are normalized and deduplicated, filtered against the target paper's publication year when available, and reranked using claim and paper context. The selected prior works are converted into external evidence records with stable evidence IDs and metadata. These records can support A/B judgments about the research gap and contribution. External validation checks evidence coverage and citation conditions; a positive comparison-dependent judgment without required external support can be changed to uncertain or flagged for review.
 
-![Claim-led retrieval workflow from the methods manuscript](../05-ethics-access/.assets/system/claim-led-retrieval-overview.png)
+![Claim-led retrieval workflow from the methods manuscript](../04-ethics-access/.assets/system/claim-led-retrieval-overview.png)
 
 *Figure. Claim-led retrieval illustration from the methods manuscript. The displayed candidate counts and example paper entries are schematic; the current multi-provider implementation is described above.*
 
@@ -85,7 +85,7 @@ The Harness is the deterministic control layer between model judgments and repor
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
 
-![Harness validation and aggregation from the methods manuscript](../05-ethics-access/.assets/system/harness-validation-aggregation.png)
+![Harness validation and aggregation from the methods manuscript](../04-ethics-access/.assets/system/harness-validation-aggregation.png)
 
 *Figure. Harness validation and aggregation sketch from the methods manuscript. The calibration panel refers to optional post-run calibration sensitivity analysis; it is not a runtime gate that changes judgments.*
 
@@ -136,29 +136,28 @@ Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and e
 
 ## 11. Related research records
 
-Study-level results are organized in the [experiment catalog](../03-experiments/README.md). The corpus audit and title-free outcomes are documented in the [data section](../04-data/README.md). This document describes the technical artifact and does not restate those study results.
+Study-level results are organized in the [experiment catalog](../02-experiments/README.md). The corpus audit and title-free outcomes are documented in the [data section](../03-data/README.md). This document describes the technical artifact and does not restate those study results.
 
 
 ## 12. Study-to-implementation and outcome map
 
 | Research component | Implementation | Public study record | Interpretation boundary |
 | --- | --- | --- | --- |
-| PDF parsing and paper scoring | [`pdf_parser.py`](paper_eval/pdf_parser.py), [`rules.py`](paper_eval/rules.py), [`scorer.py`](paper_eval/scorer.py) | [Data overview](../04-data/README.md#evaluation-results), [paper outcomes](../04-data/paper-outcomes.csv) | The outcomes contain completed scores for all 200 papers. The data section includes 51 unchanged source PDFs whose copies state a Creative Commons license. |
-| Rule-based evidence assembly and reviewer judgments | [`agents.py`](paper_eval/agents.py), [`paper_context.py`](paper_eval/paper_context.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Reviewer-structure comparison](../03-experiments/module-ablation.md) | The comparison is descriptive across workflow conditions and does not establish accuracy against independent ratings. |
-| Model and run variability | [`llm.py`](paper_eval/llm.py), [`harness.py`](paper_eval/harness.py), [`scorer.py`](paper_eval/scorer.py) | [Model comparison](../03-experiments/cross-model-results.md), [repeatability results](../03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) | Model comparisons also varied evidence extraction and retrieval; repeated-run results are limited to the recorded sample. |
-| Harness validation and evidence gating | [`schema_validation.py`](paper_eval/schema_validation.py), [`evidence_gate.py`](paper_eval/evidence_gate.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../03-experiments/robustness-experiments.md#deterministic-harness-fault-injection) | The study uses injected machine-checkable faults, not a natural error-rate sample. |
-| Evidence-boundary instruction handling | [`agents.py`](paper_eval/agents.py), reviewer prompts in [`prompts/`](prompts/) | [Prompt-injection results](../03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) | The public results describe a limited paired prompt study. The archived attack templates and full prompt-condition artifacts are not included in this repository. |
-| Claim-led related-work retrieval | [`claim_extraction.py`](paper_eval/claim_extraction.py), [`external_retrieval.py`](paper_eval/external_retrieval.py), [`external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../03-experiments/retrieval-evaluation.md) | Candidate labels were machine-prelabelled; the archived claim-count mismatch remains unresolved, so no aggregate performance estimate is reported. |
-| Reports and run traces | [`report.py`](paper_eval/report.py), [`storage.py`](paper_eval/storage.py), [`reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Data index](../04-data/README.md), [reliability diagnostics](../03-experiments/robustness-experiments.md#reliability-and-uncertainty-diagnostics) | Paper-linked full-text traces and source-paper PDFs are not part of this public artifact. |
+| PDF parsing and paper scoring | [`pdf_parser.py`](paper_eval/pdf_parser.py), [`rules.py`](paper_eval/rules.py), [`scorer.py`](paper_eval/scorer.py) | [Data overview](../03-data/README.md#evaluation-results), [paper outcomes](../03-data/paper-outcomes.csv) | The outcomes contain completed scores for all 200 papers. The data section includes 51 unchanged source PDFs whose copies state a Creative Commons license. |
+| Rule-based evidence assembly and reviewer judgments | [`agents.py`](paper_eval/agents.py), [`paper_context.py`](paper_eval/paper_context.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Reviewer-structure comparison](../02-experiments/module-ablation.md) | The comparison is descriptive across workflow conditions and does not establish accuracy against independent ratings. |
+| Model and run variability | [`llm.py`](paper_eval/llm.py), [`harness.py`](paper_eval/harness.py), [`scorer.py`](paper_eval/scorer.py) | [Model comparison](../02-experiments/cross-model-results.md), [repeatability results](../02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) | Model comparisons also varied evidence extraction and retrieval; repeated-run results are limited to the recorded sample. |
+| Harness validation and evidence gating | [`schema_validation.py`](paper_eval/schema_validation.py), [`evidence_gate.py`](paper_eval/evidence_gate.py), [`agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../02-experiments/robustness-experiments.md#deterministic-harness-fault-injection) | The study uses injected machine-checkable faults, not a natural error-rate sample. |
+| Evidence-boundary instruction handling | [`agents.py`](paper_eval/agents.py), reviewer prompts in [`prompts/`](prompts/) | [Prompt-injection results](../02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) | The public results describe a limited paired prompt study. The archived attack templates and full prompt-condition artifacts are not included in this repository. |
+| Claim-led related-work retrieval | [`claim_extraction.py`](paper_eval/claim_extraction.py), [`external_retrieval.py`](paper_eval/external_retrieval.py), [`external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../02-experiments/retrieval-evaluation.md) | Candidate labels were machine-prelabelled; the archived claim-count mismatch remains unresolved, so no aggregate performance estimate is reported. |
+| Reports and run traces | [`report.py`](paper_eval/report.py), [`storage.py`](paper_eval/storage.py), [`reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Data index](../03-data/README.md), [reliability diagnostics](../02-experiments/robustness-experiments.md#reliability-and-uncertainty-diagnostics) | Paper-linked full-text traces and source-paper PDFs are not part of this public artifact. |
 
 This map distinguishes implemented code from empirical evidence. A linked experiment supports only the stated test and sample; it is not evidence for capabilities or conditions that the study did not evaluate.
 
 ## 13. Reviewer reading path
 
-1. [Project overview and research question](../01-proposal/README.md)
-2. [Experiments and results](../03-experiments/README.md)
-3. [Data and sample materials](../04-data/README.md)
-4. [Ethics and data access](../05-ethics-access/README.md)
+1. [Experiments and results](../02-experiments/README.md)
+2. [Data and sample materials](../03-data/README.md)
+3. [Ethics and data access](../04-ethics-access/README.md)
 
 ## 14. Repository contents
 

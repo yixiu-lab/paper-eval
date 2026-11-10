@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPOSITORY_ROOT / "02-system"))
+sys.path.insert(0, str(REPOSITORY_ROOT / "01-system"))
 
 from paper_eval.evidence_gate import apply_evidence_gate  # noqa: E402
 from paper_eval.models import AgentJudgement, Evidence, Judgement  # noqa: E402

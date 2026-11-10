@@ -6,8 +6,8 @@
 __pycache__/
 *.py[cod]
 *.pdf
-!04-data/papers/
-!04-data/papers/*.pdf
+!03-data/papers/
+!03-data/papers/*.pdf
 runs/
 data/
 retrieval_index/
@@ -15,6 +15,6 @@ uploads/
 *.log
 *.aux
 *.out
-02-system/rules/external_retrieval_rules_v1.yaml
-02-system/rules/*.md
-!02-system/rules/README.md
+01-system/rules/external_retrieval_rules_v1.yaml
+01-system/rules/*.md
+!01-system/rules/README.md

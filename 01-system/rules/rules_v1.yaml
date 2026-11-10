@@ -39,135 +39,135 @@ constructs:
 - construct_id: A-TOPIC
   construct_name: "Visibility of topic selection consequences"
   dimension_id: A
-  weight: 3.0
+  weight: 3
 - construct_id: A-GAP
   construct_name: "Research gaps and puzzles"
   dimension_id: A
-  weight: 3.0
+  weight: 3
 - construct_id: A-QUESTION
   construct_name: "Research Question Testability"
   dimension_id: A
-  weight: 3.0
+  weight: 3
 - construct_id: A-LIT
   construct_name: "Document dialogue positioning"
   dimension_id: A
-  weight: 3.0
+  weight: 3
 - construct_id: A-SCOPE
   construct_name: "Problem scope and operability"
   dimension_id: A
-  weight: 3.0
+  weight: 3
 - construct_id: B-DIALOGUE
   construct_name: "Theoretical dialogue promotion and questioning"
   dimension_id: B
-  weight: 6.461539
+  weight: 6
 - construct_id: B-INTEGRATION
   construct_name: "Cross-theoretical or cross-disciplinary integration"
   dimension_id: B
-  weight: 4.444444
+  weight: 4
 - construct_id: B-NOVELTY
   construct_name: "New concept, new mechanism or measurement innovation"
   dimension_id: B
-  weight: 5.538461
+  weight: 6
 - construct_id: B-INTERESTING
   construct_name: "Interesting and counter-intuitive findings"
   dimension_id: B
-  weight: 3.555556
+  weight: 4
 - construct_id: C-CONCEPT
   construct_name: "Concept definition and naming are clear"
   dimension_id: C
-  weight: 4.0
+  weight: 4
 - construct_id: C-PREMISE
   construct_name: "The logical premise is appropriate"
   dimension_id: C
-  weight: 2.666667
+  weight: 3
 - construct_id: C-REASONING
   construct_name: "The reasoning process is rigorous"
   dimension_id: C
-  weight: 4.0
+  weight: 4
 - construct_id: C-HYPOTHESIS
   construct_name: "hypothesis or proposition takes root"
   dimension_id: C
-  weight: 4.0
+  weight: 4
 - construct_id: C-BOUNDARY
   construct_name: "theoretical boundary conditions"
   dimension_id: C
-  weight: 2.666667
+  weight: 3
 - construct_id: C-ALTERNATIVE
   construct_name: "alternative interpretation processing"
   dimension_id: C
-  weight: 2.666666
+  weight: 2
 - construct_id: C-WRITING
   construct_name: "Language expression and writing clarity (not scored)"
   dimension_id: C
-  weight: 0.0
+  weight: 0
 - construct_id: D-DESIGN
   construct_name: "Research Design Matching Research Question"
   dimension_id: D
-  weight: 6.0
+  weight: 6
 - construct_id: D-DATA
   construct_name: "Data source and sample"
   dimension_id: D
-  weight: 4.0
+  weight: 4
 - construct_id: D-MEASUREMENT
   construct_name: "Measurement and construct validity"
   dimension_id: D
-  weight: 5.0
+  weight: 5
 - construct_id: D-MODEL
   construct_name: "model setting and identification strategy"
   dimension_id: D
-  weight: 5.0
+  weight: 5
 - construct_id: D-EXECUTION
   construct_name: "method execution specification"
   dimension_id: D
-  weight: 3.0
+  weight: 3
 - construct_id: D-QUAL
   construct_name: "Qualitative research paradigm matching"
   dimension_id: D
-  weight: 2.0
+  weight: 2
 - construct_id: E-COMPLETENESS
   construct_name: "results present complete specification"
   dimension_id: E
-  weight: 1.8
+  weight: 2
 - construct_id: E-ALIGNMENT
   construct_name: "Result corresponds to the problem"
   dimension_id: E
-  weight: 3.6
+  weight: 4
 - construct_id: E-ROBUSTNESS
   construct_name: "Robustness and Supplementary Analysis"
   dimension_id: E
-  weight: 1.5
+  weight: 2
 - construct_id: E-STRENGTH
   construct_name: "Strength of evidence support"
   dimension_id: E
-  weight: 3.6
+  weight: 3
 - construct_id: E-CONCLUSION
   construct_name: "Conclusion explanation and boundaries"
   dimension_id: E
-  weight: 1.5
+  weight: 1
 - construct_id: E-DISCUSSION
   construct_name: "Discussion on synthesis and improvement"
   dimension_id: E
-  weight: 3.0
+  weight: 3
 - construct_id: F-REPRO-TRANSPARENCY
   construct_name: "Reproducible and transparent"
   dimension_id: F
-  weight: 2.0
+  weight: 2
 - construct_id: F-LIMITATIONS
   construct_name: "Limitations Discussion"
   dimension_id: F
-  weight: 1.0
+  weight: 1
 - construct_id: F-EXTERNAL
   construct_name: "External validity and scope of application"
   dimension_id: F
-  weight: 1.0
+  weight: 0
 - construct_id: F-PRACTICAL
   construct_name: "Practical Enlightenment"
   dimension_id: F
-  weight: 1.0
+  weight: 1
 - construct_id: F-SOCIAL
   construct_name: "Long-term and social impact"
   dimension_id: F
-  weight: 0.0
+  weight: 1
 rules:
 - rule_id: A-TOPIC-SIGNIFICANCE-V1
   version: V1
@@ -198,7 +198,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
@@ -252,7 +252,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Grant & Pollock 2011
@@ -303,7 +303,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -357,7 +357,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
@@ -409,7 +409,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
@@ -462,7 +462,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 4.444444
+  weight: 4
   applicable_type: "Theory/Review/Hybrid"
   source_reference:
   - Shaw et al. 2018
@@ -514,7 +514,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 5.538461
+  weight: 6
   applicable_type: "General"
   source_reference:
   - Nadkarni et al. 2018
@@ -568,7 +568,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 3.555556
+  weight: 4
   applicable_type: "General"
   source_reference:
   - Davis 1971
@@ -620,7 +620,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 6.461539
+  weight: 6
   applicable_type: "General"
   source_reference:
   - Colquitt & George 2011
@@ -672,7 +672,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 4.0
+  weight: 4
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -724,7 +724,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 2.666667
+  weight: 3
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -774,7 +774,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 4.0
+  weight: 4
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -826,7 +826,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 4.0
+  weight: 4
   applicable_type: "Quantitative/Theoretical/Mixed"
   source_reference:
   - Sparrowe & Mayer 2011
@@ -879,7 +879,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 2.666667
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
@@ -934,7 +934,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 2.666666
+  weight: 2
   applicable_type: "General"
   source_reference:
   - Sparrowe & Mayer 2011
@@ -989,7 +989,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 0.0
+  weight: 0
   applicable_type: "General"
   source_reference:
   - 'Colquitt & George 2011 (AMJ Part 3: Setting the hook) '
@@ -1041,7 +1041,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 6.0
+  weight: 6
   applicable_type: "General"
   source_reference:
   - Bono & McNamara 2011
@@ -1096,7 +1096,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 4.0
+  weight: 4
   applicable_type: "Evidence"
   source_reference:
   - Zhang & Shaw 2012
@@ -1148,7 +1148,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 5.0
+  weight: 5
   applicable_type: "Evidence"
   source_reference:
   - Bono & McNamara 2011
@@ -1201,7 +1201,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 5.0
+  weight: 5
   applicable_type: "Quantification/Mixing"
   source_reference:
   - Bono & McNamara 2011
@@ -1253,7 +1253,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1305,7 +1305,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 2.0
+  weight: 2
   applicable_type: "Qualitative"
   source_reference:
   - Bansal et al. 2018
@@ -1358,7 +1358,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 1.8
+  weight: 2
   applicable_type: "Evidence"
   source_reference:
   - Zhang & Shaw 2012
@@ -1411,7 +1411,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.6
+  weight: 4
   applicable_type: "General"
   source_reference:
   - Zhang & Shaw 2012
@@ -1463,7 +1463,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 1.5
+  weight: 2
   applicable_type: "Evidence"
   source_reference:
   - Bono & McNamara 2011
@@ -1517,7 +1517,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 3.6
+  weight: 3
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1572,7 +1572,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 1.5
+  weight: 1
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1625,7 +1625,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 3.0
+  weight: 3
   applicable_type: "General"
   source_reference:
   - Geletkanycz & Tepper 2012
@@ -1676,7 +1676,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 1.0
+  weight: 1
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1728,7 +1728,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 1.0
+  weight: 1
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1779,7 +1779,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: baseline
-  weight: 1.0
+  weight: 1
   applicable_type: "General"
   source_reference:
   - Geletkanycz & Tepper 2012
@@ -1834,7 +1834,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 1.0
+  weight: 0
   applicable_type: "General"
   source_reference:
   - "Zhang Kai et al. 2023"
@@ -1888,7 +1888,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 1.0
+  weight: 1
   applicable_type: "General"
   source_reference:
   - Tihanyi 2020
@@ -1942,7 +1942,7 @@ rules:
     not_satisfied: 0.0
     uncertain: null
   role: bonus
-  weight: 0.0
+  weight: 1
   applicable_type: "General"
   source_reference:
   - Tihanyi 2020

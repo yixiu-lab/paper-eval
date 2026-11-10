@@ -4,7 +4,7 @@
 
 This is the earlier scoring evidence stream. The project also has cross-model, uncertainty, prompt-injection, harness fault-injection, module-ablation, and external-retrieval records. See the [full experiment catalog](experiment-catalog.md) and its linked summaries.
 
-The experiment archive includes paper-linked trace records alongside a unified assessment of **200 papers**, all with completed scores. See the [data overview](../04-data/README.md#evaluation-results), [paper index](../04-data/paper-index.csv), and [title-free outcome table](../04-data/paper-outcomes.csv).
+The experiment archive includes paper-linked trace records alongside a unified assessment of **200 papers**, all with completed scores. See the [data overview](../03-data/README.md#evaluation-results), [paper index](../03-data/paper-index.csv), and [title-free outcome table](../03-data/paper-outcomes.csv).
 
 ## Archived experiment results
 

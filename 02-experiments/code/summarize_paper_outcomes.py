@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "04-data" / "paper-outcomes.csv",
+        default=Path(__file__).resolve().parents[2] / "03-data" / "paper-outcomes.csv",
     )
     args = parser.parse_args()
     print(json.dumps(summarize(read_csv(args.input)), indent=2))

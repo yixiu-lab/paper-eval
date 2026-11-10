@@ -2,7 +2,7 @@
 
 ## Corpus size and experimental scope
 
-The experiment covers **200 papers**, all with completed scores under the same model and calibrated criteria. The paper-level outcome table reports the score and source metadata for each paper.
+The corpus contains completed score records for **200 papers**. Their totals and dimension scores are aggregated under the revised integer-weight profile from archived rule-level judgments; the model was not rerun for this recalculation. See the paper-level outcome table for scores and source metadata.
 
 The research archive contains trace records, run-level diagnostics, and claim-level retrieval slices. This catalog summarizes the main study families and links to the underlying records.
 
@@ -10,7 +10,7 @@ The research archive contains trace records, run-level diagnostics, and claim-le
 
 | Study family | Sample and design | Current record | Public package |
 |---|---|---|---|
-| Paper assessment and score profile | 200 papers scored | Aggregate score and six-dimension summaries | [Data overview, paper index, and title-free outcomes](../04-data/README.md#evaluation-results) |
+| Paper assessment and score profile | 200 papers scored | Aggregate score and six-dimension summaries | [Data overview, paper index, and title-free outcomes](../03-data/README.md#evaluation-results) |
 | Cross-model exploratory comparison | Three shared papers × five models × two recorded runs (30 scores) | Model means range from 77.91 to 89.99; evidence was not fixed between runs, so results are descriptive | [Five-model comparison](cross-model-results.md) |
 | Reviewer structure comparison | Five papers, four evaluation structures | Full PaperEval, unified Reviewer, Reviewer-only, and direct scoring conditions are summarized descriptively | [Module ablations](module-ablation.md) |
 | Harness fault injection | 180 injected faulty outputs and 40 clean controls across nine fault types | Deterministic checks detected all injected faults; 88.9% were automatically contained and 11.1% routed for review | [Robustness experiments](robustness-experiments.md) |
@@ -28,11 +28,11 @@ These diagnostics summarize archived runs only and do not form a fixed-evidence,
 
 ## Model comparison
 
-The completed comparison reports the five models with two recorded runs on each of three shared papers. The [model results](cross-model-results.md) show per-paper runs, means, and run-to-run differences. All experiments use the same expert-calibrated scoring-rule set.
+The completed comparison reports the five models with two recorded runs on each of three shared papers. The [model results](cross-model-results.md) show per-paper runs, means, and run-to-run differences. The five-model comparison reports the archived results of that focused study. The 200-paper corpus results use the revised integer-weight profile described in the data overview.
 
 ## Data release boundary
 
-This repository publishes study designs, aggregate outcomes, and title-free scores. The [data section](../04-data/README.md) includes 51 unchanged PDFs whose source copies state a Creative Commons license. The unified paper index retains metadata and scores for all 200 papers; PDFs are not distributed when the available copy does not establish redistribution permission.
+This repository publishes study designs, aggregate outcomes, and title-free scores. The [data section](../03-data/README.md) includes 51 unchanged PDFs whose source copies state a Creative Commons license. The unified paper index retains metadata and scores for all 200 papers; PDFs are not distributed when the available copy does not establish redistribution permission.
 
 ## Executable analysis material
 

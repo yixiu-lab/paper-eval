@@ -2,84 +2,63 @@
 
 ### An evidence-grounded workflow for AI-assisted research assessment
 
-## Abstract
+## Research background
 
-PaperEval investigates how artificial intelligence can support the assessment of management research through explicit evaluation criteria, traceable evidence, and inspectable judgments. Rather than relying on a single summary or overall score, the system translates a structured evaluation framework into rule-level assessments. For each paper, it links judgments to relevant passages, records the evidence and rationale behind them, and uses deterministic software to validate evidence references and aggregate scores into a report for researcher review.
+Assessment of management research draws on human judgment about the importance of a research question, theoretical contribution, rigor, research design, evidence, and implications. These judgments are made from different parts of a paper and need to be connected to the evidence that supports them. PaperEval studies how to make this assessment process explicit and inspectable: criteria guide the review, paper passages support rule-level judgments, and deterministic software calculates the reported scores.
 
-The empirical program examines how assessment outcomes vary across models and repeated runs, how reviewer configurations and workflow components shape results, how the system handles paper and external evidence, and which conditions warrant human review. By connecting criteria, evidence, judgments, validation, and scores in a traceable workflow, PaperEval provides a basis for examining both assessment outcomes and the process through which they are produced.
-
-The project focuses on management and AI-HRM research. It treats paper assessment as a measurement workflow: a score should be traceable to the criteria applied, the evidence considered, the judgment made for each criterion, and the software that validates and aggregates those judgments.
-
-## Research motivation
-
-AI systems can produce fluent paper summaries and review-like feedback, but a polished narrative or a single score does not reveal how the system reached its conclusions. PaperEval makes that process inspectable at the rule level. It links judgments to passages in the paper, records page and section context, preserves uncertainty and review indicators, and exposes the scoring transformations used to produce dimension and total scores.
-
-This design allows the project to study both assessment outcomes and the process that produces them. Researchers can examine where the evidence came from, which criterion it supports, how the AI interpreted it, and how the final score was calculated.
+The project uses one calibrated scoring-rule set with 34 rules across six dimensions. The rules translate paper-quality criteria into specific checks, evidence requirements, judgment anchors, and score mappings. PaperEval applies those rules through an AI-assisted workflow and preserves the evidence and reasoning behind each reported judgment.
 
 ## Research questions
 
-The empirical program examines four connected questions:
+1. **Human assessment:** How can the multidimensional judgments involved in human paper review be represented as explicit, evidence-linked criteria?
+2. **AI scoring:** How can an AI workflow apply these criteria to paper evidence and produce traceable rule-level judgments and scores?
+3. **Journal and source comparison:** How are the resulting score profiles distributed across journals and publication sources in the evaluated corpus?
 
-1. **Score variation:** How do paper scores and rule-level judgments vary across AI models and repeated runs?
-2. **Workflow structure:** How do reviewer organization and system components affect judgments and aggregate scores?
-3. **Evidence handling:** How does the system select paper evidence, incorporate prior work when retrieval is enabled, and respond to instruction-like content in evidence passages?
-4. **Validation and review:** Which output or evidence conditions can the Harness detect, and which cases should be surfaced for human inspection?
+## Technical approach
 
-## Core contribution
+PaperEval turns a paper PDF into rule-level judgments and a score report. The method follows the sequence below; each heading links to the matching section in the full [system and technical approach](01-system/README.md).
 
-PaperEval provides an executable, evidence-grounded assessment workflow with four linked components:
+1. [System overview](01-system/README.md#1-system-overview). The command-line Harness coordinates PDF processing, evidence routing, reviewer agents, validation, score aggregation, and report generation.
+2. [Rule profile](01-system/README.md#2-rule-profile). A 34-rule profile across six dimensions specifies criteria, evidence requirements, judgment anchors, applicability, weights, and score mappings.
+3. [PDF parsing and paper representation](01-system/README.md#3-pdf-parsing-and-paper-representation). The parser extracts paper structure and creates page- and section-linked evidence records and a structured paper profile.
+4. [Rule-specific evidence packages](01-system/README.md#4-rule-specific-evidence-packages). The evidence router selects bounded passages and context for each rule and includes stable evidence identifiers for traceability.
+5. [Claim-led external grounding](01-system/README.md#5-claim-led-external-grounding). When enabled, claims from the paper guide prior-work retrieval; selected records are linked to their source and supplied as external evidence for comparison-dependent rules.
+6. [Specialist review and judgment protocol](01-system/README.md#6-specialist-review-and-judgment-protocol). Six specialist Reviewers assess assigned dimensions and return structured rule judgments, rationales, confidence, and evidence references; a unified-Reviewer configuration is also available.
+7. [Harness: validation, gating, and aggregation](01-system/README.md#7-harness-validation-gating-and-aggregation). Deterministic checks validate schemas and evidence references, flag selected cases for review, retry uncertain items, and calculate dimension and total scores.
+8. [Reports, run records, and reliability analysis](01-system/README.md#8-reports-run-records-and-reliability-analysis). Reports connect judgments to evidence and scores; run records preserve workflow details, while optional reliability analysis compares saved runs.
+9. [Execution interface and artifact boundary](01-system/README.md#9-execution-interface-and-artifact-boundary). The command-line interface, example configurations, prompts, and package dependencies support execution of the published workflow.
+10. [Architecture-to-code map](01-system/README.md#10-architecture-to-code-map). The code map connects each system layer to its implementation modules.
 
-- **Explicit assessment criteria:** an operational profile containing 34 rules across six dimensions, with rule definitions, applicability, evidence requirements, judgment anchors, weights, and score mappings.
-- **Rule-specific evidence:** PDF text is organized into page- and section-linked evidence records. The system builds a structured paper profile and routes relevant passages to the corresponding rule-level review tasks.
-- **Structured AI judgments:** Reviewer agents return a judgment tier, rationale, confidence, and evidence references for assigned criteria. Optional claim-led retrieval can add traceable prior-work evidence for comparison-dependent judgments.
-- **Deterministic validation and scoring:** the Harness checks judgment structure and evidence references, flags items for review, handles selected uncertain items through a second evidence pass, and applies the declared mappings and weights to calculate scores.
+Additional sections cover [related research records](01-system/README.md#11-related-research-records), the [study-to-implementation and outcome map](01-system/README.md#12-study-to-implementation-and-outcome-map), the [reviewer reading path](01-system/README.md#13-reviewer-reading-path), and [repository contents](01-system/README.md#14-repository-contents).
 
-The result is a report and run record that connect criteria, evidence, judgments, validation outcomes, and scores. Model calls interpret the paper and make bounded judgments; program code validates those outputs and performs score aggregation.
+## Experimental results
 
-## Empirical scope
+PaperEval reports completed score records for **200 papers**. The archived rule-level judgments were reaggregated using the revised integer weights; the model was not rerun for this recalculation. Rounded to whole points for presentation, the mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. Exact per-paper results and dimension summaries are available in the [data overview](03-data/README.md#evaluation-results) and [outcome table](03-data/paper-outcomes.csv).
 
-PaperEval's experiment covers **200 papers**, and all 200 have completed scores under the same calibrated criteria and scoring model. The experiments examine score variation across models and runs, workflow structure, evidence handling, retrieval, and Harness validation. Results and supporting records are organized in the [experiment README](03-experiments/README.md).
+The experimental program examines model and run variation, reviewer configurations, evidence handling, retrieval, and Harness validation. Focused comparisons reuse papers from the study corpus; their repeated records are not added to the corpus count. The [experiment README](02-experiments/README.md) presents the studies in manuscript order.
 
-## System and technical approach
+1. **Model comparison.** Five models were compared on three shared papers, with two recorded runs for each paper–model pair. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Public GPQA scores do not align monotonically with these run differences, so the capability–stability relationship remains a testable hypothesis. See the [five-model comparison](02-experiments/cross-model-results.md).
+2. **Reviewer structure comparison.** Four conditions were compared on five papers: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. See the [comparison and module ablations](02-experiments/module-ablation.md).
+3. **Harness validation.** In a deterministic fault-injection test, the Harness detected **180/180** injected machine-checkable faults across nine classes; all **40 clean controls** passed. See [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
+4. **Evidence-level instruction injection.** In a paired prompt study with three papers and 108 attack cases per condition, adding an evidence-boundary instruction reduced attacks reaching their target from **4/108** to **0/108**. See the [prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
+5. **Repeated-run stability.** Twenty papers were scored independently twice. The paired mean absolute score difference was **2.382** points, and **17/20 papers** retained the same quality grade. See the [repeatability results](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
 
-PaperEval turns a research-paper PDF into an inspectable sequence of evidence-backed judgments and scores:
+See the [experiment catalog](02-experiments/experiment-catalog.md) for study designs, samples, and links to each result.
 
-- **Parse and profile:** extract paper text and structure, create stable evidence identifiers linked to pages and sections, and build a structured profile of the research question, claims, theory, methods, findings, and limitations. Parse failures are recorded before scoring.
-- **Retrieve prior work when enabled:** extract claims and use configured scholarly metadata services to retrieve related work. Retrieved records are linked to their source and can provide external evidence for judgments about research gaps and contributions.
-- **Assemble rule-specific evidence:** route bounded evidence packages to the scoring criteria across six dimensions: research-question positioning, theoretical contribution, theoretical rigor, research design, results and evidence, and discussion and boundaries.
-- **Review and validate:** specialist Reviewer agents assess assigned rules and return structured judgments, rationales, confidence, and evidence references. The Harness checks schemas and evidence IDs, validates external-evidence conditions, retries selected uncertain items, and flags cases for human inspection. A unified-Reviewer configuration is also supported.
-- **Aggregate and report:** deterministic scoring applies the selected rule profile to applicable judgments and records completeness and uncertainty. Reports can include dimension and total scores, evidence references, review flags, parse diagnostics, run manifests, and trace records. Optional reliability analysis compares saved runs without changing the current score.
+## Data and materials
 
-See the [system and technical approach](02-system/README.md) for the architecture, workflow, code map, and command-line instructions.
+The data section contains the outcome table, the paper index covering all 200 evaluated papers, and sample PDFs with explicit redistribution licenses. The [data overview](03-data/README.md) describes the released materials and score summaries. Reusable experimental code is indexed in the [experiment README](02-experiments/README.md#experiment-code).
 
-## Experimental evidence
+## Repository structure
 
-The experiment evaluates 200 papers. Analyses below reuse papers across model, run, and workflow comparisons; those repeated records do not increase the paper count. The [experiment README](03-experiments/README.md) provides the detailed ordered index.
-
-1. **Paper assessment and score profile.** All **200 papers** have completed reports. The mean total score is **76.67** (SD 8.57), the median is **76.49**, and the range is **49.63–95.78**. Six-dimension summaries and title-free outcomes are in the [data overview](04-data/README.md#evaluation-results) and [outcome table](04-data/paper-outcomes.csv).
-
-2. **Exploratory model comparison.** The current manuscript compares five models on three shared papers with two recorded runs per model and paper. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Because evidence was re-extracted and retrieval rerun, the comparison is descriptive and combines model and evidence variation. See the [five-model comparison](03-experiments/cross-model-results.md).
-
-3. **Reviewer structure comparison.** Four conditions were compared on the same five papers: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. These are descriptive outputs from different judgment and aggregation procedures, so they are not directly comparable as accuracy estimates. See the [four-condition comparison](03-experiments/module-ablation.md).
-
-4. **Harness validation.** In a deterministic fault-injection test, the Harness detected **180/180** injected machine-checkable faults across nine classes, automatically blocked or transformed 160, and routed 20 reason–judgment conflicts for review. All **40 clean controls** passed without false positives. See [Harness fault-injection results](03-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
-
-5. **Adversarial instruction injection.** A paired prompt study used evidence from three papers and 108 attack cases per condition. Adding an evidence-boundary instruction reduced attacks reaching their target from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. The results describe this test set and do not measure full-paper scoring accuracy. See the [prompt-injection comparison](03-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
-
-6. **Repeated-run stability.** Twenty papers were scored independently twice, yielding **40 complete reports**. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. See the [two-run results](03-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
-
-The 200-paper experiment is examined through model comparisons, repeated runs, workflow and scoring analyses, evidence-handling studies, retrieval analyses, and trace-based diagnostics. These analyses generate run-, judgment-, and evidence-level records; repeated runs are not counted as additional papers. Study designs and results are available in the [experiment catalog](03-experiments/experiment-catalog.md), [historical experiment evidence](03-experiments/experiment-evidence.md), and [retrieval record](03-experiments/retrieval-evaluation.md).
-
-## Reading path
-
-1. [Research rationale and study design](01-proposal/README.md)
-2. [System architecture and implementation](02-system/README.md)
-3. [Experiment catalog and study summaries](03-experiments/README.md)
-4. [Data and experimental materials](04-data/README.md) — outcomes, one index covering all 200 papers, and PDFs with explicit redistribution licenses.
+1. [System and technical approach](01-system/README.md)
+2. [Experiments and results](02-experiments/README.md)
+3. [Data and research materials](03-data/README.md)
+4. [Ethics and data access](04-ethics-access/README.md)
 
 ## Run the command-line workflow
 
-The implementation and example configurations are in [`02-system/`](02-system/). Run commands from that directory:
+Run commands from [`01-system/`](01-system/):
 
 ```bash
 python -m venv .venv
@@ -88,4 +67,4 @@ python -m paper_eval.cli --help
 python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 ```
 
-For single-paper evaluation and rule validation, use the commands in the [system README](02-system/README.md). Model-backed runs use a configured provider; record the provider/model, code revision, criteria used, retrieval settings, and run status for each evaluation.
+For single-paper evaluation, use the commands in the [system documentation](01-system/README.md). Model-backed runs use a configured provider; record the provider and model, code revision, criteria, retrieval settings, and run status for each evaluation.
