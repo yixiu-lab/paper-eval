@@ -40,14 +40,14 @@ The data section contains the outcome table, the paper index covering all 200 ev
 
 Clone the repository and enter the system folder:
 
-```text
+```bash
 git clone https://github.com/yixiu-lab/paper-eval.git
 cd paper-eval/01-system
 ```
 
-Create a virtual environment, install dependencies, set `OPENAI_API_KEY`, validate the rules, then run the evaluation. Replace the PDF path and key with your own. Do not commit API keys.
+Create an environment, install dependencies, set your API key, and evaluate a PDF. Replace the key and PDF path with your own. Do not commit the key.
 
-**Windows PowerShell:**
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
@@ -58,7 +58,7 @@ python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 python -m paper_eval.cli evaluate --pdf "C:\path\to\paper.pdf" --rules rules/rules_v1.yaml --out "runs\paper-001" --agent-config configs/agent_runtime.example.yaml
 ```
 
-**macOS or Linux:**
+**macOS or Linux**
 
 ```bash
 python -m venv .venv
