@@ -37,8 +37,3 @@ The [paper index](paper-index.csv) joins each outcome to DOI and journal metadat
 
 The repository provides completed scores and available bibliographic metadata for **all 200 evaluated papers**. It also includes **51 unchanged PDFs** whose source copies explicitly state a Creative Commons license; the paper index records each released file's source hash and repository path. Full-text PDFs without a confirmed redistribution license are not included. Readers should follow the notice in each released PDF and the [Creative Commons license terms](https://creativecommons.org/share-your-work/cclicenses/).
 
-## Experimental code
-
-The experiment section includes scripts for the deterministic Harness fault-injection analysis and for recomputing descriptive statistics from the outcome table. See [`02-experiments/code/`](../02-experiments/README.md#experiment-code).
-
-See [Technical Approach](../01-system/README.md) for the scoring workflow and the [ethics and data-access statement](../04-ethics-access/README.md) for the project's data-handling description.
