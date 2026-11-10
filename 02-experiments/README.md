@@ -1,17 +1,10 @@
-# Experimental Results and Index
-
 This directory organizes the PaperEval analyses in the order used by the experiment manuscript. Each entry summarizes the question, design, principal observations, and a link to the detailed record. The overall evaluation covers 200 papers; analyses may reuse papers across model, run, and workflow comparisons, so their case counts are not additive.
 
-## Manuscript sequence
+## Results at a glance
 
 1. [Paper total score results](#1-paper-total-score-results)
 2. [Journal score aggregation results](#2-journal-score-aggregation-results)
-3. [Cross-model comparison](#3-cross-model-comparison)
-4. [Reviewer structure comparison](#4-reviewer-structure-comparison)
-5. [Harness validation and fault injection](#5-harness-validation-and-fault-injection)
-6. [Evidence-boundary prompt injection](#6-evidence-boundary-prompt-injection)
-7. [Repeated-run stability](#7-repeated-run-stability)
-8. [Experiment summary and paper-level outcomes](#8-experiment-summary-and-paper-level-outcomes)
+3. [Robustness results](#3-robustness-results)
 
 ## 1. Paper total score results
 
@@ -36,7 +29,11 @@ The outcome index records **73 named journal or source groups** for 194 papers; 
 
 The corpus includes **29 papers across eight journals** on the 2026 Financial Times 50 list, including 15 in *Management Science* and four in *Academy of Management Journal*. The paper provides descriptive comparisons for selected groups with larger sample sizes; the complete journal/source table remains the primary index.
 
-## 3. Cross-model comparison
+## 3. Robustness results
+
+The focused studies examine how scores respond to model choice, reviewer organization, input instructions, and repeated execution, and test whether the Harness enforces machine-checkable constraints. These analyses use overlapping paper samples and are reported separately from the 200-paper corpus summary.
+
+### Cross-model comparison
 
 The study compares five models on three shared papers, with two runs per model and paper. Model means range from **77.91 to 89.99**. Mean absolute run-to-run differences range from **0.61 to 3.83** points: DeepSeek-Flash and Qwen3.7-Flash show the smallest average differences, while Qwen3.8-Flash and Kimi-K2.5 show the largest. Every run rebuilt its evidence input, so the observed variation describes the complete assessment workflow.
 
@@ -60,7 +57,7 @@ The public scores do not align monotonically with observed run-to-run difference
 
 See the [five-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in the [system rules](../01-system/rules/README.md).
 
-## 4. Reviewer structure comparison
+### Reviewer structure comparison
 
 Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. The conditions use different judgment and aggregation procedures, so score differences describe the conditions and are not directly comparable as accuracy estimates.
 
@@ -70,13 +67,13 @@ See the [four-condition comparison and module ablations](module-ablation.md). Th
 
 *Figure: Five-paper comparison of full PaperEval, single Reviewer, Reviewer-only counterfactual, and direct model scoring. The Reviewer-only condition uses a counterfactual aggregation scale.*
 
-## 5. Harness validation and fault injection
+### Harness validation and fault injection
 
 The deterministic Harness checks were evaluated with **180 injected faulty outputs** spanning nine machine-checkable fault types and **40 clean controls**. It detected all 180 injected faults, automatically blocked or transformed 160, and routed 20 reason–judgment conflicts for review. All 40 clean controls passed without a false positive. The test measures behavior on predefined machine-checkable faults; it does not estimate error rates on naturally occurring paper assessments.
 
 See [Harness fault-injection results](robustness-experiments.md#deterministic-harness-fault-injection) and [Technical Approach](../01-system/README.md#7-harness-validation-gating-and-aggregation).
 
-## 6. Evidence-boundary prompt injection
+### Evidence-boundary prompt injection
 
 The matched prompt comparison used evidence packs from **three papers**, six Reviewer dimensions, and three attack types: forced high rating, forced low rating, and fabricated evidence ID. Each prompt condition included 108 paired attack cases. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. The test found no fabricated IDs in either condition's raw outputs, and it did not evaluate full-paper scoring accuracy.
 
@@ -86,7 +83,7 @@ See the [paired prompt-injection experiment](robustness-experiments.md#evidence-
 
 *Figure: Results by attack type for the original prompt and the evidence-boundary prompt. Each attack type contains 36 paired cases per prompt condition.*
 
-## 7. Repeated-run stability
+### Repeated-run stability
 
 The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This describes repeatability for the recorded sample.
 
@@ -96,17 +93,7 @@ See [two-run repeatability results](robustness-experiments.md#two-run-repeatabil
 
 *Figure: Paired total scores for 20 papers. Points nearer the dashed line have more similar scores across the two runs.*
 
-## 8. Experiment summary and paper-level outcomes
-
-The [experiment catalog](experiment-catalog.md) maps the study families and links to detailed records. The [data index](../03-data/README.md) links the 200-paper outcome table and the unified paper index. The manuscript's paper-level A–F score appendix corresponds to the [title-free outcome table](../03-data/paper-outcomes.csv), which omits paper titles and source text.
-
-## Paper-level outcomes
-
-The [paper index](../03-data/paper-index.csv) provides one record for each of the 200 evaluated papers, including score status, journal and DOI metadata where available, and PDF release status. The [`papers/`](../03-data/papers/) folder contains unchanged PDFs with an explicit Creative Commons license in the source copy.
-
-## Additional archived studies
-
-The repository also records historical scoring, batch, journal/source, evidence-budget, threshold, retrieval, and trace-based analyses that complement the numbered manuscript sections. These records revisit papers from the evaluation program and preserve run-level and evidence-level detail. The [experiment catalog](experiment-catalog.md) provides the thematic index; see [historical experiment evidence](experiment-evidence.md) and [retrieval evaluation](retrieval-evaluation.md) for study-specific methods and findings.
+The [experiment catalog](experiment-catalog.md) indexes additional scoring, evidence-budget, retrieval, and trace-based analyses. The [data index](../03-data/README.md) links the 200-paper outcome table and paper index.
 
 ## Experiment code
 

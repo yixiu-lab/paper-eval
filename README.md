@@ -28,7 +28,7 @@ PaperEval turns a paper PDF into rule-level judgments and a score report. The me
 
 ## Experimental results
 
-The experimental results below follow the manuscript sequence. The [experiment README](02-experiments/README.md) links each section to its study record, while the [experiment catalog](02-experiments/experiment-catalog.md) indexes the broader study program.
+The results are organized into three groups: overall paper scores, journal-level score aggregation, and robustness analyses. The [experiment README](02-experiments/README.md) links each result to its detailed record; the [experiment catalog](02-experiments/experiment-catalog.md) indexes the broader study program.
 
 ### 3.1 Paper total score results
 
@@ -38,29 +38,11 @@ The evaluation contains completed score records for **200 papers**. Archived rul
 
 The paper index records **73 named journal or source groups** for 194 papers; six papers have no source field and are shown separately in Table 5. The table summarizes every group by descending mean score, with sample size, mean and standard deviation, median, and range. The corpus includes **29 papers across eight journals** on the 2026 Financial Times 50 list, including 15 in *Management Science* and four in *Academy of Management Journal*. See the [journal aggregation section](02-experiments/README.md#2-journal-score-aggregation-results) and the [paper index](03-data/paper-index.csv).
 
-### 3.3 Cross-model comparison
+### 3.3 Robustness results
 
-Five models were compared on three shared papers, with two recorded runs for each paper–model pair. Model means range from **77.91 to 89.99**; mean absolute differences between runs range from **0.61 to 3.83** points. Public GPQA scores do not align monotonically with these run differences, so the capability–stability relationship remains a testable hypothesis. See the [five-model comparison](02-experiments/cross-model-results.md).
+Robustness analyses examine model and reviewer configuration, Harness checks, evidence-boundary instructions, and repeated runs. Five models were compared on three shared papers; their means range from **77.91 to 89.99**, while mean absolute run differences range from **0.61 to 3.83** points. Four reviewer configurations were compared on five papers, with mean scores of **79.50**, **74.60**, **57.93**, and **74.00**. The Harness detected **180/180** injected machine-checkable faults across nine classes, and all **40** clean controls passed. In a paired prompt study, evidence-boundary instructions reduced target-reaching attacks from **4/108** to **0/108**. Across 20 papers scored twice, the paired mean absolute score difference was **2.382** points and **17/20** retained the same quality grade.
 
-### 3.4 Reviewer structure comparison
-
-Four conditions were compared on five papers: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Their mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. See the [comparison and module ablations](02-experiments/module-ablation.md).
-
-### 3.5 Harness validation and fault injection
-
-In a deterministic fault-injection test, the Harness detected **180/180** injected machine-checkable faults across nine classes; all **40 clean controls** passed. See [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection).
-
-### 3.6 Evidence-boundary prompt injection
-
-In a paired prompt study with three papers and 108 attack cases per condition, adding an evidence-boundary instruction reduced attacks reaching their target from **4/108** to **0/108**. See the [prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison).
-
-### 3.7 Independent repeated-run stability
-
-Twenty papers were scored independently twice. The paired mean absolute score difference was **2.382** points, and **17/20 papers** retained the same quality grade. See the [repeatability results](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript).
-
-### 3.8 Experiment summary and paper-level outcomes
-
-Focused comparisons reuse papers from the study corpus; their repeated records are not added to the corpus count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs, samples, and detailed results. Paper-level scores are available in the [outcome table](03-data/paper-outcomes.csv).
+Detailed records: [five-model comparison](02-experiments/cross-model-results.md), [reviewer structure comparison](02-experiments/module-ablation.md), [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [evidence-boundary prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [repeated-run stability](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
 
 ## Data and materials
 
@@ -68,13 +50,76 @@ The data section contains the outcome table, the paper index covering all 200 ev
 
 ## Run the command-line workflow
 
-Run commands from [`01-system/`](01-system/):
+### 1. Get the project and open its system folder
+
+Clone the repository, then move into the system folder:
+
+```bash
+git clone https://github.com/yixiu-lab/paper-eval.git
+cd paper-eval/01-system
+```
+
+### 2. Install the requirements
+
+Create a Python environment, activate it, and install the packages.
+
+**Windows PowerShell:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+**macOS or Linux:**
 
 ```bash
 python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+### 3. Check the command and scoring rules
+
+Display the available commands and validate the included rule profile:
+
+```bash
 python -m paper_eval.cli --help
 python -m paper_eval.cli validate-rules --rules rules/rules_v1.yaml
 ```
 
-For single-paper evaluation, use the commands in the [Technical Approach](01-system/README.md). Model-backed runs use a configured provider; record the provider and model, code revision, criteria, retrieval settings, and run status for each evaluation.
+### 4. Configure the model and API key
+
+The example runtime uses an OpenAI-compatible endpoint and reads its key from the `OPENAI_API_KEY` environment variable. Set the key in your current terminal session, replacing the placeholder with your own key. Keep the key out of the repository.
+
+**Windows PowerShell:**
+
+```powershell
+$env:OPENAI_API_KEY = "your-key"
+```
+
+**macOS or Linux:**
+
+```bash
+export OPENAI_API_KEY="your-key"
+```
+
+To use another compatible service, make a local copy of the [example runtime configuration](01-system/configs/agent_runtime.example.yaml), set its provider, endpoint, model name, and key environment-variable name, then pass that file to `--agent-config`. See [Technical Approach](01-system/README.md#9-execution-interface-and-artifact-boundary) for the full command reference.
+
+### 5. Evaluate one paper
+
+Replace the PDF path and output folder with your own paths. The command writes the evaluation reports and run records to the output folder.
+
+**Windows PowerShell:**
+
+```powershell
+python -m paper_eval.cli evaluate --pdf "C:\path\to\paper.pdf" --rules rules/rules_v1.yaml --out "runs\paper-001" --agent-config configs/agent_runtime.example.yaml
+```
+
+**macOS or Linux:**
+
+```bash
+python -m paper_eval.cli evaluate --pdf "/path/to/paper.pdf" --rules rules/rules_v1.yaml --out "runs/paper-001" --agent-config configs/agent_runtime.example.yaml
+```
+
+Record the provider and model, code revision, rule profile, retrieval settings, and run status with each evaluation. For the full command reference and output description, see [Technical Approach](01-system/README.md#9-execution-interface-and-artifact-boundary).
