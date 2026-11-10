@@ -40,7 +40,7 @@ Scores are on a 0–100 scale. The run difference is the absolute difference bet
 
 Across these three papers, the model-level means span 12.08 points, from 77.91 for Kimi-K2.5 to 89.99 for Qwen3.8-Flash. The paper-level ordering is the same across all five models: Yan et al. (2024) receives the highest mean, followed by Wesche and Sonderegger (2021), then Mikalef and Gupta (2021). This shared ordering describes only these three papers.
 
-![Observed run-to-run differences and the capability–stability hypothesis](../04-ethics-access/.assets/experiments/model-capability-stability-hypothesis.png)
+![Observed run-to-run differences and the capability–stability hypothesis](../03-data/figures/experiments/model-capability-stability-hypothesis.png)
 
 DeepSeek-Flash has the smallest model-level mean absolute difference (0.61), followed by Qwen3.7-Flash (1.11). Qwen3.8-Flash and Kimi-K2.5 have the largest averages (3.83 each). The largest paper-level difference is 6.09 for Qwen3.8-Flash on Yan et al. (2024); the smallest is 0.00 for DeepSeek-Flash on the same paper.
 

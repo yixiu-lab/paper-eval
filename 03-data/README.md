@@ -11,6 +11,7 @@ The final set contains papers with analyzable full text. Two entries whose local
 | [`paper-outcomes.csv`](paper-outcomes.csv) | Title-free score outcomes and processing status for all 200 papers |
 | [`paper-index.csv`](paper-index.csv) | One-row-per-paper index with journal and DOI metadata, score status, license note, and PDF availability |
 | [`papers/`](papers/) | 51 unchanged PDFs whose source copies state a Creative Commons license |
+| [`figures/`](figures/) | Figures embedded in the Technical Approach and experiment documentation |
 
 ## Evaluation results
 
@@ -32,7 +33,3 @@ The outcome table includes dimension scores A–F, the total score, the recorded
 | `report_file_verified` | Whether the associated local report passed project checks; report files are not included here |
 
 The [paper index](paper-index.csv) joins each outcome to DOI and journal metadata when available. It also records whether an unchanged PDF is included and the license statement identified in the source copy.
-
-## PDF availability
-
-The repository provides completed scores and available bibliographic metadata for **all 200 evaluated papers**. It also includes **51 unchanged PDFs** whose source copies explicitly state a Creative Commons license; the paper index records each released file's source hash and repository path. Full-text PDFs without a confirmed redistribution license are not included. Readers should follow the notice in each released PDF and the [Creative Commons license terms](https://creativecommons.org/share-your-work/cclicenses/).

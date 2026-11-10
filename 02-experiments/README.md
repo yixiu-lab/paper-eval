@@ -45,7 +45,7 @@ The study compares five models on three shared papers, with two runs per model a
 
 *Table: Model-level summary from the five-model comparison. Each model was run twice on each of three shared papers.*
 
-![Observed run-to-run differences and the capability–stability hypothesis](../04-ethics-access/.assets/experiments/model-capability-stability-hypothesis.png)
+![Observed run-to-run differences and the capability–stability hypothesis](../03-data/figures/experiments/model-capability-stability-hypothesis.png)
 
 *Figure: Bars show each model's mean absolute difference across three papers; dots show the paper-level differences. The right panel presents a hypothesis for follow-up study.*
 
@@ -61,7 +61,7 @@ Four evaluation structures were compared on the same **five papers**: full Paper
 
 See the [four-condition comparison and module ablations](module-ablation.md). The file also records separate one-paper module ablations and a three-paper paired comparison of evidence-gate outputs.
 
-![Total scores for five papers under four evaluation structures](../04-ethics-access/.assets/experiments/reviewer-structure-comparison.png)
+![Total scores for five papers under four evaluation structures](../03-data/figures/experiments/reviewer-structure-comparison.png)
 
 *Figure: Five-paper comparison of full PaperEval, single Reviewer, Reviewer-only counterfactual, and direct model scoring. The Reviewer-only condition uses a counterfactual aggregation scale.*
 
@@ -77,7 +77,7 @@ The matched prompt comparison used evidence packs from **three papers**, six Rev
 
 See the [paired prompt-injection experiment](robustness-experiments.md#evidence-level-prompt-injection-comparison), which also distinguishes the matched comparison from separate production-prompt and synthetic-pilot runs.
 
-![Matched prompt-injection results for target reaching, judgment changes, and mean absolute shift](../04-ethics-access/.assets/experiments/prompt-injection-results.png)
+![Matched prompt-injection results for target reaching, judgment changes, and mean absolute shift](../03-data/figures/experiments/prompt-injection-results.png)
 
 *Figure: Results by attack type for the original prompt and the evidence-boundary prompt. Each attack type contains 36 paired cases per prompt condition.*
 
@@ -87,7 +87,7 @@ The current manuscript reports **20 papers scored independently twice**, produci
 
 See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Historical reliability diagnostics are synthesized in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty) as additional run-level analyses of evaluated papers.
 
-![Run 1 and run 2 total scores for the 20-paper repeatability sample](../04-ethics-access/.assets/experiments/two-run-repeatability.png)
+![Run 1 and run 2 total scores for the 20-paper repeatability sample](../03-data/figures/experiments/two-run-repeatability.png)
 
 *Figure: Paired total scores for 20 papers. Points nearer the dashed line have more similar scores across the two runs.*
 

@@ -6,7 +6,7 @@ This page is the system entry point for reviewers and collaborators. It combines
 
 PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
 
-![PaperEval overview from the methods manuscript](../04-ethics-access/.assets/system/system-overview-from-method.png)
+![PaperEval overview from the methods manuscript](../03-data/figures/system/system-overview-from-method.png)
 
 *Figure. Conceptual PaperEval overview from the methods manuscript. The displayed score values and report examples are illustrative. Runtime validation is detailed in Section 7; calibration and reliability analysis is a separate post-run step described in Section 8.*
 
@@ -45,7 +45,7 @@ For each rule, the evidence router uses the rule definition, section expectation
 
 Each package gives a reviewer the rule identifier and criterion, relevant paper context, selected evidence text, page and section metadata, and evidence IDs. The reviewer therefore evaluates a bounded question against traceable passages rather than producing only a paper-level impression. Evidence selection and payload construction are implemented in [`paper_eval/agents.py`](paper_eval/agents.py); context-level routing is implemented in [`paper_eval/paper_context.py`](paper_eval/paper_context.py).
 
-![Schematic trace from paper evidence through rule-level judgment to score aggregation](../04-ethics-access/.assets/system/evidence-to-judgment-trace.png)
+![Schematic trace from paper evidence through rule-level judgment to score aggregation](../03-data/figures/system/evidence-to-judgment-trace.png)
 
 *Figure. Evidence-to-judgment trace. The paper excerpts, prior-work labels, and example scores shown in the diagram are illustrative.*
 
@@ -55,7 +55,7 @@ When enabled by runtime configuration, the external-grounding path extracts clai
 
 Candidate records are normalized and deduplicated, filtered against the target paper's publication year when available, and reranked using claim and paper context. The selected prior works are converted into external evidence records with stable evidence IDs and metadata. These records can support A/B judgments about the research gap and contribution. External validation checks evidence coverage and citation conditions; a positive comparison-dependent judgment without required external support can be changed to uncertain or flagged for review.
 
-![Claim-led retrieval workflow from the methods manuscript](../04-ethics-access/.assets/system/claim-led-retrieval-overview.png)
+![Claim-led retrieval workflow from the methods manuscript](../03-data/figures/system/claim-led-retrieval-overview.png)
 
 *Figure. Claim-led retrieval illustration from the methods manuscript. The displayed candidate counts and example paper entries are schematic; the current multi-provider implementation is described above.*
 
@@ -85,7 +85,7 @@ The Harness is the deterministic control layer between model judgments and repor
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
 
-![Harness validation and aggregation from the methods manuscript](../04-ethics-access/.assets/system/harness-validation-aggregation.png)
+![Harness validation and aggregation from the methods manuscript](../03-data/figures/system/harness-validation-aggregation.png)
 
 *Figure. Harness validation and aggregation sketch from the methods manuscript. The calibration panel refers to optional post-run calibration sensitivity analysis; it is not a runtime gate that changes judgments.*
 
