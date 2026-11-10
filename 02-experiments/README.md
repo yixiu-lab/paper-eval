@@ -2,7 +2,7 @@
 
 The 200-paper corpus is summarized using the revised integer-weight profile. Archived rule-level judgments were reaggregated under the integer weights; the model was not rerun for this calculation. Rounded to whole points for presentation, the mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. Exact values are available in the outcome CSV. The paper index records journal and DOI metadata where available. Narrative score summaries are rounded to whole points; exact per-paper values are retained in the CSV.
 
-The manuscript also summarizes scores across six dimensions (A–F). Per-paper title-free outcomes are available in the [outcome table](../03-data/paper-outcomes.csv); paper counts and the aggregate score summary are in the [data overview](../03-data/README.md#evaluation-results).
+The manuscript also summarizes scores across six dimensions (A–F). Per-paper title-free outcomes are available in the [outcome table](../03-data/paper-outcomes.csv); paper counts and the aggregate score summary are in [Evaluation results](../03-data/README.md#evaluation-results).
 
 | Dimension | Mean contribution | SD |
 |---|---:|---:|
@@ -122,13 +122,13 @@ Public GPQA Diamond results provide an external scientific-reasoning reference: 
 
 The public scores do not align monotonically with observed run-to-run differences. Qwen3.8-Flash-Next has the highest listed GPQA score but a high observed mean difference (3.83 points), while DeepSeek-Flash has a slightly lower public score and the lowest observed difference (0.61). Qwen3.7-Flash has the lowest listed GPQA score but the second-lowest observed difference (1.11). The capability–stability relationship therefore remains a testable hypothesis. Testing it requires pinned model snapshots, fixed papers and evidence, a common repeated-run protocol, and an independent capability measure.
 
-See [Cross-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in the [system rules](../01-system/rules/README.md).
+See [Cross-model results](cross-model-results.md) for every recorded run and paper-level result. All models used the same scoring-rule set documented in [Scoring Rules](../01-system/rules/README.md).
 
 ### Reviewer structure comparison
 
 Four evaluation structures were compared on the same **five papers**: full PaperEval, one unified Reviewer, six rule-level Reviewers without Harness processing and formal two-pool aggregation, and direct model scoring. Mean scores were **79.50**, **74.60**, **57.93**, and **74.00**, respectively. The conditions use different judgment and aggregation procedures, so score differences describe the conditions and are not directly comparable as accuracy estimates.
 
-See the [four-condition comparison and module ablations](module-ablation.md). The file also records separate one-paper module ablations and a three-paper paired comparison of evidence-gate outputs.
+See [PaperEval Module Ablation Records](module-ablation.md). The file also records separate one-paper module ablations and a three-paper paired comparison of evidence-gate outputs.
 
 ![Total scores for five papers under four evaluation structures](../03-data/figures/experiments/reviewer-structure-comparison.png)
 
@@ -138,13 +138,13 @@ See the [four-condition comparison and module ablations](module-ablation.md). Th
 
 The deterministic Harness checks were evaluated with **180 injected faulty outputs** spanning nine machine-checkable fault types and **40 clean controls**. It detected all 180 injected faults, automatically blocked or transformed 160, and routed 20 reason–judgment conflicts for review. All 40 clean controls passed without a false positive. The test measures behavior on predefined machine-checkable faults; it does not estimate error rates on naturally occurring paper assessments.
 
-See [Harness fault-injection results](robustness-experiments.md#deterministic-harness-fault-injection) and [Technical Approach](../01-system/README.md#7-harness-validation-gating-and-aggregation).
+See [Deterministic harness fault injection](robustness-experiments.md#deterministic-harness-fault-injection) and [7. Harness: validation, gating, and aggregation](../01-system/README.md#7-harness-validation-gating-and-aggregation).
 
 ### Evidence-boundary prompt injection
 
 The matched prompt comparison used evidence packs from **three papers**, six Reviewer dimensions, and three attack types: forced high rating, forced low rating, and fabricated evidence ID. Each prompt condition included 108 paired attack cases. Adding an evidence-boundary instruction reduced target-reaching attacks from **4/108 (3.7%) to 0/108**, rating changes from 14/108 to 7/108, and mean absolute ordinal shift from **0.250 to 0.074**. The test found no fabricated IDs in either condition's raw outputs, and it did not evaluate full-paper scoring accuracy.
 
-See the [paired prompt-injection experiment](robustness-experiments.md#evidence-level-prompt-injection-comparison), which also distinguishes the matched comparison from separate production-prompt and synthetic-pilot runs.
+See [Evidence-level prompt-injection comparison](robustness-experiments.md#evidence-level-prompt-injection-comparison), which also distinguishes the matched comparison from separate production-prompt and synthetic-pilot runs.
 
 ![Matched prompt-injection results for target reaching, judgment changes, and mean absolute shift](../03-data/figures/experiments/prompt-injection-results.png)
 
@@ -154,13 +154,13 @@ See the [paired prompt-injection experiment](robustness-experiments.md#evidence-
 
 The current manuscript reports **20 papers scored independently twice**, producing 40 complete reports. Mean scores were 72.940 and 71.418 across the two runs. The paired mean absolute score difference was **2.382** points, the maximum difference was **8.388**, and **17/20 papers (85.0%)** retained the same quality grade. This describes repeatability for the recorded sample.
 
-See [two-run repeatability results](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Historical reliability diagnostics are synthesized in the [experiment catalog](experiment-catalog.md#reliability-and-uncertainty) as additional run-level analyses of evaluated papers.
+See [Two-run repeatability in the current experiment manuscript](robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Historical reliability diagnostics are synthesized in [Reliability and uncertainty](experiment-catalog.md#reliability-and-uncertainty) as additional run-level analyses of evaluated papers.
 
 ![Run 1 and run 2 total scores for the 20-paper repeatability sample](../03-data/figures/experiments/two-run-repeatability.png)
 
 *Figure: Paired total scores for 20 papers. Points nearer the dashed line have more similar scores across the two runs.*
 
-The [experiment catalog](experiment-catalog.md) indexes additional scoring, evidence-budget, retrieval, and trace-based analyses. The [data index](../03-data/README.md) links the 200-paper outcome table and paper index.
+The [PaperEval Experiment Catalog](experiment-catalog.md) indexes additional scoring, evidence-budget, retrieval, and trace-based analyses. [Data and Research Materials](../03-data/README.md) links the 200-paper outcome table and paper index.
 
 ## Experiment code
 

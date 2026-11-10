@@ -22,15 +22,15 @@ The results are organized into three groups: overall paper scores, journal-level
 
 ### 3.1 Paper total score results
 
-The evaluation contains completed score records for **200 papers**. Archived rule-level judgments were aggregated using the integer weights; the model was not rerun for this recalculation. The mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. The [data overview](03-data/README.md#evaluation-results) and [outcome table](03-data/paper-outcomes.csv) provide dimension summaries and paper-level scores.
+The evaluation contains completed score records for **200 papers**. Archived rule-level judgments were aggregated using the integer weights; the model was not rerun for this recalculation. The mean total score is **77** (SD **9**), the median is **76**, and the range is **50–96**. [Evaluation results](03-data/README.md#evaluation-results) and the [outcome table](03-data/paper-outcomes.csv) provide dimension summaries and paper-level scores.
 
 ### 3.2 Journal score aggregation results
 
-The 200 evaluated papers cover **73 journals and publication sources**. The complete journal score table is sorted in descending order by mean score in the [experiment README](02-experiments/README.md#2-journal-score-aggregation-results).
+The 200 evaluated papers cover **73 journals and publication sources**. The complete journal score table is sorted in descending order by mean score in [2. Journal score aggregation results](02-experiments/README.md#2-journal-score-aggregation-results).
 
 ### 3.3 Robustness results
 
-Detailed records: [Cross-model results](02-experiments/cross-model-results.md), [reviewer structure comparison](02-experiments/module-ablation.md), [Harness fault-injection results](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [evidence-boundary prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [repeated-run stability](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [experiment catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
+Detailed records: [Cross-model results](02-experiments/cross-model-results.md), [PaperEval Module Ablation Records](02-experiments/module-ablation.md), [Deterministic harness fault injection](02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [Evidence-level prompt-injection comparison](02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison), and [Two-run repeatability in the current experiment manuscript](02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript). Focused comparisons reuse papers from the corpus; their repeated records are not added to the 200-paper count. The [PaperEval Experiment Catalog](02-experiments/experiment-catalog.md) links study designs and additional records.
 
 ## Data and materials
 

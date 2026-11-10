@@ -1,24 +1,24 @@
 # Technical Approach
 
-This page is the system entry point for reviewers and collaborators. It combines the architecture, evaluation workflow, implementation map, and command-line usage.
+This page is the system entry point for researchers and collaborators. It combines the architecture, evaluation workflow, implementation map, and command-line usage.
 
 ## 1. System overview
 
-PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist reviewers, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
+PaperEval is an evidence-grounded workflow for evaluating scholarly papers. Its architecture converts a PDF into a structured evidence base, maps the active domain profile into executable rule-level tasks, routes evidence to specialist agents, and passes their judgments through a deterministic validation and aggregation layer. Each reported score is linked to a rule, cited evidence, a rationale, and any review flag or validation result.
 
 ![PaperEval overview from the methods manuscript](../03-data/figures/system/system-overview-from-method.png)
 
 *Figure. Conceptual PaperEval overview from the methods manuscript. The displayed score values and report examples are illustrative. Runtime validation is detailed in Section 7; calibration and reliability analysis is a separate post-run step described in Section 8.*
 
-The workflow proceeds from PDF parsing and profile construction through rule-specific evidence routing, reviewer judgments, deterministic validation, and report generation. Claim-led retrieval and reliability diagnosis are optional paths described below.
+The workflow proceeds from PDF parsing and profile construction through rule-specific evidence routing, agent judgments, deterministic validation, and report generation. Claim-led retrieval and reliability diagnosis are optional paths described below.
 
-The command-line harness coordinates the run, while the evaluation graph defines the ordered reviewer workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
+The command-line harness coordinates the run, while the evaluation graph defines the ordered agent workflow. Model calls produce paper interpretation and rule-level judgments; program code validates references, applies the declared score mappings, computes scores, and records the run trace.
 
 ## 2. Rule profile
 
 The rule profile defines what the system evaluates. It contains dimensions, rule-level indicators, evidence requirements, allowed judgment states, weights, score mappings, applicability conditions, and the baseline/bonus allocation. The scoring profile contains 34 rules across six dimensions. The [rule file](rules/rules_v1.yaml) defines the operational profile, and the [scoring rules overview](rules/README.md) links to the full [English scoring workbook](rules/scoring_rules.xlsx).
 
-| Dimension | Reviewer responsibility |
+| Dimension | Agent responsibility |
 | --- | --- |
 | A. Research question and positioning | Importance, clarity, researchability, and grounding of the stated gap |
 | B. Theoretical contribution and novelty | Contribution through mechanisms, boundaries, context, measurement, concepts, or literature dialogue |
@@ -43,7 +43,7 @@ Key modules: [`paper_eval/pdf_parser.py`](paper_eval/pdf_parser.py), [`paper_eva
 
 For each rule, the evidence router uses the rule definition, section expectations, paper profile, and internal evidence index to select a bounded reading pack. Candidate selection combines section matching, rule-specific terms, evidence-form cues, page diversity, and scoring logic for different rule families. Dimension-level routing also uses the profile's evidence routes where available and a deterministic fallback when it does not.
 
-Each package gives a reviewer the rule identifier and criterion, relevant paper context, selected evidence text, page and section metadata, and evidence IDs. The reviewer therefore evaluates a bounded question against traceable passages rather than producing only a paper-level impression. Evidence selection and payload construction are implemented in [`paper_eval/agents.py`](paper_eval/agents.py); context-level routing is implemented in [`paper_eval/paper_context.py`](paper_eval/paper_context.py).
+Each package gives the assigned agent the rule identifier and criterion, relevant paper context, selected evidence text, page and section metadata, and evidence IDs. The agent therefore evaluates a bounded question against traceable passages rather than producing only a paper-level impression. Evidence selection and payload construction are implemented in [`paper_eval/agents.py`](paper_eval/agents.py); context-level routing is implemented in [`paper_eval/paper_context.py`](paper_eval/paper_context.py).
 
 ![Schematic trace from paper evidence through rule-level judgment to score aggregation](../03-data/figures/system/evidence-to-judgment-trace.png)
 
@@ -63,25 +63,25 @@ Social-relevance grounding is a separate optional evidence input. When enabled, 
 
 Key modules: [`paper_eval/claim_extraction.py`](paper_eval/claim_extraction.py), [`paper_eval/external_retrieval.py`](paper_eval/external_retrieval.py), [`paper_eval/external_evidence.py`](paper_eval/external_evidence.py), and [`paper_eval/social_relevance.py`](paper_eval/social_relevance.py). Availability depends on the runtime and retrieval configuration; disabled or unavailable retrieval is recorded in the run output.
 
-## 6. Specialist review and judgment protocol
+## 6. Multi-Agent Paper Assessment System
 
-The reviewer layer applies the same rule profile and judgment schema across dimensions. In the six-reviewer configuration, A–F are assigned to Problem Framing, Contribution, Theory Logic, Research Design, Evidence, and Boundary responsibilities. A runtime configuration can also select the unified-reviewer mode. Each reviewer receives its assigned rules and evidence packages and returns structured rule-level judgments with a judgment category, rationale, confidence, cited evidence IDs, and review indicators.
+The assessment layer applies the same rule profile and judgment schema across dimensions. In the six-agent configuration, agents A–F cover Problem Framing, Contribution, Theory Logic, Research Design, Evidence, and Boundaries. A runtime configuration can also select a unified-agent mode. Each agent receives its assigned rules and evidence package, then returns structured rule-level judgments with a judgment category, rationale, confidence, cited evidence IDs, and review indicators.
 
-The model runtime is configured through an OpenAI-compatible endpoint and example configurations. Prompt and model settings are explicit configuration inputs. The orchestration can retry uncertain judgments with a second evidence-retrieval pass, allowing the reviewer to inspect additional passages before final validation. Runtime failures are surfaced in the run result and failure report rather than converted into a score.
+The model runtime is configured through an OpenAI-compatible endpoint and example configurations. Prompt and model settings are explicit configuration inputs. The orchestration can retry uncertain judgments after a second evidence-retrieval pass, allowing the relevant agent to assess additional passages before final validation. Runtime failures are surfaced in the run result and failure report rather than converted into a score.
 
-The graph order is defined in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), reviewer evidence preparation and calls in [`paper_eval/agents.py`](paper_eval/agents.py), and endpoint configuration in [`paper_eval/llm.py`](paper_eval/llm.py). The standard graph proceeds through paper context, external retrieval, novelty evidence preparation, optional social grounding, reviewer calls, external-evidence validation, uncertain-item retry, schema validation, evidence gating, score aggregation, reflection, and process audit.
+The graph order is defined in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), agent evidence preparation and calls in [`paper_eval/agents.py`](paper_eval/agents.py), and endpoint configuration in [`paper_eval/llm.py`](paper_eval/llm.py). The standard graph proceeds through paper context, external retrieval, novelty evidence preparation, optional social grounding, agent assessment, external-evidence validation, uncertain-item retry, schema validation, evidence gating, score aggregation, reflection, and process audit.
 
 ## 7. Harness: validation, gating, and aggregation
 
 The Harness is the deterministic control layer between model judgments and reported scores. It runs the following checks and transformations:
 
-1. **Schema validation.** Confirm rule IDs belong to the active profile; judgments use valid categories; confidence is in range; and required rationale, reviewer identity, and rule coverage are present.
+1. **Schema validation.** Confirm rule IDs belong to the active profile; judgments use valid categories; confidence is in range; and required rationale, agent ID, and rule coverage are present.
 2. **Evidence reference validation.** Resolve cited evidence IDs against the paper and external evidence records. A positive judgment with no valid evidence is converted to uncertain because it cannot be traced.
 3. **Evidence-strength review flags.** Inspect whether cited passages provide substantive support or only a mention. Weak support, a rationale that conflicts with a high judgment, or too few cited passages can trigger human-review flags. These flags preserve the judgment and make the issue visible for review.
 4. **External evidence validation.** Check the external evidence used for comparison-dependent rules, including availability, citation references, and temporal constraints where the target publication year is known. Findings are attached to the report and review queue.
 5. **Uncertain-item retry.** Revisit uncertain rules with a second evidence pack, then validate the resulting judgment.
 6. **Deterministic scoring.** Apply the selected profile score mappings and construct weights, handle out-of-scope rules, aggregate the two pools, and report completeness and uncertainty separately.
-7. **Reflection and process audit.** Generate review issues from judgment/evidence/score patterns and run a separate audit of the scoring process. These outputs support reviewer inspection and do not replace the rule-level score calculation.
+7. **Reflection and process audit.** Generate review issues from judgment/evidence/score patterns and run a separate audit of the scoring process. These outputs support researcher inspection and do not replace the rule-level score calculation.
 
 The evidence gate is implemented in [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py); schema checks in [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py); external checks and graph ordering in [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py); and deterministic score calculation in [`paper_eval/scorer.py`](paper_eval/scorer.py). Multi-model consistency review is a post-review step orchestrated by [`paper_eval/harness.py`](paper_eval/harness.py); it produces agreement and review information alongside the primary judgments.
 
@@ -129,16 +129,16 @@ Runtime dependencies are listed in [`requirements.txt`](requirements.txt), and e
 | PDF parsing, paper profile, and evidence routing | [`paper_eval/pdf_parser.py`](paper_eval/pdf_parser.py), [`paper_eval/models.py`](paper_eval/models.py), [`paper_eval/paper_context.py`](paper_eval/paper_context.py), [`paper_eval/agents.py`](paper_eval/agents.py) | [Data overview](../03-data/README.md#evaluation-results), [paper outcomes](../03-data/paper-outcomes.csv) |
 | Rule profile and deterministic scoring | [`paper_eval/rules.py`](paper_eval/rules.py), [`paper_eval/scorer.py`](paper_eval/scorer.py) | [Scoring rules](rules/README.md), [paper outcomes](../03-data/paper-outcomes.csv) |
 | Claim extraction and prior-work retrieval | [`paper_eval/claim_extraction.py`](paper_eval/claim_extraction.py), [`paper_eval/external_retrieval.py`](paper_eval/external_retrieval.py), [`paper_eval/external_evidence.py`](paper_eval/external_evidence.py) | [Retrieval evaluation](../02-experiments/retrieval-evaluation.md) |
-| Reviewer workflow and model calls | [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), [`paper_eval/agents.py`](paper_eval/agents.py), [`paper_eval/llm.py`](paper_eval/llm.py) | [Reviewer structure comparison](../02-experiments/module-ablation.md), [Cross-model results](../02-experiments/cross-model-results.md) |
+| Agent workflow and model calls | [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py), [`paper_eval/agents.py`](paper_eval/agents.py), [`paper_eval/llm.py`](paper_eval/llm.py) | [Reviewer structure comparison](../02-experiments/module-ablation.md), [Cross-model results](../02-experiments/cross-model-results.md) |
 | Harness validation and evidence gating | [`paper_eval/schema_validation.py`](paper_eval/schema_validation.py), [`paper_eval/evidence_gate.py`](paper_eval/evidence_gate.py), [`paper_eval/agent_graph.py`](paper_eval/agent_graph.py) | [Fault-injection results](../02-experiments/robustness-experiments.md#deterministic-harness-fault-injection), [instruction-injection results](../02-experiments/robustness-experiments.md#evidence-level-prompt-injection-comparison) |
 | Reflection, process audit, and consistency | [`paper_eval/reflection.py`](paper_eval/reflection.py), [`paper_eval/audit_agent.py`](paper_eval/audit_agent.py), [`paper_eval/consistency.py`](paper_eval/consistency.py) | [Experiment catalog](../02-experiments/experiment-catalog.md) |
 | Reports, run traces, and reliability | [`paper_eval/report.py`](paper_eval/report.py), [`paper_eval/storage.py`](paper_eval/storage.py), [`paper_eval/reliability_diagnosis.py`](paper_eval/reliability_diagnosis.py) | [Data index](../03-data/README.md), [repeatability and reliability results](../02-experiments/robustness-experiments.md#two-run-repeatability-in-the-current-experiment-manuscript) |
 
 ## 11. Repository contents
 
-- [`paper_eval/`](paper_eval/): parsing, retrieval, reviewer orchestration, validation, scoring, reporting, and reliability modules.
+- [`paper_eval/`](paper_eval/): parsing, retrieval, agent orchestration, validation, scoring, reporting, and reliability modules.
 - [`rules/`](rules/): the operational rule profile and complete English scoring table.
 - [`configs/`](configs/): example runtime and retrieval settings.
-- [`prompts/`](prompts/): reviewer prompts.
+- [`prompts/`](prompts/): six role-specific prompts, one for each assessment agent.
 - [`scripts/`](scripts/): local checks and utilities.
 - [`requirements.txt`](requirements.txt): Python dependencies.
