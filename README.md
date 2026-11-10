@@ -34,7 +34,7 @@ The evaluation contains completed score records for **200 papers**. Archived rul
 
 ### 3.2 Journal score aggregation results
 
-The paper index records **73 named journal or source groups** for 194 papers; six papers have no source field and are shown separately in Table 5. The table summarizes every group by descending mean score, with sample size, mean and standard deviation, median, and range. The corpus includes **29 papers across eight journals** on the 2026 Financial Times 50 list, including 15 in *Management Science* and four in *Academy of Management Journal*. See the [journal aggregation section](02-experiments/README.md#2-journal-score-aggregation-results) and the [paper index](03-data/paper-index.csv).
+The 200 evaluated papers cover **73 journals and publication sources**. Table 5 presents their scores in descending order by mean score. See the [journal score aggregation](02-experiments/README.md#2-journal-score-aggregation-results).
 
 ### 3.3 Robustness results
 

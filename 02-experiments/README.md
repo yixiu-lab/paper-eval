@@ -25,9 +25,7 @@ Dimension maxima differ, so these means describe the observed score profile and 
 
 ## 2. Journal score aggregation results
 
-The outcome index records **73 named journal or source groups** for 194 papers; six papers have no source field and are shown separately in Table 5. The table sorts every group by observed mean total score and reports sample size, mean and standard deviation, median, and range. The repository's [paper index](../03-data/paper-index.csv) and [outcome table](../03-data/paper-outcomes.csv) provide the corresponding records. These group summaries describe the evaluated sample.
-
-The corpus includes **29 papers across eight journals** on the 2026 Financial Times 50 list, including 15 in *Management Science* and four in *Academy of Management Journal*. The paper provides descriptive comparisons for selected groups with larger sample sizes; the complete journal/source table remains the primary index.
+The 200 evaluated papers cover **73 journals and publication sources**. Table 5 presents their scores in descending order by mean score. See the [paper index](../03-data/paper-index.csv) for the journal/source records.
 
 ## 3. Robustness results
 
